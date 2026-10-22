@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+  index.html — Application « Rangement »
+  Version : V003
+  Horodatage : 2026-10-22 21:39 (heure de Paris)
+  Résumé : création — page d'entrée, deux volets, chargement ordonné des scripts classiques.
+-->
+<html lang="fr" data-panes="1">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#16222A">
+  <title>Rangement</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="app-name">Rangement</h1>
+    <span class="app-version" id="app-version" aria-label="Version de l'application"></span>
+  </header>
+  <div class="status-bar" id="status" role="status" hidden></div>
+
+  <main class="app-main">
+    <nav class="pane pane-tree" id="pane-tree" aria-label="Arborescence des emplacements"></nav>
+    <section class="pane pane-detail" id="pane-detail" aria-live="polite"></section>
+  </main>
+
+  <noscript><p class="status-bar">Cette application nécessite JavaScript.</p></noscript>
+
+  <!-- Ordre de chargement : voir ARCHITECTURE.md §5 -->
+  <script src="js/config.js"></script>
+  <script src="js/core/events.js"></script>
+  <script src="js/core/ids.js"></script>
+  <script src="js/core/models.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/store.js"></script>
+  <script src="js/features/demo.js"></script>
+  <script src="js/ui/dom.js"></script>
+  <script src="js/ui/router.js"></script>
+  <script src="js/ui/components/breadcrumb.js"></script>
+  <script src="js/ui/components/list.js"></script>
+  <script src="js/ui/layout.js"></script>
+  <script src="js/ui/views/browse.js"></script>
+  <script src="js/ui/views/location.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
