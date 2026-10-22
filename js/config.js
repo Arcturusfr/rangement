@@ -1,8 +1,8 @@
 /*
   js/config.js — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — espace de noms window.Rangement, version, constantes.
+  Version : V003a
+  Horodatage : 2026-10-23 00:27 (heure de Paris)
+  Résumé : version portée à V003a (diagnostic de démarrage) ; sinon inchangé.
 */
 (function () {
   'use strict';
@@ -21,7 +21,7 @@
 
   R.config = Object.freeze({
     appName: 'Rangement',
-    version: 'V003',
+    version: 'V003a',
     schemaVersion: 1,
     storageKey: 'rangement.data',
     twoPanesMinWidth: 720,
