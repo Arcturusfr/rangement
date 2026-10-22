@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
   index.html — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — page d'entrée, deux volets, chargement ordonné des scripts classiques.
+  Version : V003a
+  Horodatage : 2026-10-23 00:27 (heure de Paris)
+  Résumé : ajout d'un diagnostic de démarrage (erreurs et fichiers manquants affichés à l'écran).
 -->
 <html lang="fr" data-panes="1">
 <head>
@@ -14,12 +14,54 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <script>
+    /* Diagnostic de démarrage : affiche à l'écran les fichiers introuvables et les erreurs JS.
+       Volontairement en ligne : il doit fonctionner même si un fichier .js est absent. */
+    (function () {
+      var messages = [];
+      function render() {
+        var box = document.getElementById('boot-errors');
+        if (!box || !messages.length) { return; }
+        box.textContent = '';
+        var title = document.createElement('p');
+        title.textContent = 'L\u2019application n\u2019a pas pu démarrer correctement :';
+        box.appendChild(title);
+        messages.forEach(function (m) {
+          var p = document.createElement('p');
+          p.textContent = '\u2022 ' + m;
+          box.appendChild(p);
+        });
+        box.hidden = false;
+      }
+      function add(message) {
+        if (messages.indexOf(message) === -1) { messages.push(message); }
+        render();
+      }
+      window.__rangementBoot = { add: add };
+      window.addEventListener('error', function (e) {
+        var t = e.target;
+        if (t && t.tagName === 'SCRIPT') {
+          add('Fichier introuvable ou illisible : ' + t.getAttribute('src'));
+        } else if (t && t.tagName === 'LINK') {
+          add('Feuille de style introuvable : ' + t.getAttribute('href'));
+        } else {
+          var file = (e.filename || '').split('/').slice(-2).join('/');
+          add('Erreur : ' + e.message + (file ? ' (' + file + ', ligne ' + e.lineno + ')' : ''));
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function (e) {
+        add('Erreur : ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+      });
+      document.addEventListener('DOMContentLoaded', render);
+    })();
+  </script>
 </head>
 <body>
   <header class="app-header">
     <h1 class="app-name">Rangement</h1>
     <span class="app-version" id="app-version" aria-label="Version de l'application"></span>
   </header>
+  <div class="status-bar" id="boot-errors" role="alert" hidden></div>
   <div class="status-bar" id="status" role="status" hidden></div>
 
   <main class="app-main">
