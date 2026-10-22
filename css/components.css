@@ -1,0 +1,86 @@
+/*
+  css/components.css — Application « Rangement »
+  Version : V003
+  Horodatage : 2026-10-22 21:39 (heure de Paris)
+  Résumé : création — fil d'Ariane, arborescence, listes, bouton, états vides.
+*/
+
+/* Fil d'Ariane */
+.breadcrumb ol { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-bottom: var(--space-3); }
+.breadcrumb li { display: flex; align-items: center; }
+.breadcrumb li + li::before { content: "\203A"; margin-right: var(--space-1); color: var(--muted); }
+.breadcrumb a { display: inline-block; padding: var(--space-1) 0; }
+.breadcrumb [aria-current="page"] { font-weight: 600; }
+
+/* Titres du volet de détail */
+.detail-head { margin-bottom: var(--space-4); }
+.detail-title { font-size: 1.5rem; line-height: 1.2; }
+.detail-meta { color: var(--muted); margin-top: var(--space-1); }
+
+.section { margin-top: var(--space-5); }
+.section-title { font-size: 0.95rem; font-weight: 600; color: var(--muted); margin-bottom: var(--space-2); }
+
+.hint { color: var(--muted); }
+
+/* Arborescence (volet gauche) */
+.pane-title { font-size: 0.95rem; font-weight: 600; color: var(--muted); margin-bottom: var(--space-2); }
+
+.tree-root, .tree-link {
+  display: block;
+  min-height: 36px;
+  padding: 6px var(--space-2);
+  border-radius: var(--radius);
+  color: var(--ink);
+  text-decoration: none;
+}
+.tree-root { font-weight: 650; }
+.tree-link { border-left: 4px solid var(--kind-color, var(--line)); border-radius: 0 var(--radius) var(--radius) 0; margin: 2px 0; }
+.tree .tree { margin-left: var(--space-4); }
+.tree-root:hover, .tree-link:hover { background: var(--chip-bg); }
+[aria-current="page"].tree-root, [aria-current="page"].tree-link { background: var(--accent); color: var(--accent-ink); }
+
+/* Liste générique */
+.list-item {
+  margin-bottom: var(--space-2);
+  background: var(--surface);
+  border-left: 5px solid var(--kind-color, var(--line));
+  border-radius: 0 var(--radius) var(--radius) 0;
+  box-shadow: 0 0 0 1px var(--line);
+}
+.list-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: var(--tap);
+  padding: var(--space-3) var(--space-4);
+  color: var(--ink);
+  text-decoration: none;
+}
+a.list-row:hover { background: #F3F6F7; }
+.list-title { font-weight: 600; }
+.list-sub { color: var(--muted); font-size: 0.9rem; }
+.list-chips { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: 2px; }
+.chip { padding: 1px 10px; border-radius: 999px; background: var(--chip-bg); font-size: 0.85rem; }
+
+/* Bouton */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:hover { filter: brightness(1.1); }
+
+/* État vide */
+.empty { max-width: 40rem; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.empty h2 { font-size: 1.25rem; }
+.empty p { color: var(--muted); }
