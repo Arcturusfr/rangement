@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : barre d'actions, variantes de boutons, dialogues et formulaires.
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : fiche d'un objet (note, lien d'emplacement) ; retours à la ligne des noms longs.
 */
 
 /* Fil d'Ariane */
@@ -14,13 +14,17 @@
 
 /* Titres du volet de détail */
 .detail-head { margin-bottom: var(--space-4); }
-.detail-title { font-size: 1.5rem; line-height: 1.2; }
+.detail-title { font-size: 1.5rem; line-height: 1.2; overflow-wrap: anywhere; }
 .detail-meta { color: var(--muted); margin-top: var(--space-1); }
 
 .section { margin-top: var(--space-5); }
 .section-title { font-size: 0.95rem; font-weight: 600; color: var(--muted); margin-bottom: var(--space-2); }
 
 .hint { color: var(--muted); }
+
+/* Fiche d'un objet */
+.note-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.item-where { display: inline-block; padding: var(--space-2) 0; overflow-wrap: anywhere; }
 
 /* Arborescence (volet gauche) */
 .pane-title { font-size: 0.95rem; font-weight: 600; color: var(--muted); margin-bottom: var(--space-2); }
@@ -57,7 +61,7 @@
   text-decoration: none;
 }
 a.list-row:hover { background: #F3F6F7; }
-.list-title { font-weight: 600; }
+.list-title { font-weight: 600; overflow-wrap: anywhere; }
 .list-sub { color: var(--muted); font-size: 0.9rem; }
 .list-chips { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: 2px; }
 .chip { padding: 1px 10px; border-radius: 999px; background: var(--chip-bg); font-size: 0.85rem; }
