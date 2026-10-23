@@ -1,8 +1,8 @@
 /*
   js/core/models.js — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — fabrique et validation des Emplacements et des Objets.
+  Version : V004
+  Horodatage : 2026-10-23 11:34 (heure de Paris)
+  Résumé : ajout de normalizeText (comparaison sans casse ni accents).
 */
 (function () {
   'use strict';
@@ -12,6 +12,13 @@
   function nowIso() { return new Date().toISOString(); }
 
   function text(value) { return typeof value === 'string' ? value.trim() : ''; }
+
+  // Minuscules, sans accents, espaces rognés : sert aux comparaisons de noms et à la recherche.
+  function normalizeText(value) {
+    var t = typeof value === 'string' ? value : '';
+    if (t.normalize) { t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    return t.toLowerCase().trim();
+  }
 
   function kindLabel(kind) {
     var found = R.config.kinds.filter(function (k) { return k.id === kind; })[0];
@@ -124,6 +131,7 @@
     newItem: newItem,
     emptyData: emptyData,
     validateData: validateData,
+    normalizeText: normalizeText,
     kindLabel: kindLabel
   };
 })();
