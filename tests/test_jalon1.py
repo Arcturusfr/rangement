@@ -1,7 +1,7 @@
 # tests/test_jalon1.py — Application « Rangement »
-# Version : V003
-# Horodatage : 2026-10-22 21:39 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 1 (chargement, stockage, mise en page).
+# Version : V004
+# Horodatage : 2026-10-23 11:35 (heure de Paris)
+# Résumé : la version attendue est lue dans js/config.js (plus de valeur codée en dur).
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon1.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -16,7 +16,8 @@ from playwright.sync_api import sync_playwright
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")  # dossier optionnel pour des captures
-VERSION = "V003"
+import re
+VERSION = re.search(r"version: '([^']+)'", open(os.path.join(ROOT, "js", "config.js"), encoding="utf-8").read()).group(1)
 
 results = []
 
@@ -193,6 +194,36 @@ def scenario_models(browser, base):
     ctx.close()
 
 
+def scenario_diagnostic(browser, base):
+    """Un fichier absent ou une erreur JS doivent être signalés à l'écran, pas silencieux."""
+    ctx = browser.new_context(viewport={"width": 884, "height": 1100})
+    page = ctx.new_page()
+    page.route("**/js/core/store.js", lambda route: route.fulfill(status=404, content_type="text/html", body="Not found"))
+    page.goto(base)
+    page.wait_for_selector("#boot-errors:not([hidden])")
+    txt = page.inner_text("#boot-errors")
+    check("diagnostic | fichier absent signalé à l'écran", "js/core/store.js" in txt, txt)
+    check("diagnostic | l'en-tête reste affiché", page.inner_text("#app-version").strip() == VERSION)
+    ctx.close()
+
+    ctx = browser.new_context(viewport={"width": 884, "height": 1100})
+    page = ctx.new_page()
+    page.route("**/js/ui/views/location.js", lambda route: route.fulfill(status=200, content_type="text/javascript", body="throw new Error('panne simulée');"))
+    page.goto(base)
+    page.wait_for_selector("#boot-errors:not([hidden])")
+    txt = page.inner_text("#boot-errors")
+    check("diagnostic | erreur JS affichée", "panne simulée" in txt, txt)
+    check("diagnostic | module défaillant désigné", "js/ui/views/location.js" in txt, txt)
+    ctx.close()
+
+    errors = []
+    ctx, page = new_page(browser, 884, 1100, errors)
+    page.goto(base)
+    page.wait_for_selector("#pane-detail .empty")
+    check("diagnostic | aucun message en fonctionnement normal", not page.is_visible("#boot-errors"))
+    ctx.close()
+
+
 def main():
     server = start_server()
     base = "http://127.0.0.1:%d/index.html" % server.server_address[1]
@@ -205,6 +236,7 @@ def main():
         scenario_corrupt(browser, base)
         scenario_no_storage(browser, base)
         scenario_models(browser, base)
+        scenario_diagnostic(browser, base)
         browser.close()
 
     failed = [r for r in results if not r[1]]
