@@ -1,22 +1,28 @@
 /*
   js/ui/router.js — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — navigation par hash (#/ et #/l/<id>).
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : ajout de la route d'un objet (#/o/<id>) ; current() renvoie { locationId, itemId }.
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
-  var route = { locationId: null };
+  var route = { locationId: null, itemId: null };
 
   function parse(hash) {
-    var m = /^#\/l\/([^\/?#]+)/.exec(hash || '');
-    return { locationId: m ? decodeURIComponent(m[1]) : null };
+    var m = /^#\/([lo])\/([^\/?#]+)/.exec(hash || '');
+    if (!m) { return { locationId: null, itemId: null }; }
+    var id = decodeURIComponent(m[2]);
+    return m[1] === 'o' ? { locationId: null, itemId: id } : { locationId: id, itemId: null };
   }
 
   function href(locationId) {
     return locationId ? '#/l/' + encodeURIComponent(locationId) : '#/';
+  }
+
+  function itemHref(itemId) {
+    return '#/o/' + encodeURIComponent(itemId);
   }
 
   function navigate(locationId) {
@@ -35,5 +41,5 @@
     window.addEventListener('hashchange', onHashChange);
   }
 
-  R.ns('ui').router = { init: init, href: href, navigate: navigate, current: current };
+  R.ns('ui').router = { init: init, href: href, itemHref: itemHref, navigate: navigate, current: current };
 })();
