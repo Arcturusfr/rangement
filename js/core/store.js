@@ -1,8 +1,8 @@
 /*
   js/core/store.js — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — état en mémoire, index de lecture, mise à jour atomique et persistance.
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : ajout de getItem(id) (index des objets par identifiant) ; sinon inchangé.
 */
 (function () {
   'use strict';
@@ -12,6 +12,7 @@
   var byId = {};          // id → emplacement
   var childrenOf = {};    // parentId ('' = racine) → emplacements triés
   var itemsOf = {};       // locationId → objets triés
+  var itemById = {};      // id → objet
   var notices = [];       // messages à afficher après le démarrage
 
   function byName(a, b) {
@@ -33,12 +34,14 @@
     byId = {};
     childrenOf = {};
     itemsOf = {};
+    itemById = {};
     state.locations.forEach(function (l) {
       byId[l.id] = l;
       var key = l.parentId || '';
       (childrenOf[key] = childrenOf[key] || []).push(l);
     });
     state.items.forEach(function (it) {
+      itemById[it.id] = it;
       (itemsOf[it.locationId] = itemsOf[it.locationId] || []).push(it);
     });
     Object.keys(childrenOf).forEach(function (k) { childrenOf[k].sort(byName); });
@@ -108,6 +111,7 @@
 
   // Lecture
   function getLocation(id) { return byId[id] || null; }
+  function getItem(id) { return itemById[id] || null; }
   function locations() { return state.locations; }
   function items() { return state.items; }
   function childLocations(parentId) { return childrenOf[parentId || ''] || []; }
@@ -144,6 +148,7 @@
     locations: locations,
     items: items,
     getLocation: getLocation,
+    getItem: getItem,
     childLocations: childLocations,
     itemsIn: itemsIn,
     pathOf: pathOf,
