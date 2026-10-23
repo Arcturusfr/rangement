@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : liste des modules attendus complétée (jalon 2).
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : liste des modules attendus complétée (jalon 3).
 */
 (function () {
   'use strict';
@@ -18,6 +18,7 @@
     ['store', 'js/core/store.js'],
     ['features.demo', 'js/features/demo.js'],
     ['features.locations', 'js/features/locations.js'],
+    ['features.items', 'js/features/items.js'],
     ['ui.dom', 'js/ui/dom.js'],
     ['ui.router', 'js/ui/router.js'],
     ['ui.components.breadcrumb', 'js/ui/components/breadcrumb.js'],
@@ -27,6 +28,8 @@
     ['ui.layout', 'js/ui/layout.js'],
     ['ui.views.browse', 'js/ui/views/browse.js'],
     ['ui.views.locationActions', 'js/ui/views/location-actions.js'],
+    ['ui.views.itemActions', 'js/ui/views/item-actions.js'],
+    ['ui.views.item', 'js/ui/views/item.js'],
     ['ui.views.location', 'js/ui/views/location.js']
   ];
 
