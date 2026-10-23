@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — fil d'Ariane, arborescence, listes, bouton, états vides.
+  Version : V004
+  Horodatage : 2026-10-23 11:34 (heure de Paris)
+  Résumé : barre d'actions, variantes de boutons, dialogues et formulaires.
 */
 
 /* Fil d'Ariane */
@@ -79,8 +79,62 @@ a.list-row:hover { background: #F3F6F7; }
   cursor: pointer;
 }
 .button:hover { filter: brightness(1.1); }
+.button--secondary { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+.button--secondary:hover { background: var(--chip-bg); filter: none; }
+.button--danger { background: #B3261E; }
+.button--danger-outline { background: var(--surface); color: #B3261E; box-shadow: inset 0 0 0 1px #B3261E; }
+.button--danger-outline:hover { background: var(--danger-bg); filter: none; }
+
+/* Barre d'actions */
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.detail-head + .toolbar { margin-bottom: var(--space-2); }
 
 /* État vide */
 .empty { max-width: 40rem; display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
 .empty h2 { font-size: 1.25rem; }
 .empty p { color: var(--muted); }
+
+/* Dialogues */
+.dialog {
+  width: calc(100% - 2 * var(--space-4));
+  max-width: 30rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 8px 32px rgba(22, 34, 42, 0.35);
+}
+.dialog::backdrop { background: rgba(22, 34, 42, 0.55); }
+.dialog-body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.dialog-title { font-size: 1.15rem; line-height: 1.25; overflow-wrap: anywhere; }
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+/* Formulaires */
+.field { display: flex; flex-direction: column; gap: var(--space-1); }
+.field label { font-weight: 600; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  background: #FFFFFF;
+  color: var(--ink);
+  font: inherit;
+}
+.field textarea { resize: vertical; }
+.field-hint { color: var(--muted); font-size: 0.9rem; }
+.form-error {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
