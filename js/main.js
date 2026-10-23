@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V003a
-  Horodatage : 2026-10-23 00:27 (heure de Paris)
-  Résumé : contrôle des modules chargés avant démarrage ; erreurs affichées à l'écran.
+  Version : V004
+  Horodatage : 2026-10-23 11:34 (heure de Paris)
+  Résumé : liste des modules attendus complétée (jalon 2).
 */
 (function () {
   'use strict';
@@ -17,12 +17,16 @@
     ['storage', 'js/core/storage.js'],
     ['store', 'js/core/store.js'],
     ['features.demo', 'js/features/demo.js'],
+    ['features.locations', 'js/features/locations.js'],
     ['ui.dom', 'js/ui/dom.js'],
     ['ui.router', 'js/ui/router.js'],
     ['ui.components.breadcrumb', 'js/ui/components/breadcrumb.js'],
     ['ui.components.list', 'js/ui/components/list.js'],
+    ['ui.components.form', 'js/ui/components/form.js'],
+    ['ui.components.dialog', 'js/ui/components/dialog.js'],
     ['ui.layout', 'js/ui/layout.js'],
     ['ui.views.browse', 'js/ui/views/browse.js'],
+    ['ui.views.locationActions', 'js/ui/views/location-actions.js'],
     ['ui.views.location', 'js/ui/views/location.js']
   ];
 
