@@ -1,8 +1,8 @@
 /*
   js/config.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : version portée à V004 (jalon 2) ; sinon inchangé.
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : version portée à V005 (jalon 3) ; sinon inchangé.
 */
 (function () {
   'use strict';
@@ -21,7 +21,7 @@
 
   R.config = Object.freeze({
     appName: 'Rangement',
-    version: 'V004',
+    version: 'V005',
     schemaVersion: 1,
     storageKey: 'rangement.data',
     twoPanesMinWidth: 720,
