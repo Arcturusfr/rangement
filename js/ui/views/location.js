@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — volet principal : contenu d'un emplacement (lecture seule).
+  Version : V004
+  Horodatage : 2026-10-23 11:34 (heure de Paris)
+  Résumé : actions sur les emplacements (ajouter, modifier, déplacer, supprimer) ; vrai écran de démarrage.
 */
 (function () {
   'use strict';
@@ -27,7 +27,7 @@
         title: loc.name,
         href: R.ui.router.href(loc.id),
         kind: loc.kind,
-        subtitle: loc.note ? label + ' — ' + loc.note : label,
+        subtitle: loc.note ? label + ' \u2014 ' + loc.note : label,
         chips: countChips(loc.id)
       };
     });
@@ -45,15 +45,32 @@
     return el('section', { class: 'section' }, [el('h3', { class: 'section-title' }, [title]), listNode]);
   }
 
-  function renderEmptyApp() {
+  function btn(label, variant, onclick) {
+    return el('button', { class: 'button' + (variant ? ' button--' + variant : ''), type: 'button', onclick: onclick }, [label]);
+  }
+
+  function toolbar(loc) {
+    var A = R.ui.views.locationActions;
+    var buttons = loc
+      ? [
+          btn('Ajouter un emplacement ici', '', function () { A.openCreate(loc.id); }),
+          btn('Modifier', 'secondary', function () { A.openEdit(loc.id); }),
+          btn('Déplacer', 'secondary', function () { A.openMove(loc.id); }),
+          btn('Supprimer', 'danger-outline', function () { A.askDelete(loc.id); })
+        ]
+      : [btn('Ajouter une pièce', '', function () { A.openCreate(null); })];
+    return el('div', { class: 'toolbar', role: 'group', 'aria-label': 'Actions' }, buttons);
+  }
+
+  function renderStart() {
+    var A = R.ui.views.locationActions;
     return el('div', { class: 'empty' }, [
-      el('h2', null, ['Aucun emplacement pour l\u2019instant']),
-      el('p', null, ['Chargez les données de démonstration pour explorer l\u2019application : quatre rangements d\u2019exemple (chambre, séjour, entrée).']),
-      el('button', {
-        class: 'button',
-        type: 'button',
-        onclick: function () { R.features.demo.load(); }
-      }, ['Charger les données de démonstration'])
+      el('h2', null, ['Bienvenue dans Rangement']),
+      el('p', null, ['Commencez par créer une pièce (par exemple \u00ab Séjour \u00bb), puis ajoutez-y des meubles, des tiroirs ou des boîtes.']),
+      el('div', { class: 'toolbar' }, [
+        btn('Créer ma première pièce', '', function () { A.openCreate(null); }),
+        btn('Charger les données de démonstration', 'secondary', function () { R.features.demo.load(); })
+      ])
     ]);
   }
 
@@ -69,7 +86,7 @@
     R.ui.dom.clear(container);
 
     if (!R.store.locations().length) {
-      container.appendChild(renderEmptyApp());
+      container.appendChild(renderStart());
       return;
     }
 
@@ -82,16 +99,16 @@
 
     if (loc) { container.appendChild(R.ui.components.breadcrumb.create(R.store.pathOf(id))); }
 
-    var parentId = loc ? loc.id : null;
     var heading = [el('h2', { class: 'detail-title' }, [loc ? loc.name : 'Logement'])];
     if (loc) {
       heading.push(el('p', { class: 'detail-meta' }, [
-        R.models.kindLabel(loc.kind) + (loc.note ? ' — ' + loc.note : '')
+        R.models.kindLabel(loc.kind) + (loc.note ? ' \u2014 ' + loc.note : '')
       ]));
     }
     container.appendChild(el('header', { class: 'detail-head', 'data-kind': loc ? loc.kind : null }, heading));
+    container.appendChild(toolbar(loc));
 
-    var kids = locationRows(parentId);
+    var kids = locationRows(loc ? loc.id : null);
     var items = loc ? itemRows(loc.id) : [];
 
     if (kids.length) {
