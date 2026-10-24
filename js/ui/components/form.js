@@ -1,8 +1,8 @@
 /*
   js/ui/components/form.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : création — champs de formulaire (texte, zone de texte, liste) et lecture des valeurs.
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : champ texte : attribut inputmode facultatif (clavier numérique pour la quantité).
 */
 (function () {
   'use strict';
@@ -10,7 +10,7 @@
   var R = window.Rangement;
   var el = R.ui.dom.el;
 
-  // def : { name, label, type?: 'text'|'textarea'|'select', value?, options?: [{value,label}], hint?, maxlength? }
+  // def : { name, label, type?: 'text'|'textarea'|'select', value?, options?: [{value,label}], hint?, maxlength?, inputmode? }
   // Renvoie { name, input, node }.
   function field(def, id) {
     var input;
@@ -29,6 +29,7 @@
         type: 'text',
         autocomplete: 'off',
         autocapitalize: 'sentences',
+        inputmode: def.inputmode || null,
         maxlength: def.maxlength || null
       });
       input.value = def.value || '';
