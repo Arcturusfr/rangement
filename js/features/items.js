@@ -1,15 +1,17 @@
 /*
   js/features/items.js — Application « Rangement »
-  Version : V005
-  Horodatage : 2026-10-23 23:50 (heure de Paris)
-  Résumé : création — créer, modifier, déplacer et supprimer des objets (quantité, mots-clés, note).
+  Version : V006
+  Horodatage : 2026-10-24 13:10 (heure de Paris)
+  Résumé : noms d'objets uniques par emplacement ; quantité entière (0 accepté).
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
 
-  var QUANTITY_ERROR = 'La quantité doit être un nombre positif ou nul (par exemple 3 ou 2,5).';
+  var QUANTITY_ERROR = 'La quantité doit être un nombre entier positif ou nul (par exemple 3, ou 0 si l\u2019objet est épuisé).';
+  var CLASH_ERROR = 'Un objet portant ce nom existe déjà dans cet emplacement. Utilisez la quantité, ou numérotez-les (par exemple \u00ab sac à dos 1 \u00bb et \u00ab sac à dos 2 \u00bb).';
+  var CLASH_MOVE_ERROR = 'Un objet portant ce nom existe déjà dans l\u2019emplacement de destination.';
 
   function fail(error) { return { ok: false, error: error }; }
 
@@ -17,14 +19,22 @@
 
   function now() { return new Date().toISOString(); }
 
-  // Quantité saisie : vide = 1 ; virgule ou point décimal acceptés. Renvoie { ok, value? }.
+  // Un objet de même nom (casse et accents ignorés) dans cet emplacement ?
+  function nameClash(locationId, name, exceptId) {
+    var wanted = R.models.normalizeText(name);
+    return R.store.itemsIn(locationId).some(function (it) {
+      return it.id !== exceptId && R.models.normalizeText(it.name) === wanted;
+    });
+  }
+
+  // Quantité saisie : vide = 1 ; nombre entier uniquement (0 accepté). Renvoie { ok, value? }.
   function parseQuantity(raw) {
     if (typeof raw === 'number') {
-      return (isFinite(raw) && raw >= 0) ? { ok: true, value: raw } : { ok: false };
+      return (isFinite(raw) && raw >= 0 && Math.floor(raw) === raw) ? { ok: true, value: raw } : { ok: false };
     }
-    var t = typeof raw === 'string' ? raw.trim().replace(',', '.') : '';
+    var t = typeof raw === 'string' ? raw.trim() : '';
     if (t === '') { return { ok: true, value: 1 }; }
-    if (!/^\d+(\.\d+)?$/.test(t)) { return { ok: false }; }
+    if (!/^\d+$/.test(t)) { return { ok: false }; }
     var q = Number(t);
     if (!isFinite(q) || q > 1000000) { return { ok: false }; }
     return { ok: true, value: q };
@@ -45,7 +55,7 @@
     return out;
   }
 
-  // 2.5 → « 2,5 »
+  // Les anciennes quantités décimales éventuelles s'affichent avec une virgule (2,5).
   function formatQuantity(q) { return String(q).replace('.', ','); }
 
   // fields : { name, quantity, tags, note, locationId }
@@ -56,6 +66,7 @@
     if (!f.locationId || !R.store.getLocation(f.locationId)) { return fail('L\u2019emplacement est introuvable.'); }
     var q = parseQuantity(f.quantity);
     if (!q.ok) { return fail(QUANTITY_ERROR); }
+    if (nameClash(f.locationId, name, null)) { return fail(CLASH_ERROR); }
 
     var item = R.models.newItem({
       name: name,
@@ -76,6 +87,7 @@
 
     var name = f.name !== undefined ? cleanText(f.name) : item.name;
     if (!name) { return fail('Le nom est obligatoire.'); }
+    if (nameClash(item.locationId, name, id)) { return fail(CLASH_ERROR); }
 
     var quantity = item.quantity;
     if (f.quantity !== undefined) {
@@ -103,6 +115,7 @@
     if (!item) { return fail('Cet objet n\u2019existe plus.'); }
     if (!locationId || !R.store.getLocation(locationId)) { return fail('Le nouvel emplacement est introuvable.'); }
     if (item.locationId === locationId) { return { ok: true, unchanged: true }; }
+    if (nameClash(locationId, item.name, id)) { return fail(CLASH_MOVE_ERROR); }
 
     var res = R.store.update(function (d) {
       var target = d.items.filter(function (it) { return it.id === id; })[0];
