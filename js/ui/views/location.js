@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : affichage de la recherche (#/s/<texte>) ; objets de quantité nulle grisés.
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : écran Réglages (#/r) accessible même sans données ; bouton « Importer une sauvegarde » sur l'écran de démarrage.
 */
 (function () {
   'use strict';
@@ -76,7 +76,8 @@
       el('p', null, ['Commencez par créer une pièce (par exemple \u00ab Séjour \u00bb), puis ajoutez-y des meubles, des tiroirs ou des boîtes.']),
       el('div', { class: 'toolbar' }, [
         btn('Créer ma première pièce', '', function () { A.openCreate(null); }),
-        btn('Charger les données de démonstration', 'secondary', function () { R.features.demo.load(); })
+        btn('Charger les données de démonstration', 'secondary', function () { R.features.demo.load(); }),
+        el('a', { class: 'button button--secondary', href: R.ui.router.settingsHref() }, ['Importer une sauvegarde'])
       ])
     ]);
   }
@@ -92,12 +93,17 @@
   function render() {
     R.ui.dom.clear(container);
 
+    var route = R.ui.router.current();
+
+    if (route.settings) {
+      container.appendChild(R.ui.views.settings.create());
+      return;
+    }
+
     if (!R.store.locations().length) {
       container.appendChild(renderStart());
       return;
     }
-
-    var route = R.ui.router.current();
 
     if (route.query !== null) {
       container.appendChild(R.ui.views.search.create(route.query));
@@ -148,6 +154,7 @@
     container = node;
     render();
     R.events.on('store:changed', render);
+    R.events.on('backup:changed', render);
     R.events.on('route:changed', function () { render(); container.scrollTop = 0; });
   }
 

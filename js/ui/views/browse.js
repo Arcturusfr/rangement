@@ -1,8 +1,8 @@
 /*
   js/ui/views/browse.js — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : aucun surlignage dans l'arborescence pendant une recherche.
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : aucun surlignage dans l'arborescence pendant une recherche ni sur l'écran Réglages.
 */
 (function () {
   'use strict';
@@ -39,7 +39,8 @@
 
   function render() {
     var currentId = highlightedId();
-    var searching = R.ui.router.current().query !== null;
+    var r = R.ui.router.current();
+    var searching = r.query !== null || r.settings;
     R.ui.dom.clear(container);
     container.appendChild(el('h2', { class: 'pane-title' }, ['Arborescence']));
     container.appendChild(el('a', {
