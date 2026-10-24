@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : modules de recherche ajoutés ; champ de recherche monté (jalon 4).
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : module de sauvegarde et écran Réglages ajoutés ; lien « Réglages » de l'en-tête (jalon 5).
 */
 (function () {
   'use strict';
@@ -20,6 +20,7 @@
     ['features.locations', 'js/features/locations.js'],
     ['features.items', 'js/features/items.js'],
     ['features.search', 'js/features/search.js'],
+    ['features.backup', 'js/features/backup.js'],
     ['ui.dom', 'js/ui/dom.js'],
     ['ui.router', 'js/ui/router.js'],
     ['ui.components.breadcrumb', 'js/ui/components/breadcrumb.js'],
@@ -33,6 +34,7 @@
     ['ui.views.item', 'js/ui/views/item.js'],
     ['ui.views.search', 'js/ui/views/search.js'],
     ['ui.views.searchbar', 'js/ui/views/searchbar.js'],
+    ['ui.views.settings', 'js/ui/views/settings.js'],
     ['ui.views.location', 'js/ui/views/location.js']
   ];
 
@@ -71,12 +73,21 @@
     }
 
     R.store.init();
+    R.features.backup.init();
     R.ui.router.init();
     R.ui.layout.init();
 
     R.ui.views.searchbar.mount(document.getElementById('searchbar'));
     R.ui.views.browse.mount(document.getElementById('pane-tree'));
     R.ui.views.location.mount(document.getElementById('pane-detail'));
+
+    var settingsLink = document.getElementById('app-settings');
+    function markSettingsLink() {
+      if (R.ui.router.current().settings) { settingsLink.setAttribute('aria-current', 'page'); }
+      else { settingsLink.removeAttribute('aria-current'); }
+    }
+    R.events.on('route:changed', markSettingsLink);
+    markSettingsLink();
 
     var messages = R.store.notices();
     showStatus(messages);
