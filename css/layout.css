@@ -1,8 +1,8 @@
 /*
   css/layout.css — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — en-tête, barre d'état, 1 volet / 2 volets.
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : lien « Réglages » dans l'en-tête ; sinon inchangé.
 */
 html, body { height: 100%; }
 
@@ -15,7 +15,7 @@ body {
 
 .app-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
   padding: calc(var(--space-3) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-3);
@@ -24,6 +24,20 @@ body {
 }
 
 .app-name { font-size: 1.25rem; font-weight: 650; letter-spacing: 0.01em; }
+
+.app-header-end { display: flex; align-items: center; gap: var(--space-3); }
+
+.app-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  margin: calc(-1 * var(--space-2)) 0;
+  padding: 0 var(--space-2);
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+.app-link[aria-current="page"] { font-weight: 650; text-decoration-thickness: 3px; }
+.app-link:focus-visible { outline-color: #FFFFFF; }
 
 .app-version {
   font-size: 0.85rem;
