@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
   index.html — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : champ de recherche sous l'en-tête ; chargement des scripts de recherche (jalon 4).
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : lien « Réglages » dans l'en-tête ; chargement des scripts de sauvegarde (jalon 5).
 -->
 <html lang="fr" data-panes="1">
 <head>
@@ -59,7 +59,10 @@
 <body>
   <header class="app-header">
     <h1 class="app-name">Rangement</h1>
-    <span class="app-version" id="app-version" aria-label="Version de l'application"></span>
+    <div class="app-header-end">
+      <a class="app-link" id="app-settings" href="#/r">Réglages</a>
+      <span class="app-version" id="app-version" aria-label="Version de l'application"></span>
+    </div>
   </header>
   <div class="status-bar" id="boot-errors" role="alert" hidden></div>
   <div class="status-bar" id="status" role="status" hidden></div>
@@ -83,6 +86,7 @@
   <script src="js/features/locations.js"></script>
   <script src="js/features/items.js"></script>
   <script src="js/features/search.js"></script>
+  <script src="js/features/backup.js"></script>
   <script src="js/ui/dom.js"></script>
   <script src="js/ui/router.js"></script>
   <script src="js/ui/components/breadcrumb.js"></script>
@@ -96,6 +100,7 @@
   <script src="js/ui/views/item.js"></script>
   <script src="js/ui/views/search.js"></script>
   <script src="js/ui/views/searchbar.js"></script>
+  <script src="js/ui/views/settings.js"></script>
   <script src="js/ui/views/location.js"></script>
   <script src="js/main.js"></script>
 </body>
