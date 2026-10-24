@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : actions sur les emplacements (ajouter, modifier, déplacer, supprimer) ; vrai écran de démarrage.
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : objets cliquables (fiche), bouton « Ajouter un objet ici », affichage de la fiche d'un objet (#/o/<id>).
 */
 (function () {
   'use strict';
@@ -36,8 +36,13 @@
   function itemRows(locationId) {
     return R.store.itemsIn(locationId).map(function (it) {
       var chips = [];
-      if (it.quantity !== 1) { chips.push('\u00d7 ' + it.quantity); }
-      return { title: it.name, subtitle: it.note, chips: chips.concat(it.tags) };
+      if (it.quantity !== 1) { chips.push('\u00d7 ' + R.features.items.formatQuantity(it.quantity)); }
+      return {
+        title: it.name,
+        href: R.ui.router.itemHref(it.id),
+        subtitle: it.note,
+        chips: chips.concat(it.tags)
+      };
     });
   }
 
@@ -53,6 +58,7 @@
     var A = R.ui.views.locationActions;
     var buttons = loc
       ? [
+          btn('Ajouter un objet ici', '', function () { R.ui.views.itemActions.openCreate(loc.id); }),
           btn('Ajouter un emplacement ici', '', function () { A.openCreate(loc.id); }),
           btn('Modifier', 'secondary', function () { A.openEdit(loc.id); }),
           btn('Déplacer', 'secondary', function () { A.openMove(loc.id); }),
@@ -74,10 +80,10 @@
     ]);
   }
 
-  function renderNotFound() {
+  function renderNotFound(title, message) {
     return el('div', { class: 'empty' }, [
-      el('h2', null, ['Emplacement introuvable']),
-      el('p', null, ['Cet emplacement n\u2019existe plus ou le lien est incorrect.']),
+      el('h2', null, [title]),
+      el('p', null, [message]),
       el('a', { class: 'button', href: R.ui.router.href(null) }, ['Retour au logement'])
     ]);
   }
@@ -90,10 +96,20 @@
       return;
     }
 
-    var id = R.ui.router.current().locationId;
+    var route = R.ui.router.current();
+
+    if (route.itemId) {
+      var item = R.store.getItem(route.itemId);
+      container.appendChild(item
+        ? R.ui.views.item.create(item)
+        : renderNotFound('Objet introuvable', 'Cet objet n\u2019existe plus ou le lien est incorrect.'));
+      return;
+    }
+
+    var id = route.locationId;
     var loc = id ? R.store.getLocation(id) : null;
     if (id && !loc) {
-      container.appendChild(renderNotFound());
+      container.appendChild(renderNotFound('Emplacement introuvable', 'Cet emplacement n\u2019existe plus ou le lien est incorrect.'));
       return;
     }
 

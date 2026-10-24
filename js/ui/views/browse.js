@@ -1,8 +1,8 @@
 /*
   js/ui/views/browse.js — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — volet gauche : arborescence complète des emplacements.
+  Version : V005
+  Horodatage : 2026-10-23 23:50 (heure de Paris)
+  Résumé : quand une fiche d'objet est affichée, son emplacement est surligné dans l'arborescence.
 */
 (function () {
   'use strict';
@@ -10,6 +10,16 @@
   var R = window.Rangement;
   var el = R.ui.dom.el;
   var container = null;
+
+  // Emplacement à surligner : celui de la route, ou celui de l'objet affiché.
+  function highlightedId() {
+    var route = R.ui.router.current();
+    if (route.itemId) {
+      var item = R.store.getItem(route.itemId);
+      return item ? item.locationId : null;
+    }
+    return route.locationId;
+  }
 
   function renderLevel(parentId, currentId) {
     var kids = R.store.childLocations(parentId);
@@ -28,7 +38,7 @@
   }
 
   function render() {
-    var currentId = R.ui.router.current().locationId;
+    var currentId = highlightedId();
     R.ui.dom.clear(container);
     container.appendChild(el('h2', { class: 'pane-title' }, ['Arborescence']));
     container.appendChild(el('a', {
