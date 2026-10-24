@@ -1,28 +1,29 @@
 /*
   js/ui/router.js — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : route de recherche (#/s/<texte>) ; current() renvoie aussi { query }.
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : route des réglages (#/r) ; current() renvoie aussi { settings }.
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
-  var route = { locationId: null, itemId: null, query: null };
+  var route = { locationId: null, itemId: null, query: null, settings: false };
   var lastHash = null;   // dernière adresse traitée (évite de traiter deux fois la même)
 
   function parse(hash) {
-    var none = { locationId: null, itemId: null, query: null };
-    var m = /^#\/([los])(?:\/([^\/?#]*))?(?=[\/?#]|$)/.exec(hash || '');
+    var none = { locationId: null, itemId: null, query: null, settings: false };
+    var m = /^#\/([losr])(?:\/([^\/?#]*))?(?=[\/?#]|$)/.exec(hash || '');
     if (!m) { return none; }
+    if (m[1] === 'r') { return { locationId: null, itemId: null, query: null, settings: true }; }
     var raw = m[2] || '';
     var id;
     try { id = decodeURIComponent(raw); } catch (err) { id = raw; }
-    if (m[1] === 's') { return { locationId: null, itemId: null, query: id }; }
+    if (m[1] === 's') { return { locationId: null, itemId: null, query: id, settings: false }; }
     if (!id) { return none; }
     return m[1] === 'o'
-      ? { locationId: null, itemId: id, query: null }
-      : { locationId: id, itemId: null, query: null };
+      ? { locationId: null, itemId: id, query: null, settings: false }
+      : { locationId: id, itemId: null, query: null, settings: false };
   }
 
   function href(locationId) {
@@ -32,6 +33,8 @@
   function itemHref(itemId) {
     return '#/o/' + encodeURIComponent(itemId);
   }
+
+  function settingsHref() { return '#/r'; }
 
   function searchHref(query) {
     return '#/s/' + encodeURIComponent(query || '');
@@ -69,7 +72,7 @@
   }
 
   R.ns('ui').router = {
-    init: init, href: href, itemHref: itemHref, searchHref: searchHref,
+    init: init, href: href, itemHref: itemHref, searchHref: searchHref, settingsHref: settingsHref,
     navigate: navigate, search: search, current: current
   };
 })();
