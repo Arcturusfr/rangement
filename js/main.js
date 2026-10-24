@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V005
-  Horodatage : 2026-10-23 23:50 (heure de Paris)
-  Résumé : liste des modules attendus complétée (jalon 3).
+  Version : V006
+  Horodatage : 2026-10-24 13:10 (heure de Paris)
+  Résumé : modules de recherche ajoutés ; champ de recherche monté (jalon 4).
 */
 (function () {
   'use strict';
@@ -19,6 +19,7 @@
     ['features.demo', 'js/features/demo.js'],
     ['features.locations', 'js/features/locations.js'],
     ['features.items', 'js/features/items.js'],
+    ['features.search', 'js/features/search.js'],
     ['ui.dom', 'js/ui/dom.js'],
     ['ui.router', 'js/ui/router.js'],
     ['ui.components.breadcrumb', 'js/ui/components/breadcrumb.js'],
@@ -30,6 +31,8 @@
     ['ui.views.locationActions', 'js/ui/views/location-actions.js'],
     ['ui.views.itemActions', 'js/ui/views/item-actions.js'],
     ['ui.views.item', 'js/ui/views/item.js'],
+    ['ui.views.search', 'js/ui/views/search.js'],
+    ['ui.views.searchbar', 'js/ui/views/searchbar.js'],
     ['ui.views.location', 'js/ui/views/location.js']
   ];
 
@@ -71,6 +74,7 @@
     R.ui.router.init();
     R.ui.layout.init();
 
+    R.ui.views.searchbar.mount(document.getElementById('searchbar'));
     R.ui.views.browse.mount(document.getElementById('pane-tree'));
     R.ui.views.location.mount(document.getElementById('pane-detail'));
 
