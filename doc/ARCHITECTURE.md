@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:37 (heure de Paris)
-  Résumé : jalon 2 livré — gestion des emplacements : nouveaux fichiers (locations, form, dialog, location-actions), API, tests.
+  Version : V006
+  Horodatage : 2026-10-24 13:10 (heure de Paris)
+  Résumé : jalon 4 livré — recherche (search.js, searchbar.js, route #/s/), règles des objets précisées (noms uniques, quantité entière, 0 grisé).
 -->
 
-# ARCHITECTURE — Rangement `V004`
+# ARCHITECTURE — Rangement `V006`
 
-> Dernière mise à jour : 23/10/2026 11:37 (Paris) — **V004**
-> Statut : **jalon 2 livré** (création, modification, déplacement, suppression d'emplacements). Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 24/10/2026 13:10 (Paris) — **V006**
+> Statut : **jalon 4 livré** (recherche d'objets et d'emplacements ; champ de recherche permanent). Le jalon 3 (objets) est validé. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -35,7 +35,9 @@
 ├── ToDo_Utilisateur.md        Tâches à la charge de l'utilisateur
 ├── tests/
 │   ├── test_jalon1.py         Tests Playwright/Chromium : squelette, stockage, mise en page, diagnostic
-│   └── test_jalon2.py         Tests Playwright/Chromium : gestion des emplacements
+│   ├── test_jalon2.py         Tests Playwright/Chromium : gestion des emplacements
+│   ├── test_jalon3.py         Tests Playwright/Chromium : gestion des objets
+│   └── test_jalon4.py         Tests Playwright/Chromium : recherche
 ├── css/
 │   ├── base.css               Variables (couleurs, espacements), reset, typographie
 │   ├── layout.css             Mise en page : 1 volet / 2 volets, en-tête, navigation
@@ -51,8 +53,8 @@
     ├── features/
     │   ├── demo.js            Données de démonstration (provisoire)
     │   ├── locations.js       Créer/modifier/déplacer/supprimer des emplacements, avec garde-fous
-    │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (à venir, jalon 3)
-    │   ├── search.js          Recherche (nom, tags, chemin complet) (à venir, jalon 4)
+    │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (quantité, mots-clés, note)
+    │   ├── search.js          Recherche d'objets et d'emplacements (nom, mots-clés, note, chemin), classée par pertinence
     │   └── backup.js          Export / import JSON (à venir, jalon 5)
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
@@ -64,11 +66,13 @@
     │   │   ├── form.js        Champs de formulaire (texte, zone de texte, liste) et lecture des valeurs
     │   │   └── dialog.js      Dialogues : formulaire, confirmation, message
     │   └── views/
-    │       ├── home.js        Accueil : recherche + accès rapide (à venir, jalon 4)
     │       ├── browse.js      Volet gauche : arborescence des emplacements
     │       ├── location-actions.js  Dialogues d'action : ajouter, modifier, déplacer, supprimer un emplacement
-    │       ├── location.js    Volet principal : contenu d'un emplacement + barre d'actions
-    │       ├── item.js        Fiche d'un objet (à venir, jalon 3)
+    │       ├── item-actions.js  Dialogues d'action : ajouter, modifier, déplacer, supprimer un objet
+    │       ├── location.js    Volet principal : contenu d'un emplacement + barre d'actions ; affiche aussi la fiche d'un objet
+    │       ├── item.js        Fiche d'un objet (emplacement, quantité, mots-clés, note, actions)
+    │       ├── searchbar.js   Champ de recherche permanent sous l'en-tête (synchronisé avec la route)
+    │       ├── search.js      Résultats de recherche : objets puis emplacements, avec chemin complet
     │       └── settings.js    Export/import, version, réglages PWA (à venir, jalons 5-6)
     ├── pwa.js                 Enregistrement du service worker + gestion des mises à jour (à venir, jalon 6)
     └── main.js                Démarrage : init stockage, routeur, premier rendu
@@ -109,7 +113,7 @@ Le logement est une **arborescence d'emplacements** de profondeur libre, dans la
 ```json
 {
   "schemaVersion": 1,
-  "appVersion": "V004",
+  "appVersion": "V006",
   "locations": [],
   "items": []
 }
@@ -138,20 +142,20 @@ Action utilisateur → ui/views → features/* → core/store → core/storage (
 
 ## 5. Ordre de chargement des scripts (`index.html`)
 
-Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser que ce qui est chargé avant lui. Ordre effectif en V004 :
+Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser que ce qui est chargé avant lui. Ordre effectif en V006 :
 
 1. `js/config.js` (crée `window.Rangement`, l'aide `Rangement.ns('a.b')` et `Rangement.config`)
 2. `js/core/events.js`, `ids.js`, `models.js`, `storage.js`, `store.js`
-3. `js/features/demo.js`, `locations.js` *(puis, aux jalons suivants : `items.js`, `search.js`, `backup.js`)*
+3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js` *(puis, aux jalons suivants : `backup.js`)*
 4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`
 5. `js/ui/layout.js`
-6. `js/ui/views/browse.js`, `location-actions.js`, `location.js` *(puis les autres vues)*
+6. `js/ui/views/browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `location.js` *(puis les autres vues)*
 7. `js/pwa.js` *(jalon 6)*
 8. `js/main.js` (dernier : démarre l'application)
 
 Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui lit `window.Rangement`, ajoute son module et n'expose rien d'autre. Les appels entre modules d'un même niveau (ex. un composant qui appelle le routeur) se font à l'exécution, pas au chargement, ce qui évite les dépendances d'ordre fragiles.
 
-### API principale (V004)
+### API principale (V006)
 
 | Module | Rôle |
 |---|---|
@@ -159,10 +163,16 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.store.update(fn)` | Applique `fn` à une **copie** des données ; la copie n'est adoptée (et sauvegardée) que si elle reste cohérente. Renvoie `{ ok, errors }` |
 | `Rangement.store.replaceAll(data)` | Remplace tout le contenu (import, démo) après validation |
 | `Rangement.store.childLocations / itemsIn / pathOf / countIn` | Lecture : enfants, objets, chemin complet, comptage récursif |
+| `Rangement.store.getLocation(id) / getItem(id)` | Lecture d'un emplacement / d'un objet par identifiant (`null` si inconnu) |
 | `Rangement.models.validateData(data)` | Contrôle : ids uniques, parents existants, pas de boucle, objets rattachés à un emplacement valide |
 | `Rangement.models.normalizeText(texte)` | Minuscules sans accents ; sert aux comparaisons de noms (et à la recherche, jalon 4) |
 | `Rangement.features.locations.create / update / move / remove` | Gestion des emplacements. Renvoient `{ ok }` ou `{ ok: false, error }` (message en français, affiché tel quel) |
 | `Rangement.features.locations.parentChoices(id)` | Destinations possibles pour un déplacement (tout sauf l'emplacement et son contenu) |
+| `Rangement.features.items.create / update / move / remove` | Gestion des objets. Renvoient `{ ok }` ou `{ ok: false, error }` (message en français). `update` laisse inchangé tout champ absent (`undefined`) |
+| `Rangement.features.items.locationChoices()` | Emplacements où ranger un objet, avec chemin complet (`Séjour › Meuble living`) |
+| `Rangement.features.items.parseQuantity / parseTags / formatQuantity` | Lecture de la saisie : quantité (vide = 1, nombre entier, 0 accepté), mots-clés séparés par des virgules |
+| `Rangement.features.search.search(texte)` | Recherche : renvoie `{ terms, items: [{ item, path, score }], locations: [{ location, path, score }] }`, triés par pertinence puis par nom |
+| `Rangement.ui.router` | Routes : `#/` (logement), `#/l/<id>` (emplacement), `#/o/<id>` (fiche d'un objet), `#/s/<texte>` (recherche). `current()` renvoie `{ locationId, itemId, query }` (`query` vaut `null` hors recherche) ; `href(id)`, `itemHref(id)`, `searchHref(texte)`, `navigate(id)`, `search(texte)` |
 | `Rangement.ui.components.dialog.form / confirm / alert` | Dialogues modaux (`<dialog>`), retour du focus à la fermeture |
 | `Rangement.events` | `store:changed`, `store:error`, `route:changed`, `layout:changed` |
 
@@ -176,9 +186,28 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - La **suppression est refusée** tant que l'emplacement contient des emplacements ou des objets ; sinon une confirmation est demandée.
 - À la création : type **Pièce** par défaut à la racine, **Autre** par défaut ailleurs.
 
+### Règles de gestion des objets (V005, précisées en V006)
+
+- Un objet est **toujours rangé dans un emplacement** (jamais directement à la racine du logement) : le bouton « Ajouter un objet ici » n'existe que dans un emplacement.
+- Le **nom est obligatoire** (rogné des espaces). **Deux objets ne peuvent pas porter le même nom dans un même emplacement** (casse et accents ignorés) — *validé en V006* ; pour des objets identiques, utiliser la quantité ou un suffixe numérique (« sac à dos 1 », « sac à dos 2 »). Le même nom reste possible dans des emplacements différents ; un déplacement vers un emplacement contenant déjà ce nom est refusé.
+- **Quantité** : 1 par défaut si le champ est vide ; **nombre entier** positif ou nul (pas de décimales pour l'instant, à revoir à l'usage) ; **0 accepté** (objet épuisé mais encore référencé) — *validé en V006*. Un objet de quantité 0 est affiché **grisé** (fond et texte) dans les listes et sur sa fiche (mention « épuisé »).
+- **Mots-clés** : saisis séparés par des virgules (`optique, nature`) ; espaces rognés, doublons ignorés sans tenir compte de la casse ni des accents.
+- Déplacer un objet : tous les emplacements sont proposés avec leur chemin complet ; l'emplacement actuel est présélectionné.
+- Supprimer un objet : confirmation demandée, puis retour à l'emplacement qui le contenait.
+- Un objet est affiché sur sa propre fiche (`#/o/<id>`), accessible en touchant sa ligne dans la liste d'un emplacement. Le fil d'Ariane de la fiche mène à chaque niveau de son emplacement.
+
+### Règles de la recherche (V006)
+
+- Le **champ de recherche est permanent** sous l'en-tête (écran déplié comme replié). Il affiche les résultats dans le volet de détail, à chaque frappe, sur la route `#/s/<texte>`.
+- **Casse et accents ignorés** ; **pas de tolérance aux fautes de frappe** (décision validée) ; le texte cherché est un fragment (« pile » trouve « Piles neuves »).
+- **Plusieurs mots** : tous doivent être trouvés (chacun dans au moins un champ).
+- **Champs examinés** — objets : nom, mots-clés, note, chemin de l'emplacement ; emplacements : nom, note, chemin des parents. **Classement** : nom (4) > mots-clés (3) > note (2) > chemin (1), les points des mots s'additionnent ; à égalité, ordre alphabétique.
+- Résultats en deux sections : **Objets** puis **Emplacements**, chaque ligne affichant le **chemin complet** (`Séjour › Meuble living › Tiroir bas gauche`). Les objets épuisés restent trouvés (grisés).
+- La première frappe ajoute une entrée d'historique ; les suivantes la remplacent : le bouton Retour revient à l'écran d'où l'on est parti. Depuis une fiche, Retour restaure la recherche.
+
 ### 5.1 Diagnostic de démarrage
 
-Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js` et `location-actions.js`).
+Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue) et `searchbar.js`).
 
 ## 6. PWA et service worker (règles strictes)
 
@@ -218,3 +247,5 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V003 | 22/10/2026 21:39 | Jalon 1 : arborescence réelle, ordre de chargement effectif, API du store, tests |
 | V003a | 23/10/2026 00:27 | Diagnostic de démarrage (fichiers manquants, erreurs JS affichés à l'écran) |
 | V004 | 23/10/2026 11:37 | Jalon 2 : gestion des emplacements (créer, modifier, déplacer, supprimer), dialogues, règles de gestion |
+| V005 | 23/10/2026 23:50 | Jalon 3 : gestion des objets (créer, modifier, déplacer, supprimer), fiche d'un objet, route `#/o/<id>`, règles de gestion |
+| V006 | 24/10/2026 13:10 | Jalon 4 : recherche (champ permanent, route `#/s/<texte>`, `search.js`) ; objets : noms uniques par emplacement, quantité entière, quantité 0 grisée |
