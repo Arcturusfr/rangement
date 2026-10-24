@@ -1,8 +1,8 @@
 /*
   js/ui/views/browse.js — Application « Rangement »
-  Version : V005
-  Horodatage : 2026-10-23 23:50 (heure de Paris)
-  Résumé : quand une fiche d'objet est affichée, son emplacement est surligné dans l'arborescence.
+  Version : V006
+  Horodatage : 2026-10-24 13:10 (heure de Paris)
+  Résumé : aucun surlignage dans l'arborescence pendant une recherche.
 */
 (function () {
   'use strict';
@@ -39,12 +39,13 @@
 
   function render() {
     var currentId = highlightedId();
+    var searching = R.ui.router.current().query !== null;
     R.ui.dom.clear(container);
     container.appendChild(el('h2', { class: 'pane-title' }, ['Arborescence']));
     container.appendChild(el('a', {
       class: 'tree-root',
       href: R.ui.router.href(null),
-      'aria-current': currentId ? null : 'page'
+      'aria-current': (currentId || searching) ? null : 'page'
     }, ['Logement']));
     var tree = renderLevel(null, currentId);
     if (tree) { container.appendChild(tree); }

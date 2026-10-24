@@ -1,14 +1,15 @@
 /*
   js/ui/views/item-actions.js — Application « Rangement »
-  Version : V005
-  Horodatage : 2026-10-23 23:50 (heure de Paris)
-  Résumé : création — dialogues d'action sur les objets (ajouter, modifier, déplacer, supprimer).
+  Version : V006
+  Horodatage : 2026-10-24 13:10 (heure de Paris)
+  Résumé : quantité : nombre entier (clavier numérique) ; indication « 0 si épuisé ».
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
 
+  var QTY_HINT = 'Nombre entier ; 0 si l\u2019objet est épuisé.';
   var TAGS_HINT = 'Séparés par des virgules, par exemple : optique, nature.';
 
   // Ajoute un objet dans l'emplacement `locationId`.
@@ -19,7 +20,7 @@
       title: 'Nouvel objet dans \u00ab ' + loc.name + ' \u00bb',
       fields: [
         { name: 'name', label: 'Nom', maxlength: 80 },
-        { name: 'quantity', label: 'Quantité', value: '1', inputmode: 'decimal', maxlength: 10 },
+        { name: 'quantity', label: 'Quantité', value: '1', inputmode: 'numeric', maxlength: 7, hint: QTY_HINT },
         { name: 'tags', label: 'Mots-clés (facultatif)', hint: TAGS_HINT },
         { name: 'note', label: 'Note (facultatif)', type: 'textarea' }
       ],
@@ -39,7 +40,7 @@
       title: 'Modifier \u00ab ' + item.name + ' \u00bb',
       fields: [
         { name: 'name', label: 'Nom', value: item.name, maxlength: 80 },
-        { name: 'quantity', label: 'Quantité', value: R.features.items.formatQuantity(item.quantity), inputmode: 'decimal', maxlength: 10 },
+        { name: 'quantity', label: 'Quantité', value: R.features.items.formatQuantity(item.quantity), inputmode: 'numeric', maxlength: 7, hint: QTY_HINT },
         { name: 'tags', label: 'Mots-clés (facultatif)', value: item.tags.join(', '), hint: TAGS_HINT },
         { name: 'note', label: 'Note (facultatif)', type: 'textarea', value: item.note }
       ],

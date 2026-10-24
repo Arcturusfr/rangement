@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V005
-  Horodatage : 2026-10-23 23:50 (heure de Paris)
-  Résumé : objets cliquables (fiche), bouton « Ajouter un objet ici », affichage de la fiche d'un objet (#/o/<id>).
+  Version : V006
+  Horodatage : 2026-10-24 13:10 (heure de Paris)
+  Résumé : affichage de la recherche (#/s/<texte>) ; objets de quantité nulle grisés.
 */
 (function () {
   'use strict';
@@ -41,7 +41,8 @@
         title: it.name,
         href: R.ui.router.itemHref(it.id),
         subtitle: it.note,
-        chips: chips.concat(it.tags)
+        chips: chips.concat(it.tags),
+        muted: it.quantity === 0
       };
     });
   }
@@ -97,6 +98,11 @@
     }
 
     var route = R.ui.router.current();
+
+    if (route.query !== null) {
+      container.appendChild(R.ui.views.search.create(route.query));
+      return;
+    }
 
     if (route.itemId) {
       var item = R.store.getItem(route.itemId);

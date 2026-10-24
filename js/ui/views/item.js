@@ -1,8 +1,8 @@
 /*
   js/ui/views/item.js — Application « Rangement »
-  Version : V005
-  Horodatage : 2026-10-23 23:50 (heure de Paris)
-  Résumé : création — fiche d'un objet (emplacement, quantité, mots-clés, note, actions).
+  Version : V006
+  Horodatage : 2026-10-24 13:10 (heure de Paris)
+  Résumé : quantité nulle : cadre grisé et mention « épuisé ».
 */
 (function () {
   'use strict';
@@ -26,9 +26,9 @@
 
     var nodes = [
       R.ui.components.breadcrumb.create(path, item.name),
-      el('header', { class: 'detail-head' }, [
+      el('header', { class: 'detail-head' + (item.quantity === 0 ? ' detail-head--depleted' : '') }, [
         el('h2', { class: 'detail-title' }, [item.name]),
-        el('p', { class: 'detail-meta' }, ['Quantité : ' + R.features.items.formatQuantity(item.quantity)])
+        el('p', { class: 'detail-meta' }, ['Quantité : ' + R.features.items.formatQuantity(item.quantity) + (item.quantity === 0 ? ' (épuisé)' : '')])
       ]),
       el('div', { class: 'toolbar', role: 'group', 'aria-label': 'Actions' }, [
         btn('Modifier', 'secondary', function () { A.openEdit(item.id); }),
