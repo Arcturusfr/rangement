@@ -1,22 +1,21 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : jalon 3 validé ; jalon 4 (recherche) livré ; jalon 6 bis (ergonomie) ajouté ; questions ouvertes tranchées.
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : jalon 4 validé ; jalon 5 (sauvegarde : export / import JSON, Réglages) livré ; une question ouverte.
 -->
 
-# Roadmap et avancement — Rangement `V006`
+# Roadmap et avancement — Rangement `V007`
 
-> Dernière mise à jour : 24/10/2026 13:10 (Paris) — **V006**
+> Dernière mise à jour : 24/10/2026 22:30 (Paris) — **V007**
 
 ## État actuel
 
-- **Jalon 3 validé** par l'utilisateur (« parfait »).
-- **Jalon 4 livré** (V006) : champ de recherche permanent, résultats (objets puis emplacements) avec chemin complet.
-- Règles des objets tranchées par l'utilisateur et appliquées en V006 : noms uniques dans un même emplacement, quantité entière (0 accepté), objets de quantité 0 grisés.
-- Tests Playwright/Chromium : **339 tests, 0 échec** (62 pour le jalon 1 et le diagnostic, 73 pour le jalon 2, 131 pour le jalon 3, 73 pour le jalon 4), en `http://` et en `file://`.
-- En attente : **validation du jalon 4 par l'utilisateur** (QEdit, Chrome sur le Z Fold ; voir `ToDo_Utilisateur.md`).
-- Prochaine étape : **Jalon 5** (sauvegarde : export / import JSON).
+- **Jalon 4 validé** par l'utilisateur (testé longuement sur les fichiers hébergés sur GitHub, avec beaucoup de données) : aucun bug de fonctionnement ; des améliorations ergonomiques ont été notées pour le jalon 6 bis.
+- **Jalon 5 livré** (V007) : écran **Réglages** (`#/r`, lien dans l'en-tête), **export** JSON horodaté, **import** avec contrôles et confirmation, **copie de sécurité** automatique annulable, suivi de la dernière sauvegarde.
+- Tests Playwright/Chromium : **476 tests, 0 échec** (62 pour le jalon 1 et le diagnostic, 73 pour le jalon 2, 131 pour le jalon 3, 73 pour le jalon 4, 137 pour le jalon 5), en `http://` et en `file://` pour les parcours principaux.
+- En attente : **validation du jalon 5 par l'utilisateur** (GitHub, local sur téléphone, QEdit ; voir `ToDo_Utilisateur.md`). Recommandation : **exporter une première sauvegarde de vos vraies données dès la V007 installée**.
+- Prochaine étape : **Jalon 6** (PWA hors ligne) — icônes 192 et 512 px à joindre à la conversation.
 
 ## Décisions prises
 
@@ -38,6 +37,7 @@
 | Noms identiques (objets) | **Validé** : refusés dans un même emplacement (casse et accents ignorés) ; pour des objets identiques, utiliser la quantité ou un suffixe numérique (« sac à dos 1 », « sac à dos 2 ») ; autorisés dans des emplacements différents |
 | Quantité | **Validé** : nombre **entier** (pas de décimales pour l'instant, à revoir à l'usage) ; **0 accepté** (objet épuisé mais référencé) ; objet de quantité 0 **grisé** (fond et texte) |
 | Recherche (règles) | Champ permanent sous l'en-tête ; tous les mots requis ; champs : nom > mots-clés > note > chemin ; objets puis emplacements |
+| Sauvegarde (V007) | Export en fichier JSON horodaté (`rangement-AAAA-MM-JJ-HHMM.json`) ; import **par remplacement** (pas de fusion) après analyse complète du fichier et confirmation ; copie de sécurité automatique avant chaque import, annulable depuis les Réglages ; fichier invalide = refus sans rien modifier. *(Proposé par Claude, à valider à l'usage.)* |
 | Icônes PWA | Déjà générées (192 et 512 px) ; à **joindre à la conversation** au lancement du Jalon 6 (impossible de les stocker dans les bases du Projet) |
 
 ## Jalons
@@ -75,15 +75,19 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ✅ Validation sur l'aperçu QEdit et sur le Z Fold (utilisateur)
 - ✅ V006 : noms d'objets uniques par emplacement, quantité entière, objets de quantité 0 grisés
 
-### Jalon 4 — Recherche ✅ (livré en V006, validation utilisateur en attente)
+### Jalon 4 — Recherche ✅ (livré en V006, validé)
 - ✅ Recherche par nom, mots-clés, note et chemin ; casse et accents ignorés, sans tolérance aux fautes ; tous les mots requis
 - ✅ Résultats avec chemin complet (« Séjour › Meuble living › Tiroir bas gauche »), classés par pertinence ; objets puis emplacements
 - ✅ Accès rapide : champ de recherche permanent sous l'en-tête (écrans déplié et replié), route `#/s/<texte>`, lien direct et bouton Retour gérés
-- ⬜ Validation sur l'aperçu QEdit et sur le Z Fold (utilisateur)
+- ✅ Validation sur les fichiers hébergés sur GitHub avec de nombreuses données (utilisateur) : aucun bug
 
-### Jalon 5 — Sauvegarde
-- ⬜ Export / import JSON (avec contrôle de `schemaVersion`)
-- ⬜ Écran de réglages
+### Jalon 5 — Sauvegarde ✅ (livré en V007, validation utilisateur en attente)
+- ✅ Export JSON horodaté (`schemaVersion`, `appVersion`, `exportedAt`, emplacements, objets)
+- ✅ Import avec contrôle complet (format, `schemaVersion`, cohérence) et confirmation ; refus explicite sans toucher aux données
+- ✅ Copie de sécurité avant import, bouton « Annuler la dernière importation »
+- ✅ Écran Réglages (`#/r`) : sauvegarde, restauration, à propos (version, format, stockage) ; suivi de la dernière sauvegarde et des modifications depuis
+- ✅ Accès depuis l'en-tête et depuis l'écran de démarrage (import dans un logement vide)
+- ⬜ Validation sur GitHub, en local sur téléphone et dans l'aperçu QEdit (utilisateur)
 
 ### Jalon 6 — PWA hors ligne
 - ⬜ `manifest.webmanifest` et icônes
@@ -110,7 +114,7 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 
 ## Questions ouvertes
 
-Aucune pour l'instant. *(Les deux questions de la V005 — noms d'objets identiques et quantités — sont tranchées, voir « Décisions prises ».)*
+1. **Rappel de sauvegarde** : l'écran Réglages indique si des modifications ont eu lieu depuis la dernière sauvegarde, mais l'application ne le rappelle pas ailleurs. Souhaitez-vous une pastille discrète sur le lien « Réglages » de l'en-tête quand des modifications ne sont pas sauvegardées ? *(À traiter avec les évolutions du jalon 6 bis si oui.)*
 
 ## Historique des versions
 
@@ -123,3 +127,4 @@ Aucune pour l'instant. *(Les deux questions de la V005 — noms d'objets identiq
 | V004 | 23/10/2026 11:37 | Jalon 1 validé ; jalon 2 livré (73 tests dédiés, 135 au total) |
 | V005 | 23/10/2026 23:50 | Jalon 2 validé ; jalon 3 livré (116 tests dédiés, 251 au total) |
 | V006 | 24/10/2026 13:10 | Jalon 3 validé, règles des objets précisées ; jalon 4 livré (recherche) ; jalon 6 bis ajouté (339 tests au total) |
+| V007 | 24/10/2026 22:30 | Jalon 4 validé ; jalon 5 livré (sauvegarde : export / import JSON, Réglages, 137 tests dédiés, 476 au total) |

@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : jalon 4 livré — recherche (search.js, searchbar.js, route #/s/), règles des objets précisées (noms uniques, quantité entière, 0 grisé).
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : jalon 5 livré — sauvegarde (backup.js, settings.js, route #/r, clés annexes du stockage), règles de la sauvegarde.
 -->
 
-# ARCHITECTURE — Rangement `V006`
+# ARCHITECTURE — Rangement `V007`
 
-> Dernière mise à jour : 24/10/2026 13:10 (Paris) — **V006**
-> Statut : **jalon 4 livré** (recherche d'objets et d'emplacements ; champ de recherche permanent). Le jalon 3 (objets) est validé. Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 24/10/2026 22:30 (Paris) — **V007**
+> Statut : **jalon 5 livré** (sauvegarde : export / import JSON, écran Réglages). Le jalon 4 (recherche) est validé. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -37,7 +37,8 @@
 │   ├── test_jalon1.py         Tests Playwright/Chromium : squelette, stockage, mise en page, diagnostic
 │   ├── test_jalon2.py         Tests Playwright/Chromium : gestion des emplacements
 │   ├── test_jalon3.py         Tests Playwright/Chromium : gestion des objets
-│   └── test_jalon4.py         Tests Playwright/Chromium : recherche
+│   ├── test_jalon4.py         Tests Playwright/Chromium : recherche
+│   └── test_jalon5.py         Tests Playwright/Chromium : sauvegarde (export, import, annulation, réglages)
 ├── css/
 │   ├── base.css               Variables (couleurs, espacements), reset, typographie
 │   ├── layout.css             Mise en page : 1 volet / 2 volets, en-tête, navigation
@@ -47,7 +48,7 @@
     ├── core/
     │   ├── ids.js             Génération d'identifiants uniques
     │   ├── models.js          Définition/validation des objets (Emplacement, Objet)
-    │   ├── storage.js         Lecture/écriture persistante (localStorage)
+    │   ├── storage.js         Lecture/écriture persistante (localStorage) + clés annexes (copie de sécurité, suivi des sauvegardes)
     │   ├── store.js           État en mémoire + notification des changements
     │   └── events.js          Mini bus d'événements
     ├── features/
@@ -55,7 +56,7 @@
     │   ├── locations.js       Créer/modifier/déplacer/supprimer des emplacements, avec garde-fous
     │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (quantité, mots-clés, note)
     │   ├── search.js          Recherche d'objets et d'emplacements (nom, mots-clés, note, chemin), classée par pertinence
-    │   └── backup.js          Export / import JSON (à venir, jalon 5)
+    │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
     │   ├── router.js          Navigation interne (hash `#/...`)
@@ -73,7 +74,7 @@
     │       ├── item.js        Fiche d'un objet (emplacement, quantité, mots-clés, note, actions)
     │       ├── searchbar.js   Champ de recherche permanent sous l'en-tête (synchronisé avec la route)
     │       ├── search.js      Résultats de recherche : objets puis emplacements, avec chemin complet
-    │       └── settings.js    Export/import, version, réglages PWA (à venir, jalons 5-6)
+    │       └── settings.js    Écran Réglages (`#/r`) : export, import, annulation d'import, à propos ; réglages PWA à venir (jalon 6)
     ├── pwa.js                 Enregistrement du service worker + gestion des mises à jour (à venir, jalon 6)
     └── main.js                Démarrage : init stockage, routeur, premier rendu
 ```
@@ -113,13 +114,13 @@ Le logement est une **arborescence d'emplacements** de profondeur libre, dans la
 ```json
 {
   "schemaVersion": 1,
-  "appVersion": "V006",
+  "appVersion": "V007",
   "locations": [],
   "items": []
 }
 ```
 
-`schemaVersion` permet de migrer les données si le modèle évolue.
+`schemaVersion` permet de migrer les données si le modèle évolue. Un fichier de sauvegarde exporté a la même forme, avec en plus `exportedAt` (date ISO de l'export).
 
 ### 3.4 Exemples de validation du modèle
 
@@ -142,26 +143,27 @@ Action utilisateur → ui/views → features/* → core/store → core/storage (
 
 ## 5. Ordre de chargement des scripts (`index.html`)
 
-Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser que ce qui est chargé avant lui. Ordre effectif en V006 :
+Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser que ce qui est chargé avant lui. Ordre effectif en V007 :
 
 1. `js/config.js` (crée `window.Rangement`, l'aide `Rangement.ns('a.b')` et `Rangement.config`)
 2. `js/core/events.js`, `ids.js`, `models.js`, `storage.js`, `store.js`
-3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js` *(puis, aux jalons suivants : `backup.js`)*
+3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js`, `backup.js`
 4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`
 5. `js/ui/layout.js`
-6. `js/ui/views/browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `location.js` *(puis les autres vues)*
+6. `js/ui/views/browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `settings.js`, `location.js`
 7. `js/pwa.js` *(jalon 6)*
 8. `js/main.js` (dernier : démarre l'application)
 
 Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui lit `window.Rangement`, ajoute son module et n'expose rien d'autre. Les appels entre modules d'un même niveau (ex. un composant qui appelle le routeur) se font à l'exécution, pas au chargement, ce qui évite les dépendances d'ordre fragiles.
 
-### API principale (V006)
+### API principale (V007)
 
 | Module | Rôle |
 |---|---|
 | `Rangement.store.init()` | Charge les données ; si elles sont illisibles ou incohérentes, les met de côté (`rangement.data.corrupt`) et démarre à vide |
 | `Rangement.store.update(fn)` | Applique `fn` à une **copie** des données ; la copie n'est adoptée (et sauvegardée) que si elle reste cohérente. Renvoie `{ ok, errors }` |
 | `Rangement.store.replaceAll(data)` | Remplace tout le contenu (import, démo) après validation |
+| `Rangement.storage.getAux / setAux / removeAux(nom)` | Clés annexes `rangement.data.<nom>` (`preimport`, `meta`), avec repli en mémoire comme les données |
 | `Rangement.store.childLocations / itemsIn / pathOf / countIn` | Lecture : enfants, objets, chemin complet, comptage récursif |
 | `Rangement.store.getLocation(id) / getItem(id)` | Lecture d'un emplacement / d'un objet par identifiant (`null` si inconnu) |
 | `Rangement.models.validateData(data)` | Contrôle : ids uniques, parents existants, pas de boucle, objets rattachés à un emplacement valide |
@@ -172,9 +174,14 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.features.items.locationChoices()` | Emplacements où ranger un objet, avec chemin complet (`Séjour › Meuble living`) |
 | `Rangement.features.items.parseQuantity / parseTags / formatQuantity` | Lecture de la saisie : quantité (vide = 1, nombre entier, 0 accepté), mots-clés séparés par des virgules |
 | `Rangement.features.search.search(texte)` | Recherche : renvoie `{ terms, items: [{ item, path, score }], locations: [{ location, path, score }] }`, triés par pertinence puis par nom |
-| `Rangement.ui.router` | Routes : `#/` (logement), `#/l/<id>` (emplacement), `#/o/<id>` (fiche d'un objet), `#/s/<texte>` (recherche). `current()` renvoie `{ locationId, itemId, query }` (`query` vaut `null` hors recherche) ; `href(id)`, `itemHref(id)`, `searchHref(texte)`, `navigate(id)`, `search(texte)` |
+| `Rangement.features.backup.init()` | À appeler après `store.init()` : charge le suivi des sauvegardes et marque « modifié » à chaque `store:changed` |
+| `Rangement.features.backup.prepareExport() / markExported()` | Contenu et nom du fichier à télécharger (`{ filename, text, counts }`) ; enregistre la date de l'export et remet le suivi à « aucune modification » |
+| `Rangement.features.backup.parse(texte)` | Analyse un fichier : `{ ok, data, counts, exportedAt }` ou `{ ok: false, error }` (message en français) |
+| `Rangement.features.backup.importData(data) / undoInfo() / undoImport()` | Remplace toutes les données après mise de côté d'une copie de sécurité ; annulation de la dernière importation |
+| `Rangement.features.backup.status()` | `{ lastExportAt, dirty, counts }` pour l'écran Réglages |
+| `Rangement.ui.router` | Routes : `#/` (logement), `#/l/<id>` (emplacement), `#/o/<id>` (fiche d'un objet), `#/s/<texte>` (recherche), `#/r` (réglages). `current()` renvoie `{ locationId, itemId, query, settings }` (`query` vaut `null` hors recherche) ; `href(id)`, `itemHref(id)`, `searchHref(texte)`, `settingsHref()`, `navigate(id)`, `search(texte)` |
 | `Rangement.ui.components.dialog.form / confirm / alert` | Dialogues modaux (`<dialog>`), retour du focus à la fermeture |
-| `Rangement.events` | `store:changed`, `store:error`, `route:changed`, `layout:changed` |
+| `Rangement.events` | `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed` |
 
 Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli affiche un avertissement.
 
@@ -205,9 +212,19 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - Résultats en deux sections : **Objets** puis **Emplacements**, chaque ligne affichant le **chemin complet** (`Séjour › Meuble living › Tiroir bas gauche`). Les objets épuisés restent trouvés (grisés).
 - La première frappe ajoute une entrée d'historique ; les suivantes la remplacent : le bouton Retour revient à l'écran d'où l'on est parti. Depuis une fiche, Retour restaure la recherche.
 
+### Règles de la sauvegarde (V007)
+
+- **Écran Réglages** (`#/r`) : lien « Réglages » dans l'en-tête (toujours visible), bouton « Importer une sauvegarde » sur l'écran de démarrage. Accessible même sans données.
+- **Export** : télécharge un fichier JSON `rangement-AAAA-MM-JJ-HHMM.json` (heure de l'appareil) contenant `schemaVersion`, `appVersion`, `exportedAt`, `locations`, `items`. Désactivé tant que le logement est vide.
+- **Suivi** : l'écran indique la date de la dernière sauvegarde exportée et si des modifications (ajout, changement, suppression, import) ont eu lieu depuis. Ce suivi est propre à l'appareil et au navigateur (clé annexe `meta`).
+- **Import** : le fichier est analysé avant toute modification. Il est **refusé** (message explicite, données intactes) s'il est vide, trop volumineux (> ~4,5 Mo), pas du JSON, d'un `schemaVersion` différent, sans listes `locations`/`items`, ou incohérent (parent introuvable, boucle, identifiant en double, objet sans emplacement, quantité invalide). Les champs inconnus sont ignorés, les champs facultatifs absents sont complétés.
+- **Confirmation** : l'import **remplace toutes les données actuelles** (pas de fusion) ; une boîte de dialogue résume le contenu du fichier et celui du logement actuel avant d'agir.
+- **Copie de sécurité** : avant chaque import, les données actuelles sont mises de côté (clé annexe `preimport`, une seule copie : la plus récente). Si cette copie ne peut pas être conservée (stockage plein), l'import est refusé. Le bouton « Annuler la dernière importation » restaure cette copie, puis la supprime.
+- Les noms de fichiers et les contenus importés sont toujours affichés comme du texte (jamais interprétés comme du HTML).
+
 ### 5.1 Diagnostic de démarrage
 
-Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue) et `searchbar.js`).
+Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js` et `settings.js`).
 
 ## 6. PWA et service worker (règles strictes)
 
@@ -249,3 +266,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V004 | 23/10/2026 11:37 | Jalon 2 : gestion des emplacements (créer, modifier, déplacer, supprimer), dialogues, règles de gestion |
 | V005 | 23/10/2026 23:50 | Jalon 3 : gestion des objets (créer, modifier, déplacer, supprimer), fiche d'un objet, route `#/o/<id>`, règles de gestion |
 | V006 | 24/10/2026 13:10 | Jalon 4 : recherche (champ permanent, route `#/s/<texte>`, `search.js`) ; objets : noms uniques par emplacement, quantité entière, quantité 0 grisée |
+| V007 | 24/10/2026 22:30 | Jalon 5 : sauvegarde (export / import JSON, copie de sécurité annulable, suivi de la dernière sauvegarde), écran Réglages (`#/r`), lien « Réglages » dans l'en-tête |
