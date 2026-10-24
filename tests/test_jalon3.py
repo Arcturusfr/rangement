@@ -1,7 +1,7 @@
 # tests/test_jalon3.py — Application « Rangement »
-# Version : V005
-# Horodatage : 2026-10-23 23:50 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 3 (créer, modifier, déplacer, supprimer des objets).
+# Version : V006
+# Horodatage : 2026-10-24 13:10 (heure de Paris)
+# Résumé : règles V006 — noms d'objets uniques par emplacement, quantité entière, objets à quantité nulle grisés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon3.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -130,6 +130,9 @@ def scenario_flow(browser, base, label):
     d.get_by_role("button", name="Ajouter", exact=True).click()
     check(label + " | quantité négative refusée", d.is_visible() and len(item_by_name(page, "Ampoules")) == 0)
     d.get_by_label("Quantité").fill("2,5")
+    d.get_by_role("button", name="Ajouter", exact=True).click()
+    check(label + " | quantité décimale refusée", "entier" in d.inner_text() and d.is_visible() and len(item_by_name(page, "Ampoules")) == 0, d.inner_text())
+    d.get_by_label("Quantité").fill("3")
     d.get_by_label("Mots-clés").fill("  électricité , maison,Electricite, ")
     d.get_by_label("Note (facultatif)").fill("culot E27")
     d.get_by_label("Nom").press("Enter")
@@ -138,20 +141,27 @@ def scenario_flow(browser, base, label):
     it = item_by_name(page, "Ampoules")
     check(label + " | objet créé", len(it) == 1)
     it = it[0] if it else {}
-    check(label + " | quantité décimale (virgule) lue", it.get("quantity") == 2.5, it.get("quantity"))
+    check(label + " | quantité entière lue", it.get("quantity") == 3, it.get("quantity"))
     check(label + " | mots-clés séparés par des virgules, rognés, sans doublon", it.get("tags") == ["électricité", "maison"], it.get("tags"))
     check(label + " | rattaché au bon emplacement", bool(it) and js(page, "Rangement.store.getLocation('%s').name" % it["locationId"]) == "Tiroir bas gauche")
     row = page.locator("#pane-detail .list-item", has_text="Ampoules")
-    check(label + " | ligne : quantité et mots-clés affichés", "\u00d7 2,5" in row.inner_text() and "électricité" in row.inner_text() and "maison" in row.inner_text(), row.inner_text())
+    check(label + " | ligne : quantité et mots-clés affichés", "\u00d7 3" in row.inner_text() and "électricité" in row.inner_text() and "maison" in row.inner_text(), row.inner_text())
     check(label + " | ligne : note affichée", "culot E27" in row.inner_text())
 
     # Quantité 1 : pas de pastille « × »
-    add_item(page, "Piles neuves")  # doublon de nom autorisé pour les objets
-    page.wait_for_function("document.querySelectorAll('#pane-detail .list-item').length === 3")
-    check(label + " | même nom d'objet autorisé dans un emplacement", len(item_by_name(page, "Piles neuves")) == 2)
-    row = page.locator("#pane-detail .list-item", has_text="Piles neuves").nth(1)
+    row = page.locator("#pane-detail .list-item", has_text="Piles neuves")
     check(label + " | quantité 1 : pas de pastille « × »", "\u00d7" not in row.inner_text(), row.inner_text())
-    check(label + " | quantité par défaut enregistrée = 1", [i["quantity"] for i in item_by_name(page, "Piles neuves")].count(1) == 2)
+    check(label + " | quantité par défaut enregistrée = 1", item_by_name(page, "Piles neuves")[0]["quantity"] == 1)
+
+    # Nom identique dans le même emplacement : refusé (casse et accents ignorés)
+    page.get_by_role("button", name="Ajouter un objet ici").click()
+    d = dlg(page)
+    d.get_by_label("Nom").fill("piles NEUVES")
+    d.get_by_role("button", name="Ajouter", exact=True).click()
+    check(label + " | nom d'objet identique refusé dans un même emplacement", "existe déjà" in d.inner_text() and "quantité" in d.inner_text().lower() and d.is_visible(), d.inner_text())
+    d.get_by_role("button", name="Annuler").click()
+    closed(page)
+    check(label + " | aucun doublon créé", len(item_by_name(page, "Piles neuves")) == 1 and len(item_by_name(page, "piles NEUVES")) == 0)
 
     # Annulation / Échap
     page.get_by_role("button", name="Ajouter un objet ici").click()
@@ -163,7 +173,7 @@ def scenario_flow(browser, base, label):
     # Fiche d'un objet
     page.locator("#pane-detail .list-row", has_text="Ampoules").click()
     wait_title(page, "Ampoules")
-    check(label + " | fiche : quantité", "Quantité : 2,5" in page.inner_text("#pane-detail .detail-meta"))
+    check(label + " | fiche : quantité", "Quantité : 3" in page.inner_text("#pane-detail .detail-meta"))
     crumb = page.inner_text("#pane-detail .breadcrumb").replace("\n", " ")
     check(label + " | fiche : fil d'Ariane complet", all(s in crumb for s in ["Logement", "Séjour", "Meuble living", "Tiroir bas gauche", "Ampoules"]), crumb)
     check(label + " | fiche : l'objet est l'élément courant du fil d'Ariane",
@@ -184,7 +194,7 @@ def scenario_flow(browser, base, label):
     page.get_by_role("button", name="Modifier").click()
     d = dlg(page)
     check(label + " | modifier : champs préremplis",
-          d.get_by_label("Nom").input_value() == "Ampoules" and d.get_by_label("Quantité").input_value() == "2,5"
+          d.get_by_label("Nom").input_value() == "Ampoules" and d.get_by_label("Quantité").input_value() == "3"
           and d.get_by_label("Mots-clés").input_value() == "électricité, maison" and d.get_by_label("Note (facultatif)").input_value() == "culot E27",
           [d.get_by_label("Nom").input_value(), d.get_by_label("Quantité").input_value(), d.get_by_label("Mots-clés").input_value()])
     d.get_by_label("Nom").fill("Ampoules LED")
@@ -262,18 +272,30 @@ def scenario_guards(browser, base):
     check("métier | créer dans un emplacement inconnu refusé", js(page, "%s.create({name:'X', locationId:'nope'})" % I)["ok"] is False)
     check("métier | créer sans emplacement refusé", js(page, "%s.create({name:'X'})" % I)["ok"] is False)
     check("métier | quantité négative refusée", js(page, "%s.create({name:'X', locationId:'%s', quantity:-1})" % (I, loc_id))["ok"] is False)
+    check("métier | quantité décimale refusée (texte et nombre)", js(page, "[%s.create({name:'D1', locationId:'%s', quantity:'2,5'}).ok, %s.create({name:'D2', locationId:'%s', quantity:2.5}).ok, %s.create({name:'D3', locationId:'%s', quantity:'3.5'}).ok]" % (I, loc_id, I, loc_id, I, loc_id)) == [False, False, False])
     check("métier | quantité texte refusée", js(page, "%s.create({name:'X', locationId:'%s', quantity:'12abc'})" % (I, loc_id))["ok"] is False)
     check("métier | quantité 0 acceptée", js(page, "%s.create({name:'Zéro', locationId:'%s', quantity:'0'})" % (I, loc_id))["ok"] is True)
     check("métier | quantité 0 conservée", js(page, "Rangement.store.items().filter(function(i){return i.name==='Zéro';})[0].quantity") == 0)
     check("métier | quantité 1 par défaut", js(page, "%s.create({name:'Défaut', locationId:'%s'}).item.quantity" % (I, loc_id)) == 1)
     check("métier | mots-clés en tableau acceptés", js(page, "%s.create({name:'Tab', locationId:'%s', tags:['a','A',' b ']}).item.tags" % (I, loc_id)) == ["a", "b"])
     check("métier | analyse de la quantité (point et virgule)",
-          js(page, "[%s.parseQuantity('3,5').value, %s.parseQuantity('3.5').value, %s.parseQuantity('').value]" % (I, I, I)) == [3.5, 3.5, 1])
+          js(page, "[%s.parseQuantity('3').value, %s.parseQuantity(' 12 ').value, %s.parseQuantity('').value, %s.parseQuantity('3,5').ok, %s.parseQuantity('3.5').ok]" % (I, I, I, I, I)) == [3, 12, 1, False, False])
     check("métier | modification partielle : le reste est inchangé", js(page, """(function(){
       var it = Rangement.store.getItem('%s'); var q = it.quantity, t = it.tags.join('|');
       var r = %s.update('%s', {note:'nouvelle note'});
       var a = Rangement.store.getItem('%s');
       return r.ok && a.quantity === q && a.tags.join('|') === t && a.note === 'nouvelle note';})()""" % (item_id, I, item_id, item_id)))
+    tiroir_id = js(page, "Rangement.store.locations().filter(function(l){return l.name==='Tiroir bas gauche';})[0].id")
+    res = js(page, "%s.create({name:'piles neuves', locationId:'%s'})" % (I, tiroir_id))
+    check("métier | créer un nom identique refusé (casse ignorée)", res["ok"] is False and "existe déjà" in res["error"], res)
+    res = js(page, "%s.create({name:'Piles neuves', locationId:'%s'})" % (I, loc_id))
+    check("métier | même nom dans un autre emplacement autorisé", res["ok"] is True, res)
+    twin = res["item"]["id"]
+    res = js(page, "%s.move('%s','%s')" % (I, twin, tiroir_id))
+    check("métier | déplacer vers un emplacement contenant ce nom refusé", res["ok"] is False and "destination" in res["error"], res)
+    defaut = js(page, "Rangement.store.items().filter(function(i){return i.name==='Défaut';})[0].id")
+    check("métier | renommer vers un nom existant refusé (accents ignorés)", js(page, "%s.update('%s',{name:'zero'})" % (I, defaut))["ok"] is False)
+    check("métier | renommer en changeant seulement la casse autorisé", js(page, "%s.update('%s',{name:'défaut'})" % (I, defaut))["ok"] is True)
     check("métier | modifier un objet inconnu refusé", js(page, "%s.update('nope',{name:'x'})" % I)["ok"] is False)
     check("métier | déplacer vers un emplacement inconnu refusé", js(page, "%s.move('%s','nope')" % (I, item_id))["ok"] is False)
     check("métier | déplacer un objet inconnu refusé", js(page, "%s.move('nope','%s')" % (I, loc_id))["ok"] is False)
@@ -281,6 +303,22 @@ def scenario_guards(browser, base):
     check("métier | supprimer un objet inconnu refusé", js(page, "%s.remove('nope')" % I)["ok"] is False)
     check("métier | l'horodatage de modification est mis à jour", js(page, "Rangement.store.getItem('%s').updatedAt >= Rangement.store.getItem('%s').createdAt" % (item_id, item_id)))
     check("métier | données valides après les essais", js(page, "Rangement.models.validateData(JSON.parse(localStorage.getItem('rangement.data'))).ok"))
+
+    # Quantité nulle : cadre grisé dans la liste et sur la fiche
+    page.goto(base + "#/l/" + loc_id)
+    page.wait_for_selector("#pane-detail .list")
+    muted = page.locator("#pane-detail .list-item--muted")
+    check("quantité nulle | un seul cadre grisé dans la liste", muted.count() == 1 and "Zéro" in muted.inner_text(), muted.count())
+    check("quantité nulle | pastille « × 0 »", "\u00d7 0" in muted.inner_text())
+    bg_muted = muted.evaluate("e => getComputedStyle(e).backgroundColor")
+    bg_normal = page.locator("#pane-detail .list-item:not(.list-item--muted)").first.evaluate("e => getComputedStyle(e).backgroundColor")
+    check("quantité nulle | fond différent des autres objets", bg_muted != bg_normal, [bg_muted, bg_normal])
+    col_muted = muted.locator(".list-title").evaluate("e => getComputedStyle(e).color")
+    col_normal = page.locator("#pane-detail .list-item:not(.list-item--muted) .list-title").first.evaluate("e => getComputedStyle(e).color")
+    check("quantité nulle | texte grisé", col_muted != col_normal, [col_muted, col_normal])
+    muted.locator(".list-row").click()
+    page.wait_for_selector("#pane-detail .item-detail")
+    check("quantité nulle | fiche : cadre grisé et mention épuisé", page.locator("#pane-detail .detail-head--depleted").count() == 1 and "épuisé" in page.inner_text("#pane-detail .detail-meta"))
 
     # Texte hostile : jamais interprété comme du HTML
     res = js(page, "%s.create({name:'<img src=x onerror=window.__xss=1>', locationId:'%s', tags:'<b>gras</b>', note:'<script>window.__xss=2</script>'})" % (I, loc_id))
@@ -314,7 +352,7 @@ def scenario_narrow(browser, base):
     check("replié | dialogue d'objet contenu dans l'écran", box["x"] >= 0 and box["x"] + box["width"] <= 390 and box["y"] >= 0 and box["y"] + box["height"] <= 844, box)
     inputs = [d.get_by_label(n).bounding_box() for n in ("Nom", "Quantité", "Mots-clés")]
     check("replié | champs ≥ 44 px", all(b["height"] >= 44 for b in inputs), inputs)
-    check("replié | clavier numérique pour la quantité", d.get_by_label("Quantité").get_attribute("inputmode") == "decimal")
+    check("replié | clavier numérique pour la quantité", d.get_by_label("Quantité").get_attribute("inputmode") == "numeric")
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j3-replie-dialogue.png"))
     d.get_by_label("Nom").fill("Un objet au nom vraiment très très long pour vérifier le retour à la ligne sans débordement")
