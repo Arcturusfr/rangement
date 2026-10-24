@@ -1,8 +1,8 @@
 /*
   js/core/storage.js — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — lecture/écriture localStorage, repli en mémoire si indisponible.
+  Version : V007
+  Horodatage : 2026-10-24 22:30 (heure de Paris)
+  Résumé : clés annexes (getAux / setAux / removeAux) pour la copie de sécurité avant import et le suivi des sauvegardes ; sinon inchangé.
 */
 (function () {
   'use strict';
@@ -10,6 +10,7 @@
   var R = window.Rangement;
   var KEY = R.config.storageKey;
   var memory = null;                 // repli si localStorage est indisponible
+  var memoryAux = {};                // idem pour les clés annexes
   var persistent = probe();
 
   function probe() {
@@ -54,6 +55,30 @@
     try { window.localStorage.setItem(KEY + '.corrupt', raw); } catch (err) { /* sans suite */ }
   }
 
+  // Clés annexes (copie de sécurité avant import, suivi des sauvegardes) : « rangement.data.<nom> ».
+  // Renvoie le texte enregistré ou null.
+  function getAux(name) {
+    if (!persistent) { return memoryAux[name] === undefined ? null : memoryAux[name]; }
+    try { return window.localStorage.getItem(KEY + '.' + name); } catch (err) { return null; }
+  }
+
+  // Renvoie { ok, error } ; error vaut 'quota' ou 'write'.
+  function setAux(name, raw) {
+    if (!persistent) { memoryAux[name] = raw; return { ok: true }; }
+    try {
+      window.localStorage.setItem(KEY + '.' + name, raw);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err && err.name === 'QuotaExceededError' ? 'quota' : 'write' };
+    }
+  }
+
+  function removeAux(name) {
+    delete memoryAux[name];
+    if (!persistent) { return; }
+    try { window.localStorage.removeItem(KEY + '.' + name); } catch (err) { /* sans suite */ }
+  }
+
   function clear() {
     memory = null;
     if (!persistent) { return; }
@@ -64,6 +89,9 @@
     load: load,
     save: save,
     quarantine: quarantine,
+    getAux: getAux,
+    setAux: setAux,
+    removeAux: removeAux,
     clear: clear,
     isPersistent: function () { return persistent; }
   };
