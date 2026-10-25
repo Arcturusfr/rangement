@@ -1,8 +1,8 @@
 /*
   js/ui/components/dialog.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : création — boîtes de dialogue : formulaire, confirmation, message.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : validation de saisie champ par champ, fermeture au changement de vue, sélection du premier champ (duplication).
 */
 (function () {
   'use strict';
@@ -31,7 +31,11 @@
       el('div', { class: 'dialog-actions' }, buttons(close))
     ]));
 
+    // Un changement de vue (retour arrière du navigateur, etc.) ferme la boîte sans rien enregistrer.
+    var offRoute = R.events.on('route:changed', close);
+
     dlg.addEventListener('close', function () {
+      offRoute();
       if (dlg.parentNode) { dlg.parentNode.removeChild(dlg); }
       if (opener && opener.focus && document.contains(opener)) { opener.focus(); }
     });
@@ -50,14 +54,40 @@
     box.hidden = false;
   }
 
-  // cfg : { title, fields, submitLabel, onSubmit(values) → { ok, error? } }
+  // Validation champ par champ : le message s'affiche dès qu'on quitte un champ interdit, et on ne peut
+  // pas saisir dans un autre champ tant qu'il n'est pas corrigé (les boutons Annuler / Ajouter restent accessibles).
+  function guardFields(formNode, fields) {
+    // Appuyer sur un bouton fait perdre le focus au champ : le message n'est alors pas affiché tout de suite
+    // (il décalerait les boutons entre l'appui et le relâchement, et le tap serait perdu) ; la validation du bouton s'en charge.
+    var pressing = false;
+    formNode.addEventListener('pointerdown', function (event) {
+      if (!event.target.closest || !event.target.closest('.dialog-actions')) { return; }
+      pressing = true;
+      document.addEventListener('pointerup', function () { setTimeout(function () { pressing = false; }, 0); }, { once: true, capture: true });
+      document.addEventListener('pointercancel', function () { pressing = false; }, { once: true, capture: true });
+    }, true);
+    fields.forEach(function (f) {
+      if (!f.validate) { return; }
+      f.input.addEventListener('blur', function () { if (!pressing) { f.check(); } });
+      f.input.addEventListener('input', function () { if (f.error) { f.check(); } });
+    });
+    formNode.addEventListener('focusin', function (event) {
+      var target = event.target;
+      var isField = fields.some(function (f) { return f.input === target; });
+      if (!isField) { return; }
+      var bad = fields.filter(function (f) { return f.error && f.input !== target; })[0];
+      if (bad) { bad.input.focus(); }
+    });
+  }
+
+  // cfg : { title, fields, submitLabel, submitLevel?, selectFirst?, onSubmit(values) → { ok, error? } }
   function form(cfg) {
     counter += 1;
     var prefix = 'f' + counter + '_';
     var fields = cfg.fields.map(function (def, i) { return R.ui.components.form.field(def, prefix + i); });
     var box = errorBox();
 
-    shell(
+    var dlg = shell(
       cfg.title,
       'form',
       function (close) {
@@ -66,6 +96,9 @@
           novalidate: true,
           onsubmit: function (event) {
             event.preventDefault();
+            var firstBad = null;
+            fields.forEach(function (f) { if (!f.check() && !firstBad) { firstBad = f; } });
+            if (firstBad) { box.hidden = true; firstBad.input.focus(); return; }
             var res = cfg.onSubmit(R.ui.components.form.read(fields));
             if (res && res.ok) { close(); } else { showError(box, res && res.error); }
           }
@@ -75,10 +108,12 @@
       function (close) {
         return [
           button('Annuler', 'secondary', { onclick: close }),
-          button(cfg.submitLabel || 'Enregistrer', '', { type: 'submit' })
+          button(cfg.submitLabel || 'Enregistrer', '', { type: 'submit', 'data-level': cfg.submitLevel || null })
         ];
       }
     );
+    guardFields(dlg.querySelector('form'), fields);
+    if (cfg.selectFirst && fields[0] && fields[0].input.select) { fields[0].input.select(); }
   }
 
   // cfg : { title, message, confirmLabel, danger?, onConfirm() → { ok, error? } }
