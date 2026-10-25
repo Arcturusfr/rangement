@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <!--
   index.html — Application « Rangement »
-  Version : V007
-  Horodatage : 2026-10-24 22:30 (heure de Paris)
-  Résumé : lien « Réglages » dans l'en-tête ; chargement des scripts de sauvegarde (jalon 5).
+  Version : V008
+  Horodatage : 2026-10-25 00:52 (heure de Paris)
+  Résumé : manifeste PWA, icônes et chargement de js/pwa.js (jalon 6).
 -->
 <html lang="fr" data-panes="1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#16222A">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192x192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192x192.png">
   <title>Rangement</title>
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
@@ -102,6 +105,7 @@
   <script src="js/ui/views/searchbar.js"></script>
   <script src="js/ui/views/settings.js"></script>
   <script src="js/ui/views/location.js"></script>
+  <script src="js/pwa.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
