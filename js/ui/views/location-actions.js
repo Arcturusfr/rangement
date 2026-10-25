@@ -1,8 +1,8 @@
 /*
   js/ui/views/location-actions.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : création — dialogues d'action sur les emplacements (ajouter, modifier, déplacer, supprimer).
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : duplication d'un emplacement ; bouton de validation coloré selon le niveau créé.
 */
 (function () {
   'use strict';
@@ -25,6 +25,7 @@
         { name: 'note', label: 'Note (facultatif)', type: 'textarea' }
       ],
       submitLabel: 'Ajouter',
+      submitLevel: R.models.levelOf(parent ? R.store.depthOf(parent.id) + 1 : 0),
       onSubmit: function (v) {
         return R.features.locations.create({ name: v.name, kind: v.kind, note: v.note, parentId: parentId });
       }
@@ -66,6 +67,44 @@
     });
   }
 
+  var CONTENT_CHOICES = [
+    { value: 'none', label: 'Cet emplacement seul (vide)' },
+    { value: 'structure', label: 'Avec ses sous-emplacements (sans les objets)' },
+    { value: 'all', label: 'Avec tout son contenu (sous-emplacements et objets)' }
+  ];
+
+  // Duplique un emplacement : il faut changer le nom ou choisir un autre emplacement parent.
+  function openDuplicate(id) {
+    var loc = R.store.getLocation(id);
+    if (!loc) { return; }
+    var n = R.store.countIn(id);
+    var fields = [
+      { name: 'name', label: 'Nom de la copie', value: loc.name, maxlength: 80 },
+      {
+        name: 'parent',
+        label: 'Emplacement parent de la copie',
+        type: 'select',
+        options: R.features.locations.parentChoices(id),
+        value: loc.parentId || '',
+        hint: 'Modifiez le nom ou choisissez un autre emplacement.'
+      }
+    ];
+    if (n.locations || n.items) {
+      fields.push({ name: 'content', label: 'Contenu à copier', type: 'select', options: CONTENT_CHOICES, value: 'none' });
+    }
+    R.ui.components.dialog.form({
+      title: 'Dupliquer \u00ab ' + loc.name + ' \u00bb',
+      fields: fields,
+      submitLabel: 'Dupliquer',
+      selectFirst: true,
+      onSubmit: function (v) {
+        var res = R.features.locations.duplicate(id, { name: v.name, parentId: v.parent || null, content: v.content });
+        if (res.ok) { R.ui.router.navigate(res.location.id); }
+        return res;
+      }
+    });
+  }
+
   function askDelete(id) {
     var loc = R.store.getLocation(id);
     if (!loc) { return; }
@@ -101,6 +140,7 @@
     openCreate: openCreate,
     openEdit: openEdit,
     openMove: openMove,
+    openDuplicate: openDuplicate,
     askDelete: askDelete
   };
 })();

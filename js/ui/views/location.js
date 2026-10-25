@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V008
-  Horodatage : 2026-10-25 00:52 (heure de Paris)
-  Résumé : re-rendu de l'écran Réglages quand l'état PWA change (jalon 6) ; sinon inchangé.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : en-tête figé (detailbar), bouton Dupliquer, niveaux de couleur, boutons « Ajouter… » colorés.
 */
 (function () {
   'use strict';
@@ -21,12 +21,13 @@
   }
 
   function locationRows(parentId) {
+    var level = R.models.levelOf(parentId ? R.store.depthOf(parentId) + 1 : 0);
     return R.store.childLocations(parentId).map(function (loc) {
       var label = R.models.kindLabel(loc.kind);
       return {
         title: loc.name,
         href: R.ui.router.href(loc.id),
-        kind: loc.kind,
+        level: level,
         subtitle: loc.note ? label + ' \u2014 ' + loc.note : label,
         chips: countChips(loc.id)
       };
@@ -41,6 +42,7 @@
         title: it.name,
         href: R.ui.router.itemHref(it.id),
         subtitle: it.note,
+        level: it.quantity === 0 ? 'zero' : 'objet',
         chips: chips.concat(it.tags),
         muted: it.quantity === 0
       };
@@ -51,21 +53,22 @@
     return el('section', { class: 'section' }, [el('h3', { class: 'section-title' }, [title]), listNode]);
   }
 
-  function btn(label, variant, onclick) {
-    return el('button', { class: 'button' + (variant ? ' button--' + variant : ''), type: 'button', onclick: onclick }, [label]);
+  function btn(label, variant, onclick, level) {
+    return el('button', { class: 'button' + (variant ? ' button--' + variant : ''), type: 'button', 'data-level': level || null, onclick: onclick }, [label]);
   }
 
-  function toolbar(loc) {
+  function toolbar(loc, depth) {
     var A = R.ui.views.locationActions;
     var buttons = loc
       ? [
-          btn('Ajouter un objet ici', '', function () { R.ui.views.itemActions.openCreate(loc.id); }),
-          btn('Ajouter un emplacement ici', '', function () { A.openCreate(loc.id); }),
+          btn('Ajouter un objet ici', '', function () { R.ui.views.itemActions.openCreate(loc.id); }, 'objet'),
+          btn('Ajouter un emplacement ici', '', function () { A.openCreate(loc.id); }, R.models.levelOf(depth + 1)),
           btn('Modifier', 'secondary', function () { A.openEdit(loc.id); }),
           btn('Déplacer', 'secondary', function () { A.openMove(loc.id); }),
+          btn('Dupliquer', 'secondary', function () { A.openDuplicate(loc.id); }),
           btn('Supprimer', 'danger-outline', function () { A.askDelete(loc.id); })
         ]
-      : [btn('Ajouter une pièce', '', function () { A.openCreate(null); })];
+      : [btn('Ajouter une pièce', '', function () { A.openCreate(null); }, 'piece')];
     return el('div', { class: 'toolbar', role: 'group', 'aria-label': 'Actions' }, buttons);
   }
 
@@ -75,7 +78,7 @@
       el('h2', null, ['Bienvenue dans Rangement']),
       el('p', null, ['Commencez par créer une pièce (par exemple \u00ab Séjour \u00bb), puis ajoutez-y des meubles, des tiroirs ou des boîtes.']),
       el('div', { class: 'toolbar' }, [
-        btn('Créer ma première pièce', '', function () { A.openCreate(null); }),
+        btn('Créer ma première pièce', '', function () { A.openCreate(null); }, 'piece'),
         btn('Charger les données de démonstration', 'secondary', function () { R.features.demo.load(); }),
         el('a', { class: 'button button--secondary', href: R.ui.router.settingsHref() }, ['Importer une sauvegarde'])
       ])
@@ -125,16 +128,21 @@
       return;
     }
 
-    if (loc) { container.appendChild(R.ui.components.breadcrumb.create(R.store.pathOf(id))); }
-
-    var heading = [el('h2', { class: 'detail-title' }, [loc ? loc.name : 'Logement'])];
+    var depth = loc ? R.store.depthOf(loc.id) : -1;
+    var bar = R.ui.components.detailbar.create({
+      ref: loc ? { type: 'location', id: loc.id } : { type: 'root' },
+      path: loc ? R.store.pathOf(id) : [],
+      title: loc ? loc.name : R.models.rootLabel(),
+      level: loc ? R.models.levelOf(depth) : 'racine',
+      toolbar: toolbar(loc, depth)
+    });
+    container.appendChild(bar.head);
     if (loc) {
-      heading.push(el('p', { class: 'detail-meta' }, [
+      container.appendChild(el('p', { class: 'detail-meta' }, [
         R.models.kindLabel(loc.kind) + (loc.note ? ' \u2014 ' + loc.note : '')
       ]));
     }
-    container.appendChild(el('header', { class: 'detail-head', 'data-kind': loc ? loc.kind : null }, heading));
-    container.appendChild(toolbar(loc));
+    container.appendChild(bar.manage);
 
     var kids = locationRows(loc ? loc.id : null);
     var items = loc ? itemRows(loc.id) : [];

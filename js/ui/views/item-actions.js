@@ -1,8 +1,8 @@
 /*
   js/ui/views/item-actions.js — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : quantité : nombre entier (clavier numérique) ; indication « 0 si épuisé ».
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : duplication d'un objet ; quantité contrôlée champ par champ (validate).
 */
 (function () {
   'use strict';
@@ -20,11 +20,12 @@
       title: 'Nouvel objet dans \u00ab ' + loc.name + ' \u00bb',
       fields: [
         { name: 'name', label: 'Nom', maxlength: 80 },
-        { name: 'quantity', label: 'Quantité', value: '1', inputmode: 'numeric', maxlength: 7, hint: QTY_HINT },
+        { name: 'quantity', label: 'Quantité', value: '1', inputmode: 'numeric', maxlength: 7, hint: QTY_HINT, validate: R.features.items.quantityError },
         { name: 'tags', label: 'Mots-clés (facultatif)', hint: TAGS_HINT },
         { name: 'note', label: 'Note (facultatif)', type: 'textarea' }
       ],
       submitLabel: 'Ajouter',
+      submitLevel: 'objet',
       onSubmit: function (v) {
         return R.features.items.create({
           name: v.name, quantity: v.quantity, tags: v.tags, note: v.note, locationId: locationId
@@ -40,7 +41,7 @@
       title: 'Modifier \u00ab ' + item.name + ' \u00bb',
       fields: [
         { name: 'name', label: 'Nom', value: item.name, maxlength: 80 },
-        { name: 'quantity', label: 'Quantité', value: R.features.items.formatQuantity(item.quantity), inputmode: 'numeric', maxlength: 7, hint: QTY_HINT },
+        { name: 'quantity', label: 'Quantité', value: R.features.items.formatQuantity(item.quantity), inputmode: 'numeric', maxlength: 7, hint: QTY_HINT, validate: R.features.items.quantityError },
         { name: 'tags', label: 'Mots-clés (facultatif)', value: item.tags.join(', '), hint: TAGS_HINT },
         { name: 'note', label: 'Note (facultatif)', type: 'textarea', value: item.note }
       ],
@@ -68,6 +69,33 @@
     });
   }
 
+  // Duplique un objet : il faut changer le nom ou choisir un autre emplacement.
+  function openDuplicate(id) {
+    var item = R.store.getItem(id);
+    if (!item) { return; }
+    R.ui.components.dialog.form({
+      title: 'Dupliquer \u00ab ' + item.name + ' \u00bb',
+      fields: [
+        { name: 'name', label: 'Nom de la copie', value: item.name, maxlength: 80 },
+        {
+          name: 'location',
+          label: 'Emplacement de la copie',
+          type: 'select',
+          options: R.features.items.locationChoices(),
+          value: item.locationId,
+          hint: 'Modifiez le nom ou choisissez un autre emplacement. La quantité, les mots-clés et la note sont repris.'
+        }
+      ],
+      submitLabel: 'Dupliquer',
+      selectFirst: true,
+      onSubmit: function (v) {
+        var res = R.features.items.duplicate(id, { name: v.name, locationId: v.location });
+        if (res.ok) { window.location.hash = R.ui.router.itemHref(res.item.id); }
+        return res;
+      }
+    });
+  }
+
   function askDelete(id) {
     var item = R.store.getItem(id);
     if (!item) { return; }
@@ -89,6 +117,7 @@
     openCreate: openCreate,
     openEdit: openEdit,
     openMove: openMove,
+    openDuplicate: openDuplicate,
     askDelete: askDelete
   };
 })();

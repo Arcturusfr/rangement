@@ -1,8 +1,8 @@
 /*
   js/ui/views/search.js — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : création — résultats de recherche (objets, puis emplacements) avec chemin complet.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : niveaux de couleur des résultats (objet, épuisé, pièce, emplacement, sous-emplacement).
 */
 (function () {
   'use strict';
@@ -23,6 +23,7 @@
       title: it.name,
       href: R.ui.router.itemHref(it.id),
       subtitle: pathLabel(hit.path),
+      level: it.quantity === 0 ? 'zero' : 'objet',
       chips: chips.concat(it.tags),
       muted: it.quantity === 0
     };
@@ -35,7 +36,7 @@
     return {
       title: loc.name,
       href: R.ui.router.href(loc.id),
-      kind: loc.kind,
+      level: R.models.levelOf(hit.path.length - 1),
       subtitle: parents.length ? label + ' \u2014 ' + pathLabel(parents) : label
     };
   }
