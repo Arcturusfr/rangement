@@ -1,8 +1,8 @@
 /*
   js/core/store.js — Application « Rangement »
-  Version : V005
-  Horodatage : 2026-10-23 23:50 (heure de Paris)
-  Résumé : ajout de getItem(id) (index des objets par identifiant) ; sinon inchangé.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : ajout de depthOf(id) ; sinon inchangé.
 */
 (function () {
   'use strict';
@@ -130,6 +130,9 @@
     return path;
   }
 
+  // Profondeur d'un emplacement (0 = pièce à la racine).
+  function depthOf(id) { return Math.max(0, pathOf(id).length - 1); }
+
   // Nombre d'emplacements et d'objets contenus (à tous les niveaux).
   function countIn(id) {
     var total = { locations: 0, items: itemsIn(id).length };
@@ -152,6 +155,7 @@
     childLocations: childLocations,
     itemsIn: itemsIn,
     pathOf: pathOf,
+    depthOf: depthOf,
     countIn: countIn,
     notices: function () { return notices.slice(); }
   };

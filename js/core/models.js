@@ -1,8 +1,8 @@
 /*
   js/core/models.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : ajout de normalizeText (comparaison sans casse ni accents).
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : ajout de levelOf (niveau de couleur) et rootLabel (libellé « Logement » + précision).
 */
 (function () {
   'use strict';
@@ -18,6 +18,17 @@
     var t = typeof value === 'string' ? value : '';
     if (t.normalize) { t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
     return t.toLowerCase().trim();
+  }
+
+  // Niveau d'un emplacement selon sa profondeur : sert au code couleur (0 = pièce, 1 = emplacement de premier ordre, 2+ = sous-emplacement).
+  function levelOf(depth) {
+    return depth <= 0 ? 'piece' : (depth === 1 ? 'emplacement' : 'sous');
+  }
+
+  // Libellé de la racine : « Logement » + précision éventuelle (R.config.dwellingName).
+  function rootLabel() {
+    var n = R.config.dwellingName;
+    return 'Logement' + (n ? ' \u2014 ' + n : '');
   }
 
   function kindLabel(kind) {
@@ -132,6 +143,8 @@
     emptyData: emptyData,
     validateData: validateData,
     normalizeText: normalizeText,
-    kindLabel: kindLabel
+    kindLabel: kindLabel,
+    levelOf: levelOf,
+    rootLabel: rootLabel
   };
 })();
