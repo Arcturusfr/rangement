@@ -1,8 +1,8 @@
 /*
   js/ui/views/settings.js — Application « Rangement »
-  Version : V007
-  Horodatage : 2026-10-24 22:30 (heure de Paris)
-  Résumé : création — écran Réglages (#/r) : exporter une sauvegarde JSON, importer, annuler la dernière importation, à propos.
+  Version : V008
+  Horodatage : 2026-10-25 00:52 (heure de Paris)
+  Résumé : section « Application hors ligne » : mise à jour sur accord, recherche de mise à jour, vider le cache, installer (jalon 6).
 */
 (function () {
   'use strict';
@@ -13,7 +13,9 @@
 
   var flash = null;   // { text } : confirmation affichée en haut de l'écran, effacée dès qu'on le quitte
 
-  R.events.on('route:changed', function () { flash = null; });
+  var checking = null;   // résultat de la dernière recherche de mise à jour : { text }
+
+  R.events.on('route:changed', function () { flash = null; checking = null; });
 
   function btn(label, variant, onclick, attrs) {
     return el('button', Object.assign({ class: 'button' + (variant ? ' button--' + variant : ''), type: 'button', onclick: onclick }, attrs || {}), [label]);
@@ -111,6 +113,57 @@
     });
   }
 
+  // ---------- application hors ligne (PWA) ----------
+
+  function askClearCache() {
+    R.ui.components.dialog.confirm({
+      title: 'Vider le cache de l\u2019application ?',
+      message: 'Les fichiers de l\u2019application mis en cache sur cet appareil seront supprimés, puis l\u2019application se rechargera. ' +
+        'Vos données (emplacements, objets) ne sont pas touchées. Une connexion est nécessaire pour la recharger.',
+      confirmLabel: 'Vider le cache',
+      danger: true,
+      onConfirm: function () { R.pwa.clearCache(); return { ok: true }; }
+    });
+  }
+
+  function onCheckUpdate() {
+    checking = { text: 'Recherche d\u2019une nouvelle version\u2026' };
+    R.events.emit('pwa:changed', {});
+    R.pwa.checkUpdate().then(function (res) {
+      checking = { text: !res.ok ? 'Recherche impossible pour l\u2019instant (hors connexion ?).'
+        : (res.updateReady ? 'Une nouvelle version est prête.' : 'Vous utilisez la dernière version.') };
+      R.events.emit('pwa:changed', {});
+    });
+  }
+
+  function pwaSection() {
+    var p = R.pwa.status();
+    var nodes = [];
+    if (!p.supported) {
+      nodes.push(el('p', { class: 'hint' }, ['Le mode hors ligne n\u2019est pas disponible dans ce contexte (il nécessite une adresse https:// ou localhost, pas un fichier ouvert directement).']));
+      return section('Application hors ligne', nodes);
+    }
+    if (p.error) {
+      nodes.push(el('p', { class: 'note-box note-box--warn' }, ['Le mode hors ligne n\u2019a pas pu être activé : ' + p.error]));
+    } else if (p.updateReady) {
+      nodes.push(el('p', { class: 'note-box note-box--warn', role: 'status' }, ['Une nouvelle version de l\u2019application est prête. Elle sera utilisée après la mise à jour (l\u2019écran se rechargera ; vos données ne changent pas).']));
+    } else if (p.cacheName) {
+      nodes.push(el('p', null, ['L\u2019application est disponible hors ligne. Cache actif : ' + p.cacheName + '.']));
+    } else {
+      nodes.push(el('p', { class: 'hint' }, ['Le mode hors ligne s\u2019active au premier chargement ; rouvrez l\u2019application dans un instant.']));
+    }
+    if (checking) { nodes.push(el('p', { class: 'hint', role: 'status' }, [checking.text])); }
+    if (p.standalone) { nodes.push(el('p', { class: 'hint' }, ['Application installée sur cet appareil.'])); }
+
+    var buttons = [];
+    if (p.updateReady) { buttons.push(btn('Mettre à jour', '', function () { R.pwa.applyUpdate(); }, { id: 'update-button' })); }
+    if (p.canInstall) { buttons.push(btn('Installer l\u2019application', '', function () { R.pwa.promptInstall(); }, { id: 'install-button' })); }
+    buttons.push(btn('Rechercher une mise à jour', 'secondary', onCheckUpdate, { id: 'check-update-button' }));
+    buttons.push(btn('Vider le cache de l\u2019application', 'secondary', askClearCache, { id: 'clear-cache-button' }));
+    nodes.push(el('div', { class: 'toolbar' }, buttons));
+    return section('Application hors ligne', nodes);
+  }
+
   // ---------- écran ----------
 
   function statusNote(st) {
@@ -160,6 +213,8 @@
       el('div', { class: 'toolbar' }, restoreButtons),
       input
     ]));
+
+    nodes.push(pwaSection());
 
     nodes.push(section('À propos', [
       el('p', null, ['Version de l\u2019application : ' + R.config.version]),

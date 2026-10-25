@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V007
-  Horodatage : 2026-10-24 22:30 (heure de Paris)
-  Résumé : écran Réglages (#/r) accessible même sans données ; bouton « Importer une sauvegarde » sur l'écran de démarrage.
+  Version : V008
+  Horodatage : 2026-10-25 00:52 (heure de Paris)
+  Résumé : re-rendu de l'écran Réglages quand l'état PWA change (jalon 6) ; sinon inchangé.
 */
 (function () {
   'use strict';
@@ -155,6 +155,7 @@
     render();
     R.events.on('store:changed', render);
     R.events.on('backup:changed', render);
+    R.events.on('pwa:changed', function () { if (R.ui.router.current().settings) { render(); } });
     R.events.on('route:changed', function () { render(); container.scrollTop = 0; });
   }
 
