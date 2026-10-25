@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V008
-  Horodatage : 2026-10-25 00:52 (heure de Paris)
-  Résumé : création — service worker : pré-cache explicite et versionné, cache d'abord, mise à jour sur accord de l'utilisateur.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : version V009 ; detailbar.js et treerail.js ajoutés au pré-cache.
 */
 'use strict';
 
-var VERSION = 'V008';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V009';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
@@ -35,7 +35,9 @@ var FILES = [
   'js/ui/components/list.js',
   'js/ui/components/form.js',
   'js/ui/components/dialog.js',
+  'js/ui/components/detailbar.js',
   'js/ui/layout.js',
+  'js/ui/views/treerail.js',
   'js/ui/views/browse.js',
   'js/ui/views/location-actions.js',
   'js/ui/views/item-actions.js',
