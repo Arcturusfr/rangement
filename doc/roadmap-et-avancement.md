@@ -1,21 +1,28 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V007
-  Horodatage : 2026-10-24 22:30 (heure de Paris)
-  Résumé : jalon 4 validé ; jalon 5 (sauvegarde : export / import JSON, Réglages) livré ; une question ouverte.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : jalon 6 validé ; jalon 6 bis livré (V009).
 -->
 
-# Roadmap et avancement — Rangement `V007`
+# Roadmap et avancement — Rangement `V009`
 
-> Dernière mise à jour : 24/10/2026 22:30 (Paris) — **V007**
+> Dernière mise à jour : 25/10/2026 16:10 (Paris) — **V009**
 
 ## État actuel
 
-- **Jalon 4 validé** par l'utilisateur (testé longuement sur les fichiers hébergés sur GitHub, avec beaucoup de données) : aucun bug de fonctionnement ; des améliorations ergonomiques ont été notées pour le jalon 6 bis.
-- **Jalon 5 livré** (V007) : écran **Réglages** (`#/r`, lien dans l'en-tête), **export** JSON horodaté, **import** avec contrôles et confirmation, **copie de sécurité** automatique annulable, suivi de la dernière sauvegarde.
-- Tests Playwright/Chromium : **476 tests, 0 échec** (62 pour le jalon 1 et le diagnostic, 73 pour le jalon 2, 131 pour le jalon 3, 73 pour le jalon 4, 137 pour le jalon 5), en `http://` et en `file://` pour les parcours principaux.
-- En attente : **validation du jalon 5 par l'utilisateur** (GitHub, local sur téléphone, QEdit ; voir `ToDo_Utilisateur.md`). Recommandation : **exporter une première sauvegarde de vos vraies données dès la V007 installée**.
-- Prochaine étape : **Jalon 6** (PWA hors ligne) — icônes 192 et 512 px à joindre à la conversation.
+- **Jalon 6 validé** par l'utilisateur (GitHub Pages et QEdit) : aucun bug.
+- **Jalon 6 bis livré** (V009) : arborescence repliable (repliée par défaut) avec ligne « Logement » figée et rail réductible ; en-tête figé du détail avec bouton « Actions » ; duplication d'emplacements et d'objets ; loupe ; bouton Retour ; flèches de niveau ; fermeture des Réglages par leur bouton ; blocage de saisie interdite ; pastille « non sauvegardé » ; code couleur par niveau.
+- Tests Playwright/Chromium : **667 tests, 0 échec** (62 jalon 1, 73 jalon 2, 131 jalon 3, 73 jalon 4, 137 jalon 5, 52 jalon 6, 139 jalon 6 bis).
+- En attente : **validation du jalon 6 bis par l'utilisateur** (voir `ToDo_Utilisateur.md`), puis jalon 7.
+
+### (historique) État à la V008
+
+- **Jalon 5 validé** par l'utilisateur : aucun bug de fonctionnement.
+- **Jalon 6 livré** (V008) : **PWA hors ligne** — `manifest.webmanifest`, icônes (192/512, any et maskable), `sw.js` (pré-cache explicite versionné `rangement-V008`, cache d'abord, nettoyage des anciens caches, **mise à jour uniquement sur accord**), `js/pwa.js`, section « Application hors ligne » dans Réglages (mise à jour, recherche de mise à jour, vider le cache, installer), pastille ● sur « Réglages » quand une mise à jour attend.
+- Tests Playwright/Chromium : **528 tests, 0 échec** (62 jalon 1 et diagnostic, 73 jalon 2, 131 jalon 3, 73 jalon 4, 137 jalon 5, 52 jalon 6), en `http://` et en `file://` pour les parcours principaux.
+- En attente : **validation du jalon 6 par l'utilisateur** (GitHub Pages, installation sur le Z Fold, usage en mode avion ; voir `ToDo_Utilisateur.md`).
+- Prochaine étape : **Jalon 6 bis** (évolutions ergonomiques) — la liste est à fournir par l'utilisateur.
 
 ## Décisions prises
 
@@ -38,7 +45,9 @@
 | Quantité | **Validé** : nombre **entier** (pas de décimales pour l'instant, à revoir à l'usage) ; **0 accepté** (objet épuisé mais référencé) ; objet de quantité 0 **grisé** (fond et texte) |
 | Recherche (règles) | Champ permanent sous l'en-tête ; tous les mots requis ; champs : nom > mots-clés > note > chemin ; objets puis emplacements |
 | Sauvegarde (V007) | Export en fichier JSON horodaté (`rangement-AAAA-MM-JJ-HHMM.json`) ; import **par remplacement** (pas de fusion) après analyse complète du fichier et confirmation ; copie de sécurité automatique avant chaque import, annulable depuis les Réglages ; fichier invalide = refus sans rien modifier. *(Proposé par Claude, à valider à l'usage.)* |
-| Icônes PWA | Déjà générées (192 et 512 px) ; à **joindre à la conversation** au lancement du Jalon 6 (impossible de les stocker dans les bases du Projet) |
+| Icônes PWA | Fournies par l'utilisateur et intégrées en V008 (`icons/`) ; les mêmes images servent aux versions `any` et `maskable` |
+| Jalon 6 bis (V009) | Niveaux de couleur par profondeur (pièce / premier ordre / sous-emplacement / objet / épuisé). *(Hypothèses de Claude, à valider à l'usage :)* flèche ▼ = dernier enfant visité sinon premier ; duplication d'un emplacement : choix du contenu copié (seul par défaut) ; on arrive sur la copie ; l'état déplié de l'arborescence n'est pas mémorisé, la largeur (rail) l'est ; pastille orange = données jamais exportées ou modifiées depuis. |
+| PWA (V008) | Pré-cache explicite versionné ; **mise à jour sur accord** (jamais de `skipWaiting` automatique) ; bouton « Vider le cache » (données intactes) ; pas de service worker en `file://`. *(Règles de ARCHITECTURE.md §5, §6.)* |
 
 ## Jalons
 
@@ -81,24 +90,27 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ✅ Accès rapide : champ de recherche permanent sous l'en-tête (écrans déplié et replié), route `#/s/<texte>`, lien direct et bouton Retour gérés
 - ✅ Validation sur les fichiers hébergés sur GitHub avec de nombreuses données (utilisateur) : aucun bug
 
-### Jalon 5 — Sauvegarde ✅ (livré en V007, validation utilisateur en attente)
-- ✅ Export JSON horodaté (`schemaVersion`, `appVersion`, `exportedAt`, emplacements, objets)
-- ✅ Import avec contrôle complet (format, `schemaVersion`, cohérence) et confirmation ; refus explicite sans toucher aux données
-- ✅ Copie de sécurité avant import, bouton « Annuler la dernière importation »
-- ✅ Écran Réglages (`#/r`) : sauvegarde, restauration, à propos (version, format, stockage) ; suivi de la dernière sauvegarde et des modifications depuis
-- ✅ Accès depuis l'en-tête et depuis l'écran de démarrage (import dans un logement vide)
-- ⬜ Validation sur GitHub, en local sur téléphone et dans l'aperçu QEdit (utilisateur)
+### Jalon 5 — Sauvegarde ✅ (livré en V007, validé)
+- ✅ Export JSON horodaté, import avec contrôles et confirmation, copie de sécurité annulable, écran Réglages, suivi de la dernière sauvegarde
+- ✅ Validation par l'utilisateur : aucun bug de fonctionnement
 
-### Jalon 6 — PWA hors ligne
-- ⬜ `manifest.webmanifest` et icônes
-- ⬜ `sw.js` versionné, pré-cache explicite, nettoyage des anciens caches
-- ⬜ `pwa.js` : mise à jour sur accord de l'utilisateur, bouton « Vider le cache »
-- ⬜ Tests Playwright : installation, usage hors ligne, mise à jour de version
+### Jalon 6 — PWA hors ligne ✅ (livré en V008, validation utilisateur en attente)
+- ✅ `manifest.webmanifest` et icônes (4 PNG)
+- ✅ `sw.js` versionné, pré-cache explicite, nettoyage des anciens caches
+- ✅ `pwa.js` : mise à jour sur accord de l'utilisateur, bouton « Vider le cache », installation
+- ✅ Tests Playwright : pré-cache complet, usage hors ligne, mise à jour de version, vidage du cache, `file://`, écran replié
+- ⬜ Validation sur GitHub Pages, installation sur le Z Fold, mode avion, mise à jour réelle V008 → suivante (utilisateur)
 
-### Jalon 6 bis — Évolutions ergonomiques ⬜
+### Jalon 6 bis — Évolutions ergonomiques ✅ (livré en V009, validation utilisateur en attente)
 Étape intermédiaire ajoutée à la demande de l'utilisateur, qui consigne la liste des évolutions au fur et à mesure de ses tests.
-- ⬜ Liste des évolutions à fournir par l'utilisateur (non encore transmise)
-- ⬜ Chiffrage et regroupement en une livraison (ou deux), avec tests Playwright
+- ✅ Arborescence repliable, ligne « Logement » figée (+ variable de précision), rail réductible avec infobulle Ok / Annuler
+- ✅ Détail : fil d'Ariane et titre figés, bouton replier la gestion
+- ✅ Duplication d'un emplacement ou d'un objet (nom ou destination à changer)
+- ✅ Loupe, bouton Retour, flèches de niveau, fermeture des Réglages par leur bouton
+- ✅ Saisie interdite : message au changement de champ, blocage jusqu'à correction, sortie par Annuler / Retour
+- ✅ Pastille de sauvegarde près de « Réglages »
+- ✅ Code couleur par niveau, boutons « Ajouter… » colorés, gris pour quantité 0
+- ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
 
 ### Jalon 7 — Premières visualisations *(plus tard)*
 - ⬜ Vue schématique d'une pièce en SVG, générée à partir des données
@@ -114,7 +126,7 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 
 ## Questions ouvertes
 
-1. **Rappel de sauvegarde** : l'écran Réglages indique si des modifications ont eu lieu depuis la dernière sauvegarde, mais l'application ne le rappelle pas ailleurs. Souhaitez-vous une pastille discrète sur le lien « Réglages » de l'en-tête quand des modifications ne sont pas sauvegardées ? *(À traiter avec les évolutions du jalon 6 bis si oui.)*
+1. *(aucune pour l'instant — la pastille de rappel de sauvegarde est traitée en V009.)*
 
 ## Historique des versions
 
@@ -128,3 +140,5 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V005 | 23/10/2026 23:50 | Jalon 2 validé ; jalon 3 livré (116 tests dédiés, 251 au total) |
 | V006 | 24/10/2026 13:10 | Jalon 3 validé, règles des objets précisées ; jalon 4 livré (recherche) ; jalon 6 bis ajouté (339 tests au total) |
 | V007 | 24/10/2026 22:30 | Jalon 4 validé ; jalon 5 livré (sauvegarde : export / import JSON, Réglages, 137 tests dédiés, 476 au total) |
+| V008 | 25/10/2026 00:52 | Jalon 5 validé ; jalon 6 livré (PWA hors ligne, 52 tests dédiés, 528 au total) |
+| V009 | 25/10/2026 16:10 | Jalon 6 validé ; jalon 6 bis livré (139 tests dédiés, 667 au total) |
