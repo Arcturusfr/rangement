@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V007
-  Horodatage : 2026-10-24 22:30 (heure de Paris)
-  Résumé : module de sauvegarde et écran Réglages ajoutés ; lien « Réglages » de l'en-tête (jalon 5).
+  Version : V008
+  Horodatage : 2026-10-25 00:52 (heure de Paris)
+  Résumé : PWA : js/pwa.js démarré, pastille de mise à jour sur « Réglages » (jalon 6).
 */
 (function () {
   'use strict';
@@ -35,7 +35,8 @@
     ['ui.views.search', 'js/ui/views/search.js'],
     ['ui.views.searchbar', 'js/ui/views/searchbar.js'],
     ['ui.views.settings', 'js/ui/views/settings.js'],
-    ['ui.views.location', 'js/ui/views/location.js']
+    ['ui.views.location', 'js/ui/views/location.js'],
+    ['pwa', 'js/pwa.js']
   ];
 
   function resolve(path) {
@@ -88,6 +89,21 @@
     }
     R.events.on('route:changed', markSettingsLink);
     markSettingsLink();
+
+    // Une pastille sur « Réglages » signale qu'une nouvelle version attend l'accord de l'utilisateur.
+    function markUpdate() {
+      var ready = R.pwa.status().updateReady;
+      if (ready) {
+        settingsLink.setAttribute('data-badge', 'update');
+        settingsLink.setAttribute('aria-label', 'Réglages (mise à jour disponible)');
+      } else {
+        settingsLink.removeAttribute('data-badge');
+        settingsLink.removeAttribute('aria-label');
+      }
+    }
+    R.events.on('pwa:changed', markUpdate);
+    R.pwa.init();
+    markUpdate();
 
     var messages = R.store.notices();
     showStatus(messages);
