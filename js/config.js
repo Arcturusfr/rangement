@@ -1,8 +1,8 @@
 /*
   js/config.js — Application « Rangement »
-  Version : V008
-  Horodatage : 2026-10-25 00:52 (heure de Paris)
-  Résumé : version portée à V008 (jalon 6, PWA) ; sinon inchangé.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : version V009 (jalon 6 bis) ; variable dwellingName (précision après « Logement »).
 */
 (function () {
   'use strict';
@@ -21,7 +21,8 @@
 
   R.config = Object.freeze({
     appName: 'Rangement',
-    version: 'V008',
+    version: 'V009',
+    dwellingName: '',          // précision affichée après « Logement » (plusieurs logements, plus tard)
     schemaVersion: 1,
     storageKey: 'rangement.data',
     twoPanesMinWidth: 720,

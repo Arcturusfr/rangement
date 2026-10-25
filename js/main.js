@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V008
-  Horodatage : 2026-10-25 00:52 (heure de Paris)
-  Résumé : PWA : js/pwa.js démarré, pastille de mise à jour sur « Réglages » (jalon 6).
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : jalon 6 bis : fermeture des Réglages par leur bouton, pastille « non sauvegardé », modules detailbar et treerail déclarés.
 */
 (function () {
   'use strict';
@@ -27,7 +27,9 @@
     ['ui.components.list', 'js/ui/components/list.js'],
     ['ui.components.form', 'js/ui/components/form.js'],
     ['ui.components.dialog', 'js/ui/components/dialog.js'],
+    ['ui.components.detailbar', 'js/ui/components/detailbar.js'],
     ['ui.layout', 'js/ui/layout.js'],
+    ['ui.views.treerail', 'js/ui/views/treerail.js'],
     ['ui.views.browse', 'js/ui/views/browse.js'],
     ['ui.views.locationActions', 'js/ui/views/location-actions.js'],
     ['ui.views.itemActions', 'js/ui/views/item-actions.js'],
@@ -89,19 +91,26 @@
     }
     R.events.on('route:changed', markSettingsLink);
     markSettingsLink();
+    // Un appui sur « Réglages » alors qu'ils sont ouverts les referme et revient à la vue précédente.
+    settingsLink.addEventListener('click', function (event) {
+      if (R.ui.router.current().settings) { event.preventDefault(); R.ui.router.closeSettings(); }
+    });
 
-    // Une pastille sur « Réglages » signale qu'une nouvelle version attend l'accord de l'utilisateur.
+    // Pastilles sur « Réglages » : nouvelle version en attente d'accord (jaune) ; données non sauvegardées dans un fichier JSON (orange).
     function markUpdate() {
       var ready = R.pwa.status().updateReady;
-      if (ready) {
-        settingsLink.setAttribute('data-badge', 'update');
-        settingsLink.setAttribute('aria-label', 'Réglages (mise à jour disponible)');
-      } else {
-        settingsLink.removeAttribute('data-badge');
-        settingsLink.removeAttribute('aria-label');
-      }
+      var unsaved = R.features.backup.needsBackup();
+      var parts = [];
+      if (unsaved) { parts.push('modifications non sauvegardées'); }
+      if (ready) { parts.push('mise à jour disponible'); }
+      if (ready) { settingsLink.setAttribute('data-badge', 'update'); } else { settingsLink.removeAttribute('data-badge'); }
+      if (unsaved) { settingsLink.setAttribute('data-unsaved', 'true'); } else { settingsLink.removeAttribute('data-unsaved'); }
+      if (parts.length) { settingsLink.setAttribute('aria-label', 'Réglages (' + parts.join(', ') + ')'); }
+      else { settingsLink.removeAttribute('aria-label'); }
     }
     R.events.on('pwa:changed', markUpdate);
+    R.events.on('store:changed', markUpdate);
+    R.events.on('backup:changed', markUpdate);
     R.pwa.init();
     markUpdate();
 
