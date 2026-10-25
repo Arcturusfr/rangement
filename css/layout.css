@@ -1,8 +1,8 @@
 /*
   css/layout.css — Application « Rangement »
-  Version : V007
-  Horodatage : 2026-10-24 22:30 (heure de Paris)
-  Résumé : lien « Réglages » dans l'en-tête ; sinon inchangé.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : arborescence réductible en rail (data-tree=mini), variable --pane-pad pour les en-têtes figés.
 */
 html, body { height: 100%; }
 
@@ -61,21 +61,32 @@ body {
 }
 
 .pane {
+  --pane-pad: var(--space-4);
   min-height: 0;
   overflow-y: auto;
-  padding: var(--space-4);
+  padding: var(--pane-pad);
   padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
 }
 
 /* Écran déplié / grand écran : arborescence + détail côte à côte */
-[data-panes="2"] .app-main { grid-template-columns: minmax(240px, 320px) 1fr; }
+[data-panes="2"] .app-main { grid-template-columns: minmax(240px, 320px) 1fr; transition: grid-template-columns 0.18s ease; }
+/* Arborescence réduite à un rail (écran déplié) */
+[data-panes="2"][data-tree="mini"] .app-main { grid-template-columns: 76px 1fr; }
 
 [data-panes="2"] .pane-tree {
   border-right: 1px solid var(--line);
   background: var(--surface);
 }
 
-[data-panes="2"] .pane-detail { padding: var(--space-5); }
+[data-panes="2"] .pane-detail { --pane-pad: var(--space-5); padding: var(--pane-pad); }
+
+/* Volet de l'arborescence : la première ligne (« Logement ») reste visible au défilement */
+.pane-tree { padding-top: 0; }
+[data-tree="mini"] .pane-tree { padding-left: var(--space-1); padding-right: var(--space-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-panes="2"] .app-main { transition: none; }
+}
 
 /* Écran replié : un seul volet, la navigation se fait par le contenu */
 [data-panes="1"] .pane-tree { display: none; }

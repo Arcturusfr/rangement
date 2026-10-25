@@ -1,8 +1,8 @@
 /*
   css/base.css — Application « Rangement »
-  Version : V003
-  Horodatage : 2026-10-22 21:39 (heure de Paris)
-  Résumé : création — variables (palette, espacements), reset, typographie.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : code couleur par niveau (pièce, emplacement, sous-emplacement, objet, épuisé) à la place des couleurs par type.
 */
 :root {
   --bg: #E9EEF0;
@@ -16,12 +16,13 @@
   --danger-bg: #FBE9E7;
   --danger-ink: #8A2A1C;
 
-  --kind-piece: #0B6B63;
-  --kind-meuble: #8A5A2B;
-  --kind-tiroir: #B5841A;
-  --kind-etagere: #3F6FB0;
-  --kind-boite: #A34A5E;
-  --kind-autre: #7B8A93;
+  /* Code couleur par niveau (texte non sélectionné) ; en inverse pour le texte sélectionné */
+  --level-piece: #0B6B63;
+  --level-emplacement: #7A4A1E;
+  --level-sous: #A8631A;
+  --level-objet: #2F5F9E;
+  --level-zero: #5F6E76;
+  --level-racine: #16222A;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -59,10 +60,10 @@ a { color: var(--accent); }
 
 [hidden] { display: none !important; }
 
-/* Couleur associée à chaque type d'emplacement */
-[data-kind="piece"]   { --kind-color: var(--kind-piece); }
-[data-kind="meuble"]  { --kind-color: var(--kind-meuble); }
-[data-kind="tiroir"]  { --kind-color: var(--kind-tiroir); }
-[data-kind="etagere"] { --kind-color: var(--kind-etagere); }
-[data-kind="boite"]   { --kind-color: var(--kind-boite); }
-[data-kind="autre"]   { --kind-color: var(--kind-autre); }
+/* Couleur associée à chaque niveau : pièce, emplacement de premier ordre, sous-emplacement, objet, objet épuisé */
+[data-level="piece"]       { --level-color: var(--level-piece); }
+[data-level="emplacement"] { --level-color: var(--level-emplacement); }
+[data-level="sous"]        { --level-color: var(--level-sous); }
+[data-level="objet"]       { --level-color: var(--level-objet); }
+[data-level="zero"]        { --level-color: var(--level-zero); }
+[data-level="racine"]      { --level-color: var(--level-racine); }
