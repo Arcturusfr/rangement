@@ -1,7 +1,7 @@
 # tests/test_jalon3.py — Application « Rangement »
-# Version : V006
-# Horodatage : 2026-10-24 13:10 (heure de Paris)
-# Résumé : règles V006 — noms d'objets uniques par emplacement, quantité entière, objets à quantité nulle grisés.
+# Version : V009
+# Horodatage : 2026-10-25 16:10 (heure de Paris)
+# Résumé : adaptation V009 : arborescence repliée par défaut (expand_tree), 4 actions sur la fiche d'un objet (Dupliquer).
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon3.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -70,6 +70,10 @@ def stored(page):
 
 def js(page, expr):
     return page.evaluate(expr)
+
+
+def expand_tree(page):
+    js(page, "Rangement.ui.views.browse.expandAll()")
 
 
 def load_demo(page):
@@ -179,7 +183,7 @@ def scenario_flow(browser, base, label):
     check(label + " | fiche : l'objet est l'élément courant du fil d'Ariane",
           page.locator("#pane-detail .breadcrumb [aria-current='page']").inner_text() == "Ampoules")
     check(label + " | fiche : mots-clés et note", "électricité" in page.inner_text("#pane-detail") and "culot E27" in page.inner_text("#pane-detail"))
-    check(label + " | fiche : 3 actions", page.locator("#pane-detail .toolbar .button").count() == 3)
+    check(label + " | fiche : 4 actions", page.locator("#pane-detail .toolbar .button").count() == 4)
     check(label + " | fiche : emplacement surligné dans l'arborescence",
           page.locator("#pane-tree [aria-current='page']").inner_text().strip() == "Tiroir bas gauche")
     check(label + " | fiche : lien vers l'emplacement", "Séjour \u203a Meuble living \u203a Tiroir bas gauche" in page.inner_text("#pane-detail .item-where"))
@@ -365,7 +369,7 @@ def scenario_narrow(browser, base):
     overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
     check("replié | fiche : pas de défilement horizontal", overflow <= 0, overflow)
     tools = page.locator("#pane-detail .toolbar .button")
-    check("replié | fiche : 3 actions ≥ 44 px", tools.count() == 3 and all(tools.nth(i).bounding_box()["height"] >= 44 for i in range(3)))
+    check("replié | fiche : 4 actions ≥ 44 px", tools.count() == 4 and all(tools.nth(i).bounding_box()["height"] >= 44 for i in range(4)))
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j3-replie-fiche.png"))
     page.locator("#pane-detail .breadcrumb a", has_text="Tiroir bas gauche").click()
@@ -383,6 +387,7 @@ def scenario_narrow(browser, base):
     ctx, page = new_page(browser, 884, 1100, errors)
     page.goto(base)
     load_demo(page)
+    expand_tree(page)
     page.locator("#pane-tree .tree-link", has_text="Grand tiroir du bas").click()
     wait_title(page, "Grand tiroir du bas")
     page.locator("#pane-detail .list-row", has_text="Jumelles Nikon").click()

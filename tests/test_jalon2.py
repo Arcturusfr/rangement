@@ -1,7 +1,7 @@
 # tests/test_jalon2.py — Application « Rangement »
-# Version : V004
-# Horodatage : 2026-10-23 11:35 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 2 (créer, modifier, déplacer, supprimer des emplacements).
+# Version : V009
+# Horodatage : 2026-10-25 16:10 (heure de Paris)
+# Résumé : adaptation V009 : arborescence repliée par défaut (expand_tree), 6 actions (Dupliquer).
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon2.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -79,6 +79,10 @@ def js(page, expr):
     return page.evaluate(expr)
 
 
+def expand_tree(page):
+    js(page, "Rangement.ui.views.browse.expandAll()")
+
+
 # ---------- scénarios ----------
 
 def scenario_flow(browser, base, label):
@@ -113,6 +117,7 @@ def scenario_flow(browser, base, label):
     page.wait_for_selector("#pane-detail .list-row:has-text('Placard sous évier')")
     row = page.locator("#pane-detail .list-item", has_text="Placard sous évier")
     check(label + " | sous-emplacement créé avec type et note", "Meuble" in row.inner_text() and "porte de gauche" in row.inner_text())
+    expand_tree(page)
     check(label + " | arborescence mise à jour", "Placard sous évier" in page.inner_text("#pane-tree"))
 
     # Doublon (sans tenir compte casse / accents)
@@ -274,7 +279,7 @@ def scenario_narrow(browser, base):
     overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
     check("replié | pas de défilement horizontal avec la barre d'actions", overflow <= 0, overflow)
     tools = page.locator("#pane-detail .toolbar .button")
-    check("replié | 4 actions visibles pour un emplacement", tools.count() == 4)
+    check("replié | 6 actions visibles pour un emplacement", tools.count() == 6)
     check("replié | boutons d'action ≥ 44 px", all(tools.nth(i).bounding_box()["height"] >= 44 for i in range(tools.count())))
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j2-replie-fiche.png"))
@@ -286,6 +291,7 @@ def scenario_narrow(browser, base):
     page.goto(base)
     page.get_by_role("button", name="Charger les données de démonstration").click()
     page.wait_for_selector("#pane-tree .tree-link")
+    expand_tree(page)
     page.locator("#pane-tree .tree-link", has_text="Meuble living").click()
     wait_title(page, "Meuble living")
     if SHOTS:
