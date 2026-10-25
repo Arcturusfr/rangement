@@ -1,8 +1,8 @@
 /*
   js/features/backup.js — Application « Rangement »
-  Version : V007
-  Horodatage : 2026-10-24 22:30 (heure de Paris)
-  Résumé : création — export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde.
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : ajout de needsBackup() (pastille « modifications non sauvegardées ») ; sinon inchangé.
 */
 (function () {
   'use strict';
@@ -62,6 +62,12 @@
       dirty: meta.dirty,
       counts: { locations: R.store.locations().length, items: R.store.items().length }
     };
+  }
+
+  // Vrai s'il y a des données qui ne figurent dans aucune sauvegarde exportée (jamais exportées, ou modifiées depuis).
+  function needsBackup() {
+    var has = R.store.locations().length > 0 || R.store.items().length > 0;
+    return has && (meta.dirty || !meta.lastExportAt);
   }
 
   // ---------- export ----------
@@ -209,6 +215,7 @@
   R.ns('features').backup = {
     init: init,
     status: status,
+    needsBackup: needsBackup,
     fileName: fileName,
     prepareExport: prepareExport,
     markExported: markExported,

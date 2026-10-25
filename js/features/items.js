@@ -1,8 +1,8 @@
 /*
   js/features/items.js — Application « Rangement »
-  Version : V006
-  Horodatage : 2026-10-24 13:10 (heure de Paris)
-  Résumé : noms d'objets uniques par emplacement ; quantité entière (0 accepté).
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : duplicate(id, { name, locationId }) ; quantityError(raw) pour la validation de saisie.
 */
 (function () {
   'use strict';
@@ -133,6 +133,25 @@
     return res.ok ? { ok: true } : fail('Enregistrement refusé : ' + (res.errors || []).join(' '));
   }
 
+  var DUP_CLASH = 'Modifiez le nom ou choisissez un autre emplacement : un objet portant ce nom existe déjà dans cet emplacement.';
+
+  // Duplique un objet (quantité, mots-clés et note repris). fields : { name, locationId }
+  function duplicate(id, fields) {
+    var f = fields || {};
+    var src = R.store.getItem(id);
+    if (!src) { return fail('Cet objet n\u2019existe plus.'); }
+    var name = cleanText(f.name);
+    if (!name) { return fail('Le nom est obligatoire.'); }
+    if (!f.locationId || !R.store.getLocation(f.locationId)) { return fail('L\u2019emplacement est introuvable.'); }
+    if (nameClash(f.locationId, name, null)) { return fail(DUP_CLASH); }
+    var item = R.models.newItem({ name: name, locationId: f.locationId, quantity: src.quantity, tags: src.tags, note: src.note });
+    var res = R.store.update(function (d) { d.items.push(item); });
+    return res.ok ? { ok: true, item: item } : fail('Enregistrement refusé : ' + (res.errors || []).join(' '));
+  }
+
+  // Message d'erreur si la quantité saisie est interdite, sinon null (sert à la validation champ par champ).
+  function quantityError(raw) { return parseQuantity(raw).ok ? null : QUANTITY_ERROR; }
+
   // Emplacements où ranger un objet : tous, avec leur chemin complet. Renvoie [{ value, label }].
   function locationChoices() {
     return R.store.locations()
@@ -146,6 +165,8 @@
     create: create,
     update: update,
     move: move,
+    duplicate: duplicate,
+    quantityError: quantityError,
     remove: remove,
     locationChoices: locationChoices,
     parseQuantity: parseQuantity,

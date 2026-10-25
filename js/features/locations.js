@@ -1,8 +1,8 @@
 /*
   js/features/locations.js — Application « Rangement »
-  Version : V004
-  Horodatage : 2026-10-23 11:34 (heure de Paris)
-  Résumé : création — créer, modifier, déplacer et supprimer des emplacements (avec garde-fous).
+  Version : V009
+  Horodatage : 2026-10-25 16:10 (heure de Paris)
+  Résumé : duplicate(id, { name, parentId, content }) : duplication d'un emplacement (seul, avec sous-emplacements, ou avec tout son contenu).
 */
 (function () {
   'use strict';
@@ -98,6 +98,47 @@
     return res.ok ? { ok: true } : storeFailure(res);
   }
 
+  var DUP_CLASH = 'Modifiez le nom ou choisissez un autre emplacement : un emplacement portant ce nom existe déjà à cet endroit.';
+
+  // Duplique un emplacement. fields : { name, parentId, content }
+  // content : 'none' (l'emplacement seul), 'structure' (avec ses sous-emplacements), 'all' (sous-emplacements et objets).
+  function duplicate(id, fields) {
+    var f = fields || {};
+    var src = R.store.getLocation(id);
+    if (!src) { return fail('Cet emplacement n\u2019existe plus.'); }
+    var name = cleanText(f.name);
+    var parentId = f.parentId || null;
+    var content = f.content === 'all' || f.content === 'structure' ? f.content : 'none';
+    if (!name) { return fail('Le nom est obligatoire.'); }
+    if (parentId && !R.store.getLocation(parentId)) { return fail('L\u2019emplacement parent est introuvable.'); }
+    if (parentId === id || (parentId && isInSubtree(parentId, id))) {
+      return fail('La copie ne peut pas être placée dans l\u2019emplacement copié ni dans son contenu.');
+    }
+    if (siblingClash(parentId, name, null)) { return fail(DUP_CLASH); }
+
+    var newLocs = [];
+    var newItems = [];
+    function copy(from, toParentId, toName) {
+      var c = R.models.newLocation({ name: toName, kind: from.kind, note: from.note, parentId: toParentId });
+      newLocs.push(c);
+      if (content === 'all') {
+        R.store.itemsIn(from.id).forEach(function (it) {
+          newItems.push(R.models.newItem({ name: it.name, locationId: c.id, quantity: it.quantity, tags: it.tags, note: it.note }));
+        });
+      }
+      if (content !== 'none') {
+        R.store.childLocations(from.id).forEach(function (child) { copy(child, c.id, child.name); });
+      }
+      return c;
+    }
+    var top = copy(src, parentId, name);
+    var res = R.store.update(function (d) {
+      newLocs.forEach(function (l) { d.locations.push(l); });
+      newItems.forEach(function (i) { d.items.push(i); });
+    });
+    return res.ok ? { ok: true, location: top, counts: { locations: newLocs.length, items: newItems.length } } : storeFailure(res);
+  }
+
   // Destinations possibles pour déplacer `id` : tout sauf lui-même et son contenu.
   // Renvoie [{ value, label }] ; value '' = racine du logement.
   function parentChoices(id) {
@@ -114,6 +155,7 @@
     create: create,
     update: update,
     move: move,
+    duplicate: duplicate,
     remove: remove,
     parentChoices: parentChoices
   };
