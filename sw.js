@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : version V009 ; detailbar.js et treerail.js ajoutés au pré-cache.
+  Version : V010
+  Horodatage : 2026-10-26 15:33 (heure de Paris)
+  Résumé : version V010 ; furniture.css, furniture.js (feature et vue) ajoutés au pré-cache.
 */
 'use strict';
 
-var VERSION = 'V009';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V010';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
@@ -18,6 +18,7 @@ var FILES = [
   'css/base.css',
   'css/layout.css',
   'css/components.css',
+  'css/furniture.css',
   'js/config.js',
   'js/core/events.js',
   'js/core/ids.js',
@@ -29,6 +30,7 @@ var FILES = [
   'js/features/items.js',
   'js/features/search.js',
   'js/features/backup.js',
+  'js/features/furniture.js',
   'js/ui/dom.js',
   'js/ui/router.js',
   'js/ui/components/breadcrumb.js',
@@ -45,6 +47,7 @@ var FILES = [
   'js/ui/views/search.js',
   'js/ui/views/searchbar.js',
   'js/ui/views/settings.js',
+  'js/ui/views/furniture.js',
   'js/ui/views/location.js',
   'js/pwa.js',
   'js/main.js',
