@@ -1,20 +1,24 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : jalon 6 validé ; jalon 6 bis livré (V009).
+  Version : V010
+  Horodatage : 2026-10-26 15:33 (heure de Paris)
+  Résumé : jalon 6 bis validé ; jalon 7 livré (V010).
 -->
 
-# Roadmap et avancement — Rangement `V009`
+# Roadmap et avancement — Rangement `V010`
 
-> Dernière mise à jour : 25/10/2026 16:10 (Paris) — **V009**
+> Dernière mise à jour : 26/10/2026 15:33 (Paris) — **V010**
 
 ## État actuel
 
-- **Jalon 6 validé** par l'utilisateur (GitHub Pages et QEdit) : aucun bug.
-- **Jalon 6 bis livré** (V009) : arborescence repliable (repliée par défaut) avec ligne « Logement » figée et rail réductible ; en-tête figé du détail avec bouton « Actions » ; duplication d'emplacements et d'objets ; loupe ; bouton Retour ; flèches de niveau ; fermeture des Réglages par leur bouton ; blocage de saisie interdite ; pastille « non sauvegardé » ; code couleur par niveau.
-- Tests Playwright/Chromium : **667 tests, 0 échec** (62 jalon 1, 73 jalon 2, 131 jalon 3, 73 jalon 4, 137 jalon 5, 52 jalon 6, 139 jalon 6 bis).
-- En attente : **validation du jalon 6 bis par l'utilisateur** (voir `ToDo_Utilisateur.md`), puis jalon 7.
+- **Jalon 6 bis validé** par l'utilisateur (V009) : aucun bug.
+- **Jalon 7 livré** (V010) : **vue graphique des meubles** — commutateur Liste / Vue graphique sur chaque emplacement de premier niveau ; meuble dessiné en rectangle (proportions réglables, pieds en option) avec ses sous-emplacements en rectangles, nombre d'objets et niveau sur chacun ; icône pour descendre dans les niveaux inférieurs avec rappel du niveau ; disposition automatique ajustable (colonnes, ordre, largeur) ; nombre d'objets dans l'arborescence.
+- Tests Playwright/Chromium : **722 tests, 0 échec** (62 jalon 1, 73 jalon 2, 131 jalon 3, 73 jalon 4, 137 jalon 5, 52 jalon 6, 139 jalon 6 bis, 55 jalon 7).
+- En attente : **validation du jalon 7 par l'utilisateur** (voir `ToDo_Utilisateur.md`).
+
+### (historique) État à la V009
+
+- Jalon 6 bis livré : arborescence repliable et rail, en-têtes figés, duplication, Retour, flèches de niveau, saisie interdite, pastille de sauvegarde, code couleur.
 
 ### (historique) État à la V008
 
@@ -47,6 +51,7 @@
 | Sauvegarde (V007) | Export en fichier JSON horodaté (`rangement-AAAA-MM-JJ-HHMM.json`) ; import **par remplacement** (pas de fusion) après analyse complète du fichier et confirmation ; copie de sécurité automatique avant chaque import, annulable depuis les Réglages ; fichier invalide = refus sans rien modifier. *(Proposé par Claude, à valider à l'usage.)* |
 | Icônes PWA | Fournies par l'utilisateur et intégrées en V008 (`icons/`) ; les mêmes images servent aux versions `any` et `maskable` |
 | Jalon 6 bis (V009) | Niveaux de couleur par profondeur (pièce / premier ordre / sous-emplacement / objet / épuisé). *(Hypothèses de Claude, à valider à l'usage :)* flèche ▼ = dernier enfant visité sinon premier ; duplication d'un emplacement : choix du contenu copié (seul par défaut) ; on arrive sur la copie ; l'état déplié de l'arborescence n'est pas mémorisé, la largeur (rail) l'est ; pastille orange = données jamais exportées ou modifiées depuis. |
+| Jalon 7 (V010) | **Validé** : vue graphique des meubles uniquement (pas de plan de pièce pour l'instant) ; disposition automatique avec réglages simples et décalage à la main ; géométrie dans `geometry` ; commutateur Liste / Vue graphique ; niveau rappelé à chaque affichage ; nombre d'objets sur les rectangles. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix mémorisé ; dessin en HTML/CSS (et non SVG) ; nombre d'objets de l'arborescence = total sous-niveaux compris, masqué si zéro. |
 | PWA (V008) | Pré-cache explicite versionné ; **mise à jour sur accord** (jamais de `skipWaiting` automatique) ; bouton « Vider le cache » (données intactes) ; pas de service worker en `file://`. *(Règles de ARCHITECTURE.md §5, §6.)* |
 
 ## Jalons
@@ -112,9 +117,12 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ✅ Code couleur par niveau, boutons « Ajouter… » colorés, gris pour quantité 0
 - ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
 
-### Jalon 7 — Premières visualisations *(plus tard)*
-- ⬜ Vue schématique d'une pièce en SVG, générée à partir des données
-- ⬜ Mise en évidence d'un emplacement depuis une recherche
+### Jalon 7 — Premières visualisations ✅ (livré en V010, validation utilisateur en attente)
+- ✅ Vue graphique d'un meuble : rectangle, pieds, sous-emplacements, nombre d'objets, détail des niveaux inférieurs
+- ✅ Disposition automatique, réglages simples, décalage à la main
+- ✅ Nombre d'objets dans l'arborescence
+- ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
+- ⬜ *(plus tard)* Mise en évidence d'un emplacement depuis une recherche ; vue d'une pièce
 
 ### Jalon 8 — Plan du logement *(plus tard)*
 - ⬜ Plan SVG complet du logement
@@ -142,3 +150,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V007 | 24/10/2026 22:30 | Jalon 4 validé ; jalon 5 livré (sauvegarde : export / import JSON, Réglages, 137 tests dédiés, 476 au total) |
 | V008 | 25/10/2026 00:52 | Jalon 5 validé ; jalon 6 livré (PWA hors ligne, 52 tests dédiés, 528 au total) |
 | V009 | 25/10/2026 16:10 | Jalon 6 validé ; jalon 6 bis livré (139 tests dédiés, 667 au total) |
+| V010 | 26/10/2026 15:33 | Jalon 6 bis validé ; jalon 7 livré (55 tests dédiés, 722 au total) |

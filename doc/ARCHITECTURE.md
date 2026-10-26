@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : jalon 6 bis livré — règles V009, nouveaux modules (detailbar, treerail), API.
+  Version : V010
+  Horodatage : 2026-10-26 15:33 (heure de Paris)
+  Résumé : jalon 7 livré — vue graphique des meubles, geometry, nombre d'objets dans l'arborescence.
 -->
 
-# ARCHITECTURE — Rangement `V009`
+# ARCHITECTURE — Rangement `V010`
 
-> Dernière mise à jour : 25/10/2026 16:10 (Paris) — **V009**
-> Statut : **jalon 6 bis livré** (évolutions ergonomiques). Le jalon 6 (PWA hors ligne) est validé. Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 26/10/2026 15:33 (Paris) — **V010**
+> Statut : **jalon 7 livré** (vue graphique des meubles). Le jalon 6 bis (évolutions ergonomiques) est validé. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -40,11 +40,13 @@
 │   ├── test_jalon4.py         Tests Playwright/Chromium : recherche
 │   ├── test_jalon5.py         Tests Playwright/Chromium : sauvegarde (export, import, annulation, réglages)
 │   ├── test_jalon6.py         Tests Playwright/Chromium : PWA (manifeste, pré-cache, hors ligne, mise à jour, vidage du cache)
+│   ├── test_jalon7.py         Tests Playwright/Chromium : vue graphique des meubles (disposition, niveaux, nombre d'objets dans l'arborescence)
 │   └── test_jalon6bis.py      Tests Playwright/Chromium : évolutions ergonomiques (arborescence, rail, en-têtes figés, duplication, Retour, flèches, saisie interdite, pastille, couleurs)
 ├── css/
 │   ├── base.css               Variables (couleurs, espacements), reset, typographie
 │   ├── layout.css             Mise en page : 1 volet / 2 volets, en-tête, navigation
-│   └── components.css         Boutons, listes, formulaires, fil d'Ariane, dialogues
+│   ├── components.css         Boutons, listes, formulaires, fil d'Ariane, dialogues
+│   └── furniture.css          Vue graphique d'un meuble, commutateur Liste / Vue graphique, nombre d'objets de l'arborescence
 └── js/
     ├── config.js              Crée `window.Rangement` ; version, constantes, clé de stockage
     ├── core/
@@ -58,6 +60,7 @@
     │   ├── locations.js       Créer/modifier/déplacer/supprimer des emplacements, avec garde-fous
     │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (quantité, mots-clés, note)
     │   ├── search.js          Recherche d'objets et d'emplacements (nom, mots-clés, note, chemin), classée par pertinence
+    │   ├── furniture.js       Géométrie d'un meuble (proportions, pieds, colonnes) et ordre / largeur des sous-emplacements (`geometry`)
     │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
@@ -76,6 +79,7 @@
     │       ├── item-actions.js  Dialogues d'action : ajouter, modifier, déplacer, supprimer un objet
     │       ├── location.js    Volet principal : contenu d'un emplacement + barre d'actions ; affiche aussi la fiche d'un objet
     │       ├── item.js        Fiche d'un objet (emplacement, quantité, mots-clés, note, actions)
+    │       ├── furniture.js   Vue graphique d'un meuble (rectangles, pieds, nombre d'objets, détail des niveaux inférieurs) et commutateur Liste / Vue graphique
     │       ├── searchbar.js   Champ de recherche permanent sous l'en-tête (synchronisé avec la route)
     │       ├── search.js      Résultats de recherche : objets puis emplacements, avec chemin complet
     │       └── settings.js    Écran Réglages (`#/r`) : export, import, annulation d'import, application hors ligne (mise à jour, cache, installation), à propos
@@ -151,10 +155,10 @@ Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser
 
 1. `js/config.js` (crée `window.Rangement`, l'aide `Rangement.ns('a.b')` et `Rangement.config`)
 2. `js/core/events.js`, `ids.js`, `models.js`, `storage.js`, `store.js`
-3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js`, `backup.js`
+3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js`, `backup.js`, `furniture.js`
 4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `detailbar.js`
 5. `js/ui/layout.js`
-6. `js/ui/views/treerail.js`, `browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `settings.js`, `location.js`
+6. `js/ui/views/treerail.js`, `browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `settings.js`, `furniture.js` (vue), `location.js`
 7. `js/pwa.js`
 8. `js/main.js` (dernier : démarre l'application)
 
@@ -195,7 +199,9 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.ui.router.back() / canBack() / closeSettings()` | Bouton Retour de l'application (historique interne, sinon niveau supérieur) ; fermeture des Réglages vers la vue d'origine |
 | `Rangement.ui.router` | Routes : `#/` (logement), `#/l/<id>` (emplacement), `#/o/<id>` (fiche d'un objet), `#/s/<texte>` (recherche), `#/r` (réglages). `current()` renvoie `{ locationId, itemId, query, settings }` (`query` vaut `null` hors recherche) ; `href(id)`, `itemHref(id)`, `searchHref(texte)`, `settingsHref()`, `navigate(id)`, `search(texte)` |
 | `Rangement.ui.components.dialog.form / confirm / alert` | Dialogues modaux (`<dialog>`), retour du focus à la fermeture |
-| `Rangement.events` | `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed`, `pwa:changed` |
+| `Rangement.features.furniture.isFurniture(id) / get(id) / set(id, patch) / ordered(id) / shift(id, ±1) / toggleSpan(id) / columns(id, n)` | Meuble = emplacement de premier niveau. Lecture / écriture de `geometry` : `ratio`, `feet`, `cols` (meuble ou niveau dessiné), `pos`, `span` (sous-emplacement). `ordered` : ordre d'affichage (choix manuel, sinon alphabétique) |
+| `Rangement.ui.views.furniture.create(id) / switcher() / mode() / setMode(m)` | Vue graphique d'un meuble ; commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) |
+| `Rangement.events` | `view:changed`, `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed`, `pwa:changed` |
 
 Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli affiche un avertissement.
 
@@ -258,9 +264,18 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Pastille de sauvegarde** : point orange avant « Réglages » s'il y a des données jamais exportées ou modifiées depuis le dernier export (point jaune après = mise à jour disponible).
 - **Code couleur** par niveau : pièces (vert-bleu), emplacements de premier ordre (brun), sous-emplacements (brun clair), objets (bleu), objet de quantité 0 (gris). Texte coloré quand l'élément n'est pas sélectionné, couleur de fond avec texte blanc quand il l'est ; boutons « Ajouter… » de la couleur de ce qu'ils créent.
 
+### Règles du jalon 7 (V010)
+
+- **Vue graphique** : uniquement pour les **meubles** (emplacements de premier niveau, directement dans une pièce). Un commutateur « Liste / Vue graphique » apparaît sous l'en-tête du détail ; la liste reste le mode par défaut ; le choix est mémorisé (clé annexe `view`).
+- **Dessin** : rectangle (bordure de la couleur du niveau) avec, en option, deux pieds ; sous-emplacements = rectangles dans une grille (HTML/CSS, texte toujours échappé). Chaque rectangle indique son nom, son **nombre d'objets** (sous-niveaux compris) et son **niveau** (« Niveau 3, tiroir »).
+- **Niveaux** : une légende rappelle toujours le niveau affiché (« Niveau 2 — Emplacement « Meuble living » : ses sous-emplacements (niveau 3)… »). Une icône (carrés emboîtés + nombre) signale un sous-emplacement qui en contient d'autres ; l'appui dessine ce niveau à la place du meuble, avec « Remonter au niveau N » et la liste de ses objets. Toucher le nom d'un rectangle ouvre l'emplacement.
+- **Disposition** : automatique (1 colonne jusqu'à 3 sous-emplacements, 2 jusqu'à 8, sinon 3) avec réglages simples (« Ajuster la disposition ») : proportions (haut, carré, large, très large), colonnes (auto, 1 à 4), pieds, décalage ◀ ▶ de chaque rectangle et largeur 1 ou 2 colonnes.
+- **Stockage** : dans `geometry` de l'emplacement (`ratio`, `feet`, `cols`, `pos`, `span`) ; `schemaVersion` inchangé (1) ; repris par l'export / import.
+- **Arborescence** : le nombre d'objets (total, sous-emplacements compris) s'affiche à droite de chaque libellé (rien s'il est nul) ; hors du lien, donc sans effet sur la sélection.
+
 ### 5.1 Diagnostic de démarrage
 
-Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js` et `treerail.js`).
+Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `treerail.js` et `furniture.js` (fonction et vue)).
 
 ## 6. PWA et service worker (règles strictes, mises en œuvre en V008)
 
@@ -307,3 +322,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V007 | 24/10/2026 22:30 | Jalon 5 : sauvegarde (export / import JSON, copie de sécurité annulable, suivi de la dernière sauvegarde), écran Réglages (`#/r`), lien « Réglages » dans l'en-tête |
 | V008 | 25/10/2026 00:52 | Jalon 6 : PWA hors ligne (`manifest.webmanifest`, `sw.js`, `js/pwa.js`, icônes), section « Application hors ligne » dans Réglages, pastille de mise à jour |
 | V009 | 25/10/2026 16:10 | Jalon 6 bis : arborescence repliable et rail, en-têtes figés, duplication, bouton Retour, flèches de niveau, Réglages repliables, saisie interdite, pastille de sauvegarde, code couleur, loupe |
+| V010 | 26/10/2026 15:33 | Jalon 7 : vue graphique des meubles (rectangle, pieds, sous-emplacements, détail des niveaux), disposition automatique ajustable, nombre d'objets dans l'arborescence |

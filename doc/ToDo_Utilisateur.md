@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : jalon 6 bis livré — fichiers à enregistrer et tests à faire.
+  Version : V010
+  Horodatage : 2026-10-26 15:33 (heure de Paris)
+  Résumé : jalon 7 livré — fichiers à enregistrer et tests à faire.
 -->
 
-# ToDo Utilisateur — Rangement `V009`
+# ToDo Utilisateur — Rangement `V010`
 
-> Dernière mise à jour : 25/10/2026 16:10 (Paris) — **V009**
+> Dernière mise à jour : 26/10/2026 15:33 (Paris) — **V010**
 
 ## Fait
 
+- [x] Valider le jalon 6 bis (V009) : aucun bug ; répondre aux points du jalon 7
 - [x] Valider le jalon 6 (PWA hors ligne) et décider de la pastille de sauvegarde
 
 - [x] Relire `ARCHITECTURE.md` et valider l'arborescence d'emplacements
@@ -32,14 +33,14 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V009** (archive `V009.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V009.txt`).
-  - **Nouveaux** : `js/ui/components/detailbar.js`, `js/ui/views/treerail.js`, `tests/test_jalon6bis.py`.
-  - **Remplacés** : `index.html`, `sw.js` (**à la racine**, pas dans `js/`), `css/base.css`, `css/layout.css`, `css/components.css`, `js/config.js`, `js/main.js`, `js/core/models.js`, `js/core/store.js`, `js/features/locations.js`, `js/features/items.js`, `js/features/backup.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `js/ui/views/browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `location.js`, `search.js` (vue), `searchbar.js`, `tests/test_jalon2.py`, `test_jalon3.py`, `test_jalon6.py` et les trois `.md`.
-  - **Inchangés** : tout le reste (dont `js/ui/layout.js`, `manifest.webmanifest`, `icons/`).
-- [ ] **Vérifier que la version affichée est `V009`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
-- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V009 (supprimer les versions remplacées).
-- [ ] **Tester le Jalon 6 bis** : arborescence (replier / déplier, « Logement » figé, rail et infobulle Ok / Annuler sur le Z Fold déplié) ; détail (en-tête figé, bouton « Actions ») ; duplication ; Retour et flèches ▲ ▼ ; Réglages refermés par leur bouton ; quantité décimale (message, blocage, Annuler) ; pastille orange avant « Réglages » ; couleurs ; écran replié.
-- [ ] **Répondre** : les choix de la roadmap (« Hypothèses de Claude ») vous conviennent-ils (flèche ▼, contenu copié, mémorisation) ? Autres évolutions ?
+- [ ] **Enregistrer les fichiers de la V010** (archive `V010.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V010.txt`).
+  - **Nouveaux** : `css/furniture.css`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `tests/test_jalon7.py`.
+  - **Remplacés** : `index.html`, `sw.js` (**à la racine**), `js/config.js`, `js/main.js`, `js/ui/views/browse.js`, `js/ui/views/location.js` et les trois `.md`.
+  - **Inchangés** : tout le reste.
+- [ ] **Vérifier que la version affichée est `V010`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V010 (supprimer les versions remplacées). **Attention** : `js/features/search.js` et `js/ui/layout.js` ne figuraient pas dans la base fournie (seul `search.js` de la vue y était) ; vérifiez qu'ils sont bien dans le dépôt et ajoutez-les à la base.
+- [ ] **Tester le Jalon 7** : sur un meuble (ex. Meuble living), bouton « Vue graphique » ; rectangles, nombre d'objets, niveau rappelé ; icône des sous-sous-emplacements et « Remonter » ; « Ajuster la disposition » (proportions, colonnes, pieds, ◀ ▶, largeur) ; retour à la « Liste » ; nombre d'objets dans l'arborescence ; écran replié.
+- [ ] **Répondre** : les choix de la roadmap (« Hypothèses de Claude ») vous conviennent-ils (liste par défaut, HTML/CSS plutôt que SVG, nombres de l'arborescence) ? Autres évolutions ?
 
 ### (historique) À faire à la V008
 
@@ -85,3 +86,4 @@
 | V007 | 24/10/2026 22:30 | Jalon 5 livré : fichiers à enregistrer, première sauvegarde des données, tests de l'export / import, base Contexte à mettre à jour |
 | V008 | 25/10/2026 00:52 | Jalon 6 livré : fichiers à enregistrer, tests de la PWA (hors ligne, installation, mise à jour), base Contexte à mettre à jour |
 | V009 | 25/10/2026 16:10 | Jalon 6 bis livré : fichiers à enregistrer, tests des évolutions ergonomiques, base Contexte à mettre à jour |
+| V010 | 26/10/2026 15:33 | Jalon 7 livré : fichiers à enregistrer, tests de la vue graphique des meubles, base Contexte à mettre à jour |
