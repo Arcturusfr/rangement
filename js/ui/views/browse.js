@@ -1,8 +1,8 @@
 /*
   js/ui/views/browse.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : arborescence repliable (repliée par défaut), ligne « Logement » figée, réduction en rail (treerail.js), couleurs par niveau.
+  Version : V010
+  Horodatage : 2026-10-26 15:33 (heure de Paris)
+  Résumé : nombre d'objets (total, sous-emplacements compris) à droite de chaque emplacement de l'arborescence large.
 */
 (function () {
   'use strict';
@@ -88,6 +88,12 @@
     t.setAttribute('title', all ? 'Tout replier' : 'Tout déplier');
   }
 
+  // Nombre d'objets contenus (sous-emplacements compris) ; rien si zéro.
+  function countBadge(id) {
+    var n = R.store.countIn(id).items;
+    return n ? el('span', { class: 'tree-count', title: R.ui.dom.plural(n, 'objet', 'objets') }, [String(n)]) : null;
+  }
+
   function renderNode(loc, depth, currentId) {
     var kids = R.store.childLocations(loc.id);
     var isOpen = !!expanded[loc.id];
@@ -105,7 +111,8 @@
         href: R.ui.router.href(loc.id),
         'data-level': R.models.levelOf(depth),
         'aria-current': loc.id === currentId ? 'page' : null
-      }, [loc.name])
+      }, [loc.name]),
+      countBadge(loc.id)
     ])];
     if (kids.length) {
       parts.push(el('div', { class: 'tree-children' }, [

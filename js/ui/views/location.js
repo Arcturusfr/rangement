@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : en-tête figé (detailbar), bouton Dupliquer, niveaux de couleur, boutons « Ajouter… » colorés.
+  Version : V010
+  Horodatage : 2026-10-26 15:33 (heure de Paris)
+  Résumé : jalon 7 : commutateur Liste / Vue graphique pour les meubles (emplacements de premier niveau).
 */
 (function () {
   'use strict';
@@ -144,6 +144,14 @@
     }
     container.appendChild(bar.manage);
 
+    if (loc && R.features.furniture.isFurniture(loc.id)) {
+      container.appendChild(R.ui.views.furniture.switcher());
+      if (R.ui.views.furniture.mode() === 'graphic') {
+        container.appendChild(R.ui.views.furniture.create(loc.id));
+        return;
+      }
+    }
+
     var kids = locationRows(loc ? loc.id : null);
     var items = loc ? itemRows(loc.id) : [];
 
@@ -163,6 +171,7 @@
     render();
     R.events.on('store:changed', render);
     R.events.on('backup:changed', render);
+    R.events.on('view:changed', render);
     R.events.on('pwa:changed', function () { if (R.ui.router.current().settings) { render(); } });
     R.events.on('route:changed', function () { render(); container.scrollTop = 0; });
   }
