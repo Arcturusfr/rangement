@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : jalon 6 bis : fermeture des Réglages par leur bouton, pastille « non sauvegardé », modules detailbar et treerail déclarés.
+  Version : V010
+  Horodatage : 2026-10-26 15:33 (heure de Paris)
+  Résumé : jalon 7 : modules furniture (feature et vue) déclarés.
 */
 (function () {
   'use strict';
@@ -21,6 +21,7 @@
     ['features.items', 'js/features/items.js'],
     ['features.search', 'js/features/search.js'],
     ['features.backup', 'js/features/backup.js'],
+    ['features.furniture', 'js/features/furniture.js'],
     ['ui.dom', 'js/ui/dom.js'],
     ['ui.router', 'js/ui/router.js'],
     ['ui.components.breadcrumb', 'js/ui/components/breadcrumb.js'],
@@ -37,6 +38,7 @@
     ['ui.views.search', 'js/ui/views/search.js'],
     ['ui.views.searchbar', 'js/ui/views/searchbar.js'],
     ['ui.views.settings', 'js/ui/views/settings.js'],
+    ['ui.views.furniture', 'js/ui/views/furniture.js'],
     ['ui.views.location', 'js/ui/views/location.js'],
     ['pwa', 'js/pwa.js']
   ];
