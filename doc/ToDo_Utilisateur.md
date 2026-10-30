@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V010
-  Horodatage : 2026-10-26 15:33 (heure de Paris)
-  Résumé : jalon 7 livré — fichiers à enregistrer et tests à faire.
+  Version : V011
+  Horodatage : 2026-10-30 00:22 (heure de Paris)
+  Résumé : V011 livrée — fichiers à enregistrer et tests de la grille.
 -->
 
-# ToDo Utilisateur — Rangement `V010`
+# ToDo Utilisateur — Rangement `V011`
 
-> Dernière mise à jour : 26/10/2026 15:33 (Paris) — **V010**
+> Dernière mise à jour : 30/10/2026 00:22 (Paris) — **V011**
 
 ## Fait
 
+- [x] Tester la vue graphique V010 (Z Fold, iPad) et répondre au sujet de la grille (deux bandes ; flèches)
 - [x] Valider le jalon 6 bis (V009) : aucun bug ; répondre aux points du jalon 7
 - [x] Valider le jalon 6 (PWA hors ligne) et décider de la pastille de sauvegarde
 
@@ -33,14 +34,13 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V010** (archive `V010.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V010.txt`).
-  - **Nouveaux** : `css/furniture.css`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `tests/test_jalon7.py`.
-  - **Remplacés** : `index.html`, `sw.js` (**à la racine**), `js/config.js`, `js/main.js`, `js/ui/views/browse.js`, `js/ui/views/location.js` et les trois `.md`.
-  - **Inchangés** : tout le reste.
-- [ ] **Vérifier que la version affichée est `V010`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
-- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V010 (supprimer les versions remplacées). **Attention** : `js/features/search.js` et `js/ui/layout.js` ne figuraient pas dans la base fournie (seul `search.js` de la vue y était) ; vérifiez qu'ils sont bien dans le dépôt et ajoutez-les à la base.
-- [ ] **Tester le Jalon 7** : sur un meuble (ex. Meuble living), bouton « Vue graphique » ; rectangles, nombre d'objets, niveau rappelé ; icône des sous-sous-emplacements et « Remonter » ; « Ajuster la disposition » (proportions, colonnes, pieds, ◀ ▶, largeur) ; retour à la « Liste » ; nombre d'objets dans l'arborescence ; écran replié.
-- [ ] **Répondre** : les choix de la roadmap (« Hypothèses de Claude ») vous conviennent-ils (liste par défaut, HTML/CSS plutôt que SVG, nombres de l'arborescence) ? Autres évolutions ?
+- [ ] **Enregistrer les fichiers de la V011** (archive `V011.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V011.txt`).
+  - **Remplacés** : `css/furniture.css`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/config.js`, `sw.js` (**à la racine**, pas dans `js/`), `tests/test_jalon7.py` et les trois `.md`.
+  - **Inchangés** : tout le reste (aucun nouveau fichier).
+- [ ] **Vérifier que la version affichée est `V011`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V011 (supprimer les versions remplacées).
+- [ ] **Tester la V011** : sur le « Meuble living » du séjour, reproduire sa géométrie (« Ajuster la disposition » : colonnes, lignes, touchez un emplacement puis flèches, Largeur / Hauteur ±, cases libres) ; bandes « Dessus » et « Dessous » ; un meuble de plus de 6 emplacements sur le Z Fold (plus de débordement) ; icône des sous-niveaux ; écran replié.
+- [ ] **Répondre** : les choix de la roadmap (« Hypothèses de Claude ») vous conviennent-ils (places figées, refus sur case occupée sans échange, limites 6 × 8 et 3 lignes par bande) ? Autres évolutions ?
 
 ### (historique) À faire à la V008
 
@@ -87,3 +87,4 @@
 | V008 | 25/10/2026 00:52 | Jalon 6 livré : fichiers à enregistrer, tests de la PWA (hors ligne, installation, mise à jour), base Contexte à mettre à jour |
 | V009 | 25/10/2026 16:10 | Jalon 6 bis livré : fichiers à enregistrer, tests des évolutions ergonomiques, base Contexte à mettre à jour |
 | V010 | 26/10/2026 15:33 | Jalon 7 livré : fichiers à enregistrer, tests de la vue graphique des meubles, base Contexte à mettre à jour |
+| V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

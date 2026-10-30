@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V010
-  Horodatage : 2026-10-26 15:33 (heure de Paris)
-  Résumé : jalon 7 livré — vue graphique des meubles, geometry, nombre d'objets dans l'arborescence.
+  Version : V011
+  Horodatage : 2026-10-30 00:22 (heure de Paris)
+  Résumé : V011 : grille de placement des meubles (cases, bandes dessus / dessous), API furniture.
 -->
 
-# ARCHITECTURE — Rangement `V010`
+# ARCHITECTURE — Rangement `V011`
 
-> Dernière mise à jour : 26/10/2026 15:33 (Paris) — **V010**
-> Statut : **jalon 7 livré** (vue graphique des meubles). Le jalon 6 bis (évolutions ergonomiques) est validé. Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 30/10/2026 00:22 (Paris) — **V011**
+> Statut : **jalon 7 livré, grille de placement en V011** (vue graphique des meubles). Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -60,7 +60,7 @@
     │   ├── locations.js       Créer/modifier/déplacer/supprimer des emplacements, avec garde-fous
     │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (quantité, mots-clés, note)
     │   ├── search.js          Recherche d'objets et d'emplacements (nom, mots-clés, note, chemin), classée par pertinence
-    │   ├── furniture.js       Géométrie d'un meuble (proportions, pieds, colonnes) et ordre / largeur des sous-emplacements (`geometry`)
+    │   ├── furniture.js       Grille d'un meuble (colonnes, lignes, bandes dessus / dessous, proportions, pieds) et place de chaque sous-emplacement en cases (`geometry`)
     │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
@@ -79,7 +79,7 @@
     │       ├── item-actions.js  Dialogues d'action : ajouter, modifier, déplacer, supprimer un objet
     │       ├── location.js    Volet principal : contenu d'un emplacement + barre d'actions ; affiche aussi la fiche d'un objet
     │       ├── item.js        Fiche d'un objet (emplacement, quantité, mots-clés, note, actions)
-    │       ├── furniture.js   Vue graphique d'un meuble (rectangles, pieds, nombre d'objets, détail des niveaux inférieurs) et commutateur Liste / Vue graphique
+    │       ├── furniture.js   Vue graphique d'un meuble sur grille (cases, bandes, sélection, détail des niveaux inférieurs) et commutateur Liste / Vue graphique
     │       ├── searchbar.js   Champ de recherche permanent sous l'en-tête (synchronisé avec la route)
     │       ├── search.js      Résultats de recherche : objets puis emplacements, avec chemin complet
     │       └── settings.js    Écran Réglages (`#/r`) : export, import, annulation d'import, application hors ligne (mise à jour, cache, installation), à propos
@@ -199,7 +199,7 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.ui.router.back() / canBack() / closeSettings()` | Bouton Retour de l'application (historique interne, sinon niveau supérieur) ; fermeture des Réglages vers la vue d'origine |
 | `Rangement.ui.router` | Routes : `#/` (logement), `#/l/<id>` (emplacement), `#/o/<id>` (fiche d'un objet), `#/s/<texte>` (recherche), `#/r` (réglages). `current()` renvoie `{ locationId, itemId, query, settings }` (`query` vaut `null` hors recherche) ; `href(id)`, `itemHref(id)`, `searchHref(texte)`, `settingsHref()`, `navigate(id)`, `search(texte)` |
 | `Rangement.ui.components.dialog.form / confirm / alert` | Dialogues modaux (`<dialog>`), retour du focus à la fermeture |
-| `Rangement.features.furniture.isFurniture(id) / get(id) / set(id, patch) / ordered(id) / shift(id, ±1) / toggleSpan(id) / columns(id, n)` | Meuble = emplacement de premier niveau. Lecture / écriture de `geometry` : `ratio`, `feet`, `cols` (meuble ou niveau dessiné), `pos`, `span` (sous-emplacement). `ordered` : ordre d'affichage (choix manuel, sinon alphabétique) |
+| `Rangement.features.furniture.layout(id[, essai]) / get(id) / set(id, { ratio, feet }) / setGrid(id, { cols, rows, top, bottom }) / move(id, dc, dr) / resize(id, dw, dh) / isFurniture(id)` | Grille d'un emplacement dessiné : `layout` renvoie `{ C, L, T, B, cells: [{ id, zone, col, row, w, h }] }` (places automatiques calculées si rien n'est enregistré). `move`, `resize` et `setGrid` enregistrent toute la grille et renvoient `{ ok }` ou `{ ok: false, error }` (message en français). |
 | `Rangement.ui.views.furniture.create(id) / switcher() / mode() / setMode(m)` | Vue graphique d'un meuble ; commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) |
 | `Rangement.events` | `view:changed`, `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed`, `pwa:changed` |
 
@@ -264,14 +264,16 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Pastille de sauvegarde** : point orange avant « Réglages » s'il y a des données jamais exportées ou modifiées depuis le dernier export (point jaune après = mise à jour disponible).
 - **Code couleur** par niveau : pièces (vert-bleu), emplacements de premier ordre (brun), sous-emplacements (brun clair), objets (bleu), objet de quantité 0 (gris). Texte coloré quand l'élément n'est pas sélectionné, couleur de fond avec texte blanc quand il l'est ; boutons « Ajouter… » de la couleur de ce qu'ils créent.
 
-### Règles du jalon 7 (V010)
+### Règles du jalon 7 (V010, grille en V011)
 
-- **Vue graphique** : uniquement pour les **meubles** (emplacements de premier niveau, directement dans une pièce). Un commutateur « Liste / Vue graphique » apparaît sous l'en-tête du détail ; la liste reste le mode par défaut ; le choix est mémorisé (clé annexe `view`).
-- **Dessin** : rectangle (bordure de la couleur du niveau) avec, en option, deux pieds ; sous-emplacements = rectangles dans une grille (HTML/CSS, texte toujours échappé). Chaque rectangle indique son nom, son **nombre d'objets** (sous-niveaux compris) et son **niveau** (« Niveau 3, tiroir »).
-- **Niveaux** : une légende rappelle toujours le niveau affiché (« Niveau 2 — Emplacement « Meuble living » : ses sous-emplacements (niveau 3)… »). Une icône (carrés emboîtés + nombre) signale un sous-emplacement qui en contient d'autres ; l'appui dessine ce niveau à la place du meuble, avec « Remonter au niveau N » et la liste de ses objets. Toucher le nom d'un rectangle ouvre l'emplacement.
-- **Disposition** : automatique (1 colonne jusqu'à 3 sous-emplacements, 2 jusqu'à 8, sinon 3) avec réglages simples (« Ajuster la disposition ») : proportions (haut, carré, large, très large), colonnes (auto, 1 à 4), pieds, décalage ◀ ▶ de chaque rectangle et largeur 1 ou 2 colonnes.
-- **Stockage** : dans `geometry` de l'emplacement (`ratio`, `feet`, `cols`, `pos`, `span`) ; `schemaVersion` inchangé (1) ; repris par l'export / import.
-- **Arborescence** : le nombre d'objets (total, sous-emplacements compris) s'affiche à droite de chaque libellé (rien s'il est nul) ; hors du lien, donc sans effet sur la sélection.
+- **Vue graphique** : uniquement pour les **meubles** (emplacements de premier niveau). Un commutateur « Liste / Vue graphique » apparaît sous l'en-tête du détail ; la liste reste le mode par défaut ; le choix est mémorisé (clé annexe `view`).
+- **Grille** : le meuble a `C` colonnes et `L` lignes (réglables : 1 à 6 colonnes, 1 à 8 lignes), plus une bande de `T` lignes **au-dessus** et une de `B` lignes **en dessous** (0 à 3). Chaque sous-emplacement occupe un rectangle de cases (`zone` : `top`, `body`, `bottom` ; `col`, `row`, `w`, `h`), sans chevauchement ni sortie de la grille. Un sous-emplacement ne peut pas chevaucher deux zones.
+- **Remplissage automatique** : un sous-emplacement sans place enregistrée prend la première case libre du meuble (1 × 1). Dès qu'on modifie la disposition, toutes les places sont **enregistrées** et ne bougent plus ; la grille s'agrandit si besoin (rien n'est jamais caché). Les réglages de la V010 (ordre `pos`, largeur `span`) sont convertis automatiquement.
+- **Réglages** (« Ajuster la disposition ») : proportions, colonnes, lignes, dessus, dessous, pieds. Un emplacement se sélectionne en le touchant ; flèches de décalage d'une case, largeur / hauteur ± une case, ou toucher une case libre pour y placer l'emplacement. Les refus (case occupée, sortie de grille, cases occupées à supprimer, chevauchement de zones) s'affichent en clair et ne changent rien.
+- **Dessin** : HTML/CSS (texte toujours échappé). Le cadre du meuble a la proportion choisie mais **grandit** si les lignes sont nombreuses (64 px minimum par ligne) ; les libellés sont tronqués dans leur case (nom complet au toucher / en infobulle), jamais débordants. Chaque case indique son nombre d'objets (sous-niveaux compris) et, si elle fait au moins deux cases, son niveau.
+- **Niveaux** : une légende rappelle toujours le niveau affiché (« Niveau 2 — Emplacement « Meuble living » : ses sous-emplacements (niveau 3)… »). Une icône (carrés emboîtés + nombre) signale un sous-emplacement qui en contient d'autres ; l'appui dessine ce niveau (même grille, mêmes réglages), avec « Remonter au niveau N » et la liste de ses objets.
+- **Stockage** : dans `geometry` (`ratio`, `feet`, `cols`, `rows`, `top`, `bottom` pour l'emplacement dessiné ; `zone`, `col`, `row`, `w`, `h` pour la place d'un sous-emplacement) ; `schemaVersion` inchangé (1) ; repris par l'export / import.
+- **Arborescence** : le nombre d'objets (total, sous-emplacements compris) s'affiche à droite de chaque libellé (rien s'il est nul), hors du lien.
 
 ### 5.1 Diagnostic de démarrage
 
@@ -323,3 +325,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V008 | 25/10/2026 00:52 | Jalon 6 : PWA hors ligne (`manifest.webmanifest`, `sw.js`, `js/pwa.js`, icônes), section « Application hors ligne » dans Réglages, pastille de mise à jour |
 | V009 | 25/10/2026 16:10 | Jalon 6 bis : arborescence repliable et rail, en-têtes figés, duplication, bouton Retour, flèches de niveau, Réglages repliables, saisie interdite, pastille de sauvegarde, code couleur, loupe |
 | V010 | 26/10/2026 15:33 | Jalon 7 : vue graphique des meubles (rectangle, pieds, sous-emplacements, détail des niveaux), disposition automatique ajustable, nombre d'objets dans l'arborescence |
+| V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles (cases, tailles, déplacements, bandes dessus / dessous), correction du débordement des cases et libellés |
