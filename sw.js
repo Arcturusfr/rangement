@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V010
-  Horodatage : 2026-10-26 15:33 (heure de Paris)
-  Résumé : version V010 ; furniture.css, furniture.js (feature et vue) ajoutés au pré-cache.
+  Version : V011
+  Horodatage : 2026-10-30 00:22 (heure de Paris)
+  Résumé : version V011 (jalon 7, grille de placement des meubles).
 */
 'use strict';
 
-var VERSION = 'V010';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V011';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
