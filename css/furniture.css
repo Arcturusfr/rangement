@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V010
-  Horodatage : 2026-10-26 15:33 (heure de Paris)
-  Résumé : création — vue graphique d'un meuble, commutateur Liste / Vue graphique, nombre d'objets dans l'arborescence.
+  Version : V011
+  Horodatage : 2026-10-30 00:22 (heure de Paris)
+  Résumé : grille du meuble (cases, bandes dessus / dessous), cases tronquées au lieu de déborder, panneau de sélection.
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -13,7 +13,7 @@
 .view-switch-btn[aria-pressed="true"] { background: var(--ink); color: #FFFFFF; box-shadow: none; }
 
 /* Vue graphique d'un meuble */
-.furn-view { margin-top: var(--space-4); max-width: 36rem; }
+.furn-view { margin-top: var(--space-4); max-width: 40rem; }
 .furn-caption { margin-bottom: var(--space-3); padding-left: var(--space-3); border-left: 5px solid var(--level-color, var(--ink)); color: var(--level-color, var(--ink)); font-weight: 600; }
 .furn-bar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
 .furn-bar .button[aria-pressed="true"] { background: var(--chip-bg); }
@@ -21,27 +21,36 @@
 .furn-ctl { display: flex; flex-direction: column; gap: var(--space-1); font-weight: 600; }
 .furn-ctl select { min-height: var(--tap); padding: 0 var(--space-2); border: 1px solid var(--muted); border-radius: var(--radius); background: #FFFFFF; color: var(--ink); font: inherit; }
 .furn-ctl input[type="checkbox"] { width: var(--tap); height: var(--tap); }
+.furn-msg { margin-bottom: var(--space-3); }
+.furn-sel { margin-bottom: var(--space-3); padding: var(--space-3); border-radius: var(--radius); background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.furn-sel-text { margin-bottom: var(--space-2); font-weight: 600; overflow-wrap: anywhere; }
+.furn-sel-tools { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 
 .furn-frame { width: 100%; }
 .furn-body { display: flex; padding: var(--space-2); border: 4px solid var(--level-color, var(--ink)); border-radius: 8px; background: var(--surface); }
-.furn-grid { display: grid; gap: var(--space-2); width: 100%; }
-.furn-cell { position: relative; display: flex; flex-direction: column; min-height: 72px; border: 2px solid var(--level-color, var(--ink)); border-radius: var(--radius); background: #FFFFFF; }
-.furn-cell[data-span="2"] { grid-column: span 2; }
-.furn-open { flex: 1; display: flex; flex-direction: column; gap: 2px; min-height: var(--tap); padding: var(--space-2) var(--space-3); color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
-.furn-open:hover { background: #F3F6F7; }
-.furn-name { font-weight: 650; color: var(--level-color, var(--ink)); }
-.furn-count { font-size: 0.9rem; }
-.furn-kind { font-size: 0.8rem; color: var(--muted); }
+.furn-grid { display: grid; flex: 1; min-width: 0; min-height: 0; gap: var(--space-2); }
+.furn-band { margin: var(--space-2) 0; }
+.furn-band-label { margin-bottom: var(--space-1); color: var(--muted); font-size: 0.85rem; }
+.furn-band .furn-grid { padding: var(--space-2); border: 2px dashed var(--line); border-radius: var(--radius); }
+
+.furn-cell { position: relative; display: flex; min-width: 0; min-height: 0; overflow: hidden; border: 2px solid var(--level-color, var(--ink)); border-radius: var(--radius); background: #FFFFFF; }
+.furn-cell.is-selected { box-shadow: 0 0 0 3px var(--accent); background: #E3F1EF; }
+.furn-open { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 0; padding: var(--space-1) var(--space-2); overflow: hidden; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+a.furn-open:hover { background: #F3F6F7; }
+.furn-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; color: var(--level-color, var(--ink)); }
+.furn-name--wrap { white-space: normal; overflow-wrap: anywhere; }
+.furn-count { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85rem; }
+.furn-kind { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; color: var(--muted); }
 .furn-empty { align-self: center; padding: var(--space-3); color: var(--muted); }
 
+/* Case libre (mode ajustement) : un tap y place l'emplacement sélectionné */
+.furn-slot { min-width: 0; min-height: 0; border: 2px dashed var(--line); border-radius: var(--radius); background: transparent; cursor: pointer; }
+.furn-slot:hover { background: var(--chip-bg); }
+
 /* Icône « contient d'autres niveaux » : deux carrés emboîtés + nombre de sous-emplacements */
-.furn-more { display: flex; align-items: center; justify-content: center; gap: var(--space-1); min-width: var(--tap); min-height: var(--tap); border: 0; border-top: 1px solid var(--line); border-radius: 0 0 4px 4px; background: var(--chip-bg); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.furn-more { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: var(--tap); min-height: 0; border: 0; border-left: 1px solid var(--line); background: var(--chip-bg); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
 .furn-nest { position: relative; width: 20px; height: 16px; border: 2px solid var(--level-color, var(--ink)); border-radius: 3px; }
 .furn-nest::after { content: ""; position: absolute; inset: 3px; border: 2px solid var(--level-color, var(--ink)); border-radius: 2px; }
-
-.furn-edit { display: flex; justify-content: space-between; border-top: 1px solid var(--line); }
-.furn-tool { flex: 1; min-height: var(--tap); border: 0; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
-.furn-tool:hover { background: var(--chip-bg); }
 
 .furn-feet { display: flex; justify-content: space-between; padding: 0 10%; }
 .furn-foot { width: 16px; height: 24px; border-radius: 0 0 4px 4px; background: var(--level-color, var(--ink)); }
