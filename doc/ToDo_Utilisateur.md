@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V011
-  Horodatage : 2026-10-30 00:22 (heure de Paris)
-  Résumé : V011 livrée — fichiers à enregistrer et tests de la grille.
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : V012 livrée — fichiers à enregistrer et tests.
 -->
 
-# ToDo Utilisateur — Rangement `V011`
+# ToDo Utilisateur — Rangement `V012`
 
-> Dernière mise à jour : 30/10/2026 00:22 (Paris) — **V011**
+> Dernière mise à jour : 31/10/2026 14:31 (Paris) — **V012**
 
 ## Fait
 
+- [x] Tester la V011 sur le Z Fold : fonctionne bien et fluide ; trois améliorations demandées (échange, défilement, pavé de flèches)
 - [x] Tester la vue graphique V010 (Z Fold, iPad) et répondre au sujet de la grille (deux bandes ; flèches)
 - [x] Valider le jalon 6 bis (V009) : aucun bug ; répondre aux points du jalon 7
 - [x] Valider le jalon 6 (PWA hors ligne) et décider de la pastille de sauvegarde
@@ -34,13 +35,13 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V011** (archive `V011.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V011.txt`).
-  - **Remplacés** : `css/furniture.css`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/config.js`, `sw.js` (**à la racine**, pas dans `js/`), `tests/test_jalon7.py` et les trois `.md`.
+- [ ] **Enregistrer les fichiers de la V012** (archive `V012.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V012.txt`).
+  - **Remplacés** : `css/furniture.css`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `js/config.js`, `sw.js` (**à la racine**, pas dans `js/`), `tests/test_jalon6.py`, `tests/test_jalon7.py` et les trois `.md`.
   - **Inchangés** : tout le reste (aucun nouveau fichier).
-- [ ] **Vérifier que la version affichée est `V011`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
-- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V011 (supprimer les versions remplacées).
-- [ ] **Tester la V011** : sur le « Meuble living » du séjour, reproduire sa géométrie (« Ajuster la disposition » : colonnes, lignes, touchez un emplacement puis flèches, Largeur / Hauteur ±, cases libres) ; bandes « Dessus » et « Dessous » ; un meuble de plus de 6 emplacements sur le Z Fold (plus de débordement) ; icône des sous-niveaux ; écran replié.
-- [ ] **Répondre** : les choix de la roadmap (« Hypothèses de Claude ») vous conviennent-ils (places figées, refus sur case occupée sans échange, limites 6 × 8 et 3 lignes par bande) ? Autres évolutions ?
+- [ ] **Vérifier que la version affichée est `V012`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V012 (supprimer les versions remplacées).
+- [ ] **Tester la V012** : « Ajuster la disposition » sur un meuble dont toutes les cases sont remplies : déplacer un emplacement sur un autre (échange) ; vérifier que la page ne remonte plus et que les deux pavés de flèches restent visibles en bas de l'écran (déplacer, taille) ; écran replié.
+- [ ] **Répondre** : l'échange (refusé si plusieurs emplacements sont sur le chemin ou si l'autre ne tient pas à la place libérée) et les pavés vous conviennent-ils ? Autres évolutions ?
 
 ### (historique) À faire à la V008
 
@@ -88,3 +89,4 @@
 | V009 | 25/10/2026 16:10 | Jalon 6 bis livré : fichiers à enregistrer, tests des évolutions ergonomiques, base Contexte à mettre à jour |
 | V010 | 26/10/2026 15:33 | Jalon 7 livré : fichiers à enregistrer, tests de la vue graphique des meubles, base Contexte à mettre à jour |
 | V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V012 | 31/10/2026 14:31 | Jalon 7 : échange d'emplacements, pavés de flèches, défilement conservé ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

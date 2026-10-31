@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V011
-  Horodatage : 2026-10-30 00:22 (heure de Paris)
-  Résumé : V011 : grille de placement des meubles (cases, bandes dessus / dessous), API furniture.
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : V012 : échange d'emplacements, pavés de flèches, défilement conservé.
 -->
 
-# ARCHITECTURE — Rangement `V011`
+# ARCHITECTURE — Rangement `V012`
 
-> Dernière mise à jour : 30/10/2026 00:22 (Paris) — **V011**
-> Statut : **jalon 7 livré, grille de placement en V011** (vue graphique des meubles). Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 31/10/2026 14:31 (Paris) — **V012**
+> Statut : **jalon 7 livré, grille de placement (V011) et ergonomie (V012)** (vue graphique des meubles). Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -269,7 +269,8 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Vue graphique** : uniquement pour les **meubles** (emplacements de premier niveau). Un commutateur « Liste / Vue graphique » apparaît sous l'en-tête du détail ; la liste reste le mode par défaut ; le choix est mémorisé (clé annexe `view`).
 - **Grille** : le meuble a `C` colonnes et `L` lignes (réglables : 1 à 6 colonnes, 1 à 8 lignes), plus une bande de `T` lignes **au-dessus** et une de `B` lignes **en dessous** (0 à 3). Chaque sous-emplacement occupe un rectangle de cases (`zone` : `top`, `body`, `bottom` ; `col`, `row`, `w`, `h`), sans chevauchement ni sortie de la grille. Un sous-emplacement ne peut pas chevaucher deux zones.
 - **Remplissage automatique** : un sous-emplacement sans place enregistrée prend la première case libre du meuble (1 × 1). Dès qu'on modifie la disposition, toutes les places sont **enregistrées** et ne bougent plus ; la grille s'agrandit si besoin (rien n'est jamais caché). Les réglages de la V010 (ordre `pos`, largeur `span`) sont convertis automatiquement.
-- **Réglages** (« Ajuster la disposition ») : proportions, colonnes, lignes, dessus, dessous, pieds. Un emplacement se sélectionne en le touchant ; flèches de décalage d'une case, largeur / hauteur ± une case, ou toucher une case libre pour y placer l'emplacement. Les refus (case occupée, sortie de grille, cases occupées à supprimer, chevauchement de zones) s'affichent en clair et ne changent rien.
+- **Réglages** (« Ajuster la disposition ») : proportions, colonnes, lignes, dessus, dessous, pieds. Un emplacement se sélectionne en le touchant ; deux **pavés de quatre flèches** sans libellé (déplacer d'une case ; taille : + / − en largeur et en hauteur) restent **fixés en bas de l'écran** pendant le défilement ; toucher une case libre y place l'emplacement. **Déplacer sur une case occupée par un seul emplacement échange les deux** (l'autre doit tenir à la place libérée). Les refus (plusieurs emplacements sur le chemin, sortie de grille, cases occupées à supprimer, chevauchement de zones) s'affichent en clair et ne changent rien.
+- **Défilement** : un réglage ou un déplacement ne remonte pas la page (la position de défilement du volet est conservée quand l'affichage est redessiné ; seul un changement d'écran remonte en haut).
 - **Dessin** : HTML/CSS (texte toujours échappé). Le cadre du meuble a la proportion choisie mais **grandit** si les lignes sont nombreuses (64 px minimum par ligne) ; les libellés sont tronqués dans leur case (nom complet au toucher / en infobulle), jamais débordants. Chaque case indique son nombre d'objets (sous-niveaux compris) et, si elle fait au moins deux cases, son niveau.
 - **Niveaux** : une légende rappelle toujours le niveau affiché (« Niveau 2 — Emplacement « Meuble living » : ses sous-emplacements (niveau 3)… »). Une icône (carrés emboîtés + nombre) signale un sous-emplacement qui en contient d'autres ; l'appui dessine ce niveau (même grille, mêmes réglages), avec « Remonter au niveau N » et la liste de ses objets.
 - **Stockage** : dans `geometry` (`ratio`, `feet`, `cols`, `rows`, `top`, `bottom` pour l'emplacement dessiné ; `zone`, `col`, `row`, `w`, `h` pour la place d'un sous-emplacement) ; `schemaVersion` inchangé (1) ; repris par l'export / import.
@@ -326,3 +327,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V009 | 25/10/2026 16:10 | Jalon 6 bis : arborescence repliable et rail, en-têtes figés, duplication, bouton Retour, flèches de niveau, Réglages repliables, saisie interdite, pastille de sauvegarde, code couleur, loupe |
 | V010 | 26/10/2026 15:33 | Jalon 7 : vue graphique des meubles (rectangle, pieds, sous-emplacements, détail des niveaux), disposition automatique ajustable, nombre d'objets dans l'arborescence |
 | V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles (cases, tailles, déplacements, bandes dessus / dessous), correction du débordement des cases et libellés |
+| V012 | 31/10/2026 14:31 | Jalon 7 : échange de deux emplacements, pavés de flèches fixés en bas de l'écran, défilement conservé |

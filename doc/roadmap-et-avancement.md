@@ -1,20 +1,24 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V011
-  Horodatage : 2026-10-30 00:22 (heure de Paris)
-  Résumé : jalon 7 : grille de placement des meubles (V011).
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : jalon 7 : échange d'emplacements, pavés de flèches, défilement conservé (V012).
 -->
 
-# Roadmap et avancement — Rangement `V011`
+# Roadmap et avancement — Rangement `V012`
 
-> Dernière mise à jour : 30/10/2026 00:22 (Paris) — **V011**
+> Dernière mise à jour : 31/10/2026 14:31 (Paris) — **V012**
 
 ## État actuel
 
-- **Jalon 6 bis validé** (V009). **Jalon 7** livré en V010, testé sur Z Fold et iPad : correct pour les meubles simples ; deux retours (débordement au-delà de 6 emplacements sur Z Fold ; meuble complexe impossible à reproduire).
-- **V011** : la vue graphique d'un meuble repose sur une **grille** (colonnes, lignes, bandes au-dessus et en dessous du meuble) ; chaque sous-emplacement a une place et une taille en cases, déplaçables et redimensionnables ; les cases ne débordent plus du cadre et les libellés sont tronqués dans leur case ; les réglages de la V010 sont convertis.
-- Tests Playwright/Chromium : **739 tests, 0 échec** (62 jalon 1, 73 jalon 2, 131 jalon 3, 73 jalon 4, 137 jalon 5, 52 jalon 6, 139 jalon 6 bis, 72 jalon 7).
-- En attente : **validation de la V011 par l'utilisateur** (voir `ToDo_Utilisateur.md`), en particulier sur le « Meuble living ».
+- **Jalon 6 bis validé** (V009). **Jalon 7** : V010 (vue graphique), V011 (grille de placement, bandes dessus / dessous) ; V011 testée sur Z Fold : fonctionne bien et fluide, trois améliorations demandées.
+- **V012** : déplacer un emplacement sur une case occupée **échange** les deux emplacements ; la page **ne remonte plus** en haut à chaque action ; les commandes d'ajustement sont **deux pavés de quatre flèches** sans libellé (déplacer, taille), **fixés en bas de l'écran**.
+- Tests Playwright/Chromium : **754 tests, 0 échec** (62 jalon 1, 73 jalon 2, 131 jalon 3, 73 jalon 4, 137 jalon 5, 52 jalon 6, 139 jalon 6 bis, 87 jalon 7).
+- En attente : **validation de la V012 par l'utilisateur** (voir `ToDo_Utilisateur.md`).
+
+### (historique) État à la V011
+
+- Grille de placement : colonnes, lignes, bandes au-dessus et en dessous, places et tailles en cases, correction du débordement ; réglages de la V010 convertis (739 tests).
 
 ### (historique) État à la V010
 
@@ -55,7 +59,7 @@
 | Sauvegarde (V007) | Export en fichier JSON horodaté (`rangement-AAAA-MM-JJ-HHMM.json`) ; import **par remplacement** (pas de fusion) après analyse complète du fichier et confirmation ; copie de sécurité automatique avant chaque import, annulable depuis les Réglages ; fichier invalide = refus sans rien modifier. *(Proposé par Claude, à valider à l'usage.)* |
 | Icônes PWA | Fournies par l'utilisateur et intégrées en V008 (`icons/`) ; les mêmes images servent aux versions `any` et `maskable` |
 | Jalon 6 bis (V009) | Niveaux de couleur par profondeur (pièce / premier ordre / sous-emplacement / objet / épuisé). *(Hypothèses de Claude, à valider à l'usage :)* flèche ▼ = dernier enfant visité sinon premier ; duplication d'un emplacement : choix du contenu copié (seul par défaut) ; on arrive sur la copie ; l'état déplié de l'arborescence n'est pas mémorisé, la largeur (rail) l'est ; pastille orange = données jamais exportées ou modifiées depuis. |
-| Jalon 7 (V010 / V011) | **Validé** : vue graphique des meubles uniquement (pas de plan de pièce pour l'instant) ; géométrie dans `geometry` ; commutateur Liste / Vue graphique ; niveau rappelé à chaque affichage ; nombre d'objets sur les cases. **V011 (demandé par l'utilisateur)** : grille de cases remplie automatiquement, nombre de cases modifiable, emplacements déplaçables et redimensionnables en cases (flèches, pas de glisser-déposer), **deux bandes** au-dessus et en dessous du meuble. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix mémorisé ; dessin en HTML/CSS ; places figées dès la première modification ; refus (sans échange automatique) d'un déplacement sur une case occupée ; 6 colonnes, 8 lignes et 3 lignes par bande au maximum ; nombre d'objets de l'arborescence = total sous-niveaux compris, masqué si zéro. |
+| Jalon 7 (V010 / V011) | **Validé** : vue graphique des meubles uniquement (pas de plan de pièce pour l'instant) ; géométrie dans `geometry` ; commutateur Liste / Vue graphique ; niveau rappelé à chaque affichage ; nombre d'objets sur les cases. **V011 (demandé par l'utilisateur)** : grille de cases remplie automatiquement, nombre de cases modifiable, emplacements déplaçables et redimensionnables en cases (flèches, pas de glisser-déposer), **deux bandes** au-dessus et en dessous du meuble. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix mémorisé ; dessin en HTML/CSS ; places figées dès la première modification ; **V012 (demandé par l'utilisateur)** : échange de deux emplacements en cas de déplacement sur une case occupée, pavés de flèches (déplacer, taille) fixés en bas de l'écran ; *hypothèses de Claude :* l'échange est refusé si plusieurs emplacements sont sur le chemin ou si l'autre ne tient pas à la place libérée ; 6 colonnes, 8 lignes et 3 lignes par bande au maximum ; nombre d'objets de l'arborescence = total sous-niveaux compris, masqué si zéro. |
 | PWA (V008) | Pré-cache explicite versionné ; **mise à jour sur accord** (jamais de `skipWaiting` automatique) ; bouton « Vider le cache » (données intactes) ; pas de service worker en `file://`. *(Règles de ARCHITECTURE.md §5, §6.)* |
 
 ## Jalons
@@ -156,3 +160,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V009 | 25/10/2026 16:10 | Jalon 6 validé ; jalon 6 bis livré (139 tests dédiés, 667 au total) |
 | V010 | 26/10/2026 15:33 | Jalon 6 bis validé ; jalon 7 livré (55 tests dédiés, 722 au total) |
 | V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles (72 tests dédiés, 739 au total) |
+| V012 | 31/10/2026 14:31 | Jalon 7 : échange d'emplacements, pavés de flèches, défilement conservé (87 tests dédiés, 754 au total) |
