@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V011
-  Horodatage : 2026-10-30 00:22 (heure de Paris)
-  Résumé : grille du meuble (cases, bandes dessus / dessous), cases tronquées au lieu de déborder, panneau de sélection.
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : pavés de flèches fixés en bas de l'écran (sélection), échange d'emplacements.
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -22,9 +22,16 @@
 .furn-ctl select { min-height: var(--tap); padding: 0 var(--space-2); border: 1px solid var(--muted); border-radius: var(--radius); background: #FFFFFF; color: var(--ink); font: inherit; }
 .furn-ctl input[type="checkbox"] { width: var(--tap); height: var(--tap); }
 .furn-msg { margin-bottom: var(--space-3); }
-.furn-sel { margin-bottom: var(--space-3); padding: var(--space-3); border-radius: var(--radius); background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
-.furn-sel-text { margin-bottom: var(--space-2); font-weight: 600; overflow-wrap: anywhere; }
-.furn-sel-tools { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.furn-sel { position: sticky; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius); background: var(--surface); box-shadow: 0 0 0 1px var(--line), 0 -4px 14px rgba(22, 34, 42, 0.25); }
+.furn-sel-text { flex: 1 1 100%; font-size: 0.9rem; font-weight: 600; overflow-wrap: anywhere; }
+.furn-pad { display: grid; grid-template-columns: repeat(3, var(--tap)); grid-template-rows: repeat(3, var(--tap)); }
+.furn-pad-btn { display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; font-size: 1.1rem; font-weight: 700; cursor: pointer; }
+.furn-pad-btn:hover { background: var(--chip-bg); }
+.furn-pad-up { grid-area: 1 / 2; }
+.furn-pad-left { grid-area: 2 / 1; }
+.furn-pad-right { grid-area: 2 / 3; }
+.furn-pad-down { grid-area: 3 / 2; }
+.furn-pad-mid { grid-area: 2 / 2; display: flex; align-items: center; justify-content: center; color: var(--muted); }
 
 .furn-frame { width: 100%; }
 .furn-body { display: flex; padding: var(--space-2); border: 4px solid var(--level-color, var(--ink)); border-radius: 8px; background: var(--surface); }
