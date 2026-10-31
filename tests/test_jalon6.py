@@ -1,7 +1,7 @@
 # tests/test_jalon6.py — Application « Rangement »
-# Version : V009
-# Horodatage : 2026-10-25 16:10 (heure de Paris)
-# Résumé : adaptation V009 : go_settings n'appuie plus si les Réglages sont déjà ouverts.
+# Version : V012
+# Horodatage : 2026-10-31 14:31 (heure de Paris)
+# Résumé : attentes robustes : la page rechargée peut ne pas avoir encore chargé pwa.js (course entre le test et le chargement).
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon6.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -70,7 +70,7 @@ def go_settings(page):
 
 def wait_controlled(page):
     page.wait_for_function("navigator.serviceWorker.controller !== null", timeout=15000)
-    page.wait_for_function("Rangement.pwa.status().cacheName !== null", timeout=15000)
+    page.wait_for_function("window.Rangement && Rangement.pwa && Rangement.pwa.status().cacheName !== null", timeout=15000)
 
 
 def sw_files():
@@ -211,7 +211,7 @@ def scenario_update(browser):
         page.click("#check-update-button")
         page.wait_for_selector("#update-button", timeout=15000)
     page.click("#update-button")
-    page.wait_for_function("Rangement.pwa.status().cacheName === 'rangement-V999'", timeout=20000)
+    page.wait_for_function("window.Rangement && Rangement.pwa && Rangement.pwa.status().cacheName === 'rangement-V999'", timeout=20000)
     check("mise à jour | acceptée : nouvelle version active", True)
     keys = page.evaluate("caches.keys()")
     check("mise à jour | ancien cache supprimé", keys == ["rangement-V999"], keys)

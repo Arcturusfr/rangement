@@ -1,7 +1,7 @@
 # tests/test_jalon7.py — Application « Rangement »
-# Version : V011
-# Horodatage : 2026-10-30 00:22 (heure de Paris)
-# Résumé : grille de placement (cases, tailles, déplacements, bandes dessus / dessous), correction des débordements, conversion des réglages V010.
+# Version : V012
+# Horodatage : 2026-10-31 14:31 (heure de Paris)
+# Résumé : grille de placement, échange d'emplacements, pavés de flèches, défilement conservé, correction des débordements.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon7.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -177,7 +177,7 @@ def scenario_grid(browser, base):
     page.get_by_label("Lignes").select_option("3")
     page.wait_for_function("Rangement.features.furniture.get('%s').rows === 3" % mid)
     select_cell(page, "Tiroir bas gauche")
-    tool(page, "▼ Décaler vers le bas")
+    tool(page, "Décaler vers le bas")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.row === 1" % loc_id(page, "Tiroir bas gauche"))
     check("grille | décalage d'une case vers le bas", geo(page, "Tiroir bas gauche")["row"] == 1 and geo(page, "Tiroir bas gauche")["col"] == 1)
     select_cell(page, "Grand tiroir")
@@ -189,12 +189,13 @@ def scenario_grid(browser, base):
     check("grille | grande case : niveau rappelé", "Niveau 3" in cell(page, "Grand tiroir").inner_text())
     check("grille | libellés et cases dans le meuble", inside(page) == [], inside(page))
 
+    select_cell(page, "Grand tiroir")
+    tool(page, "Largeur +")
+    check("refus | agrandir sur une case occupée", "occupée" in page.inner_text(".furn-msg") and geo(page, "Grand tiroir du bas")["w"] == 1)
     select_cell(page, "Tiroir bas gauche")
-    tool(page, "◀ Décaler à gauche")
-    check("refus | case occupée", "occupée" in page.inner_text(".furn-msg") and geo(page, "Tiroir bas gauche")["col"] == 1)
     tool(page, "Largeur +")
     check("refus | largeur au-delà de la grille", "sortirait de la grille" in page.inner_text(".furn-msg") and geo(page, "Tiroir bas gauche")["w"] == 1)
-    tool(page, "▼ Décaler vers le bas")
+    tool(page, "Décaler vers le bas")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.row === 2" % loc_id(page, "Tiroir bas gauche"))
     tool(page, "Hauteur +")
     check("refus | sortie de la grille par le bas", "sortirait de la grille" in page.inner_text(".furn-msg") and geo(page, "Tiroir bas gauche")["h"] == 1)
@@ -212,20 +213,20 @@ def scenario_grid(browser, base):
     page.wait_for_selector(".furn-band[data-zone='top']")
     check("bandes | bande du dessus affichée avec son libellé", "Au-dessus du meuble" in page.inner_text(".furn-band[data-zone='top']"))
     select_cell(page, "Tiroir bas gauche")
-    tool(page, "▲ Décaler vers le haut")
+    tool(page, "Décaler vers le haut")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.zone === 'top'" % loc_id(page, "Tiroir bas gauche"))
     check("bandes | emplacement placé au-dessus du meuble", cell(page, "Tiroir bas gauche").bounding_box()["y"] + cell(page, "Tiroir bas gauche").bounding_box()["height"] <= page.locator(".furn-body").bounding_box()["y"] + 1)
     page.locator(".furn-ctl", has_text="Dessous").locator("select").select_option("1")
     page.wait_for_selector(".furn-band[data-zone='bottom']")
     select_cell(page, "Grand tiroir")
-    tool(page, "▼ Décaler vers le bas")
+    tool(page, "Décaler vers le bas")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.row === 1" % loc_id(page, "Grand tiroir du bas"))
-    tool(page, "▼ Décaler vers le bas")
+    tool(page, "Décaler vers le bas")
     check("bandes | un emplacement ne chevauche pas deux zones", "deux zones" in page.inner_text(".furn-msg") and geo(page, "Grand tiroir du bas")["zone"] == "body")
     tool(page, "Hauteur −")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.h === 1" % loc_id(page, "Grand tiroir du bas"))
-    tool(page, "▼ Décaler vers le bas")
-    tool(page, "▼ Décaler vers le bas")
+    tool(page, "Décaler vers le bas")
+    tool(page, "Décaler vers le bas")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.zone === 'bottom'" % loc_id(page, "Grand tiroir du bas"))
     bb, body = cell(page, "Grand tiroir").bounding_box(), page.locator(".furn-body").bounding_box()
     check("bandes | emplacement placé en dessous du meuble", bb["y"] >= body["y"] + body["height"] - 1, (bb, body))
@@ -297,6 +298,73 @@ def scenario_overflow(browser, base):
     ctx.close()
 
 
+def scenario_swap(browser, base):
+    errors = []
+    ctx, page = start(browser, base, errors=errors)
+    graphic(page, base, "Meuble living")
+    F = "Rangement.features.furniture"
+    mid = loc_id(page, "Meuble living")
+    js(page, "%s.setGrid('%s', {cols:2})" % (F, mid))
+    page.get_by_role("button", name="Ajuster la disposition").click()
+    check("échange | départ : deux emplacements côte à côte", geo(page, "Grand tiroir du bas")["col"] == 0 and geo(page, "Tiroir bas gauche")["col"] == 1)
+    select_cell(page, "Grand tiroir")
+    tool(page, "Décaler à droite")
+    page.wait_for_function("Rangement.store.getLocation('%s').geometry.col === 1" % loc_id(page, "Grand tiroir du bas"))
+    check("échange | déplacer sur une case occupée échange les deux emplacements", geo(page, "Tiroir bas gauche")["col"] == 0 and geo(page, "Tiroir bas gauche")["row"] == 0 and geo(page, "Grand tiroir du bas")["col"] == 1)
+    check("échange | la sélection suit l'emplacement déplacé", "colonne 2" in page.inner_text(".furn-sel-text"), page.inner_text(".furn-sel-text"))
+    check("échange | aucun message de refus", page.locator(".furn-msg").count() == 0)
+    # tailles différentes : l'échange est possible si l'autre tient à la place libérée
+    js(page, "%s.setGrid('%s', {rows:2})" % (F, mid))
+    page.wait_for_function("Rangement.features.furniture.get('%s').rows === 2" % mid)
+    tool(page, "Hauteur +")
+    page.wait_for_function("Rangement.store.getLocation('%s').geometry.h === 2" % loc_id(page, "Grand tiroir du bas"))
+    tool(page, "Décaler à gauche")
+    page.wait_for_function("Rangement.store.getLocation('%s').geometry.col === 0" % loc_id(page, "Grand tiroir du bas"))
+    check("échange | tailles différentes : échange accepté", geo(page, "Tiroir bas gauche")["col"] == 1 and geo(page, "Grand tiroir du bas")["h"] == 2)
+    # deux emplacements sur le chemin : refus
+    js(page, "Rangement.features.locations.create({name:'Troisième', parentId:'%s'})" % mid)
+    page.wait_for_selector(".furn-cell:has-text('Troisième')")
+    check("échange | nouvel emplacement placé dans la première case libre", geo(page, "Troisième")["col"] == 1 if geo(page, "Troisième") else True)
+    select_cell(page, "Grand tiroir")
+    tool(page, "Décaler à droite")
+    check("échange | deux emplacements sur le chemin : refusé", "occupée" in page.inner_text(".furn-msg") or "Échange impossible" in page.inner_text(".furn-msg"), page.locator(".furn-msg").count())
+    check("échange | données valides", js(page, "Rangement.models.validateData(JSON.parse(localStorage.getItem('rangement.data'))).ok"))
+    check("échange | aucune erreur console", not errors, errors)
+    ctx.close()
+
+
+def scenario_scroll(browser, base):
+    """Le graphique ne doit pas remonter en haut de l'écran à chaque action."""
+    errors = []
+    ctx, page = start(browser, base, 390, 844, errors)
+    com = js(page, "Rangement.store.locations().filter(function(l){return l.name==='Commode' && Rangement.store.getLocation(l.parentId).name==='Entrée';})[0].id")
+    for i in range(1, 9):
+        js(page, "Rangement.features.locations.create({name:'Tiroir %d', kind:'tiroir', parentId:'%s'})" % (i, com))
+    page.goto(base + "#/l/" + com)
+    wait_title(page, "Commode")
+    page.get_by_role("button", name="Vue graphique").click()
+    page.wait_for_selector(".furn-view")
+    js(page, "Rangement.features.furniture.setGrid('%s', {cols:1})" % com)
+    page.get_by_role("button", name="Ajuster la disposition").click()
+    page.evaluate("document.getElementById('pane-detail').scrollTop = 100000")
+    select_cell(page, "Tiroir 8")
+    before = page.evaluate("document.getElementById('pane-detail').scrollTop")
+    check("défilement | on est bien descendu dans la page", before > 300, before)
+    tool(page, "Décaler vers le haut")
+    page.wait_for_function("Rangement.store.getLocation('%s').geometry.row === 6" % loc_id(page, "Tiroir 8"))
+    after = page.evaluate("document.getElementById('pane-detail').scrollTop")
+    check("défilement | un déplacement ne remonte pas la page", abs(after - before) <= 6, (before, after))
+    tool(page, "Hauteur +")
+    page.wait_for_timeout(300)
+    after2 = page.evaluate("document.getElementById('pane-detail').scrollTop")
+    check("défilement | un refus ne remonte pas la page non plus", abs(after2 - before) <= 6 or after2 > 300, (before, after2))
+    check("défilement | les flèches restent visibles en bas de l'écran", page.locator(".furn-sel").bounding_box()["y"] + page.locator(".furn-sel").bounding_box()["height"] <= 844 + 1)
+    pads = page.locator(".furn-pad-btn")
+    check("défilement | 8 flèches ≥ 44 px", pads.count() == 8 and all(pads.nth(i).bounding_box()["height"] >= 43 and pads.nth(i).bounding_box()["width"] >= 43 for i in range(8)))
+    check("défilement | aucune erreur console", not errors, errors)
+    ctx.close()
+
+
 def scenario_tree(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
@@ -323,7 +391,7 @@ def scenario_narrow(browser, base):
     page.get_by_role("button", name="Ajuster la disposition").click()
     select_cell(page, "Grand tiroir")
     check("replié | pas de défilement horizontal en ajustement", js(page, "document.documentElement.scrollWidth - window.innerWidth") <= 0)
-    btns = page.locator(".furn-view .button:visible, .furn-more:visible, .furn-ctl select:visible")
+    btns = page.locator(".furn-view .button:visible, .furn-pad-btn:visible, .furn-more:visible, .furn-ctl select:visible")
     check("replié | boutons et listes ≥ 44 px", all(btns.nth(i).bounding_box()["height"] >= 43 for i in range(btns.count())), [btns.nth(i).bounding_box()["height"] for i in range(btns.count())])
     check("replié | cases contenues dans l'écran", all(cell(page, n).bounding_box()["x"] >= 0 and cell(page, n).bounding_box()["x"] + cell(page, n).bounding_box()["width"] <= 390 for n in ("Grand tiroir", "Tiroir bas gauche")))
     check("replié | libellés dans leur case", inside(page) == [], inside(page))
@@ -350,6 +418,8 @@ def main():
         scenario_grid(browser, base)
         scenario_legacy(browser, base)
         scenario_overflow(browser, base)
+        scenario_swap(browser, base)
+        scenario_scroll(browser, base)
         scenario_tree(browser, base)
         scenario_narrow(browser, base)
         browser.close()
