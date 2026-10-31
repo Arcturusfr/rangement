@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V011
-  Horodatage : 2026-10-30 00:22 (heure de Paris)
-  Résumé : version V011 (jalon 7, grille de placement des meubles).
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : version V012 (jalon 7, échange d'emplacements, pavé de flèches).
 */
 'use strict';
 
-var VERSION = 'V011';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V012';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
