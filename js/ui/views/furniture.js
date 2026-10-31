@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V011
-  Horodatage : 2026-10-30 00:22 (heure de Paris)
-  Résumé : vue graphique sur grille (cases, tailles en cases, bandes au-dessus / en dessous), sélection et déplacement d'un emplacement, débordements corrigés.
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : pavés de flèches (déplacer, taille) fixés en bas de l'écran, position de défilement conservée.
 */
 (function () {
   'use strict';
@@ -90,21 +90,32 @@
     ]);
   }
 
+  // Pavé de quatre flèches (sans libellé visible : le nom accessible est dans aria-label).
+  function pad(name, center, keys) {
+    var nodes = keys.map(function (k) {
+      return el('button', { class: 'furn-pad-btn furn-pad-' + k.dir, type: 'button', 'aria-label': k.label, title: k.label, onclick: k.run }, [k.glyph]);
+    });
+    nodes.push(el('span', { class: 'furn-pad-mid', 'aria-hidden': 'true' }, [center]));
+    return el('div', { class: 'furn-pad', role: 'group', 'aria-label': name }, nodes);
+  }
+
   function selectionPanel(c, lay, redraw) {
     var F = R.features.furniture;
     var loc = R.store.getLocation(c.id);
-    function b(label, fn) { return el('button', { class: 'button button--secondary', type: 'button', onclick: function () { run(redraw, fn()); } }, [label]); }
+    function k(dir, glyph, label, fn) { return { dir: dir, glyph: glyph, label: label, run: function () { run(redraw, fn()); } }; }
     return el('div', { class: 'furn-sel', role: 'group', 'aria-label': 'Emplacement sélectionné' }, [
       el('p', { class: 'furn-sel-text' }, ['Sélection : \u00ab ' + loc.name + ' \u00bb \u2014 ' + ZONE_LABELS[c.zone].toLowerCase() + ', colonne ' + (c.col + 1) + ', ligne ' + (c.row + 1) + ', taille ' + c.w + ' \u00d7 ' + c.h + ' (cases).']),
-      el('div', { class: 'furn-sel-tools' }, [
-        b('\u25C0 Décaler à gauche', function () { return F.move(c.id, -1, 0); }),
-        b('Décaler à droite \u25B6', function () { return F.move(c.id, 1, 0); }),
-        b('\u25B2 Décaler vers le haut', function () { return F.move(c.id, 0, -1); }),
-        b('\u25BC Décaler vers le bas', function () { return F.move(c.id, 0, 1); }),
-        b('Largeur \u2212', function () { return F.resize(c.id, -1, 0); }),
-        b('Largeur +', function () { return F.resize(c.id, 1, 0); }),
-        b('Hauteur \u2212', function () { return F.resize(c.id, 0, -1); }),
-        b('Hauteur +', function () { return F.resize(c.id, 0, 1); })
+      pad('Déplacer', '\u271B', [
+        k('up', '\u25B2', 'Décaler vers le haut', function () { return F.move(c.id, 0, -1); }),
+        k('left', '\u25C0', 'Décaler à gauche', function () { return F.move(c.id, -1, 0); }),
+        k('right', '\u25B6', 'Décaler à droite', function () { return F.move(c.id, 1, 0); }),
+        k('down', '\u25BC', 'Décaler vers le bas', function () { return F.move(c.id, 0, 1); })
+      ]),
+      pad('Taille', '\u25AD', [
+        k('up', '+', 'Hauteur +', function () { return F.resize(c.id, 0, 1); }),
+        k('left', '\u2212', 'Largeur \u2212', function () { return F.resize(c.id, -1, 0); }),
+        k('right', '+', 'Largeur +', function () { return F.resize(c.id, 1, 0); }),
+        k('down', '\u2212', 'Hauteur \u2212', function () { return F.resize(c.id, 0, -1); })
       ])
     ]);
   }
@@ -146,6 +157,8 @@
   function draw(wrap, furnId) {
     var F = R.features.furniture;
     var redraw = function () { draw(wrap, furnId); };
+    var pane = wrap.closest ? wrap.closest('.pane') : null;     // le défilement ne doit pas remonter à chaque action
+    var scrollTop = pane ? pane.scrollTop : 0;
     R.ui.dom.clear(wrap);
     var shownId = focus[furnId];
     if (!shownId || !R.store.getLocation(shownId) || !R.store.pathOf(shownId).some(function (p) { return p.id === furnId; })) { shownId = furnId; }
@@ -176,8 +189,7 @@
     wrap.appendChild(el('div', { class: 'furn-bar' }, bar));
     if (editing) { wrap.appendChild(controls(shownId, lay, redraw)); }
     if (message) { wrap.appendChild(el('p', { class: 'form-error furn-msg', role: 'status' }, [message])); message = null; }
-    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw)); }
-    else if (editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, ['Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
+    if (!sel && editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, ['Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
 
     var start = { top: 0, body: lay.T, bottom: lay.T + lay.L };
     function zoneGrid(zone, rows) {
@@ -225,6 +237,7 @@
     if (g.feet) { frame.push(el('div', { class: 'furn-feet', 'data-level': level }, [el('span', { class: 'furn-foot' }), el('span', { class: 'furn-foot' })])); }
     if (lay.B) { frame.push(band('bottom', lay.B)); }
     wrap.appendChild(el('div', { class: 'furn-frame' }, frame));
+    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw)); }
 
     var items = R.store.itemsIn(shownId);
     if (items.length) {
@@ -238,6 +251,7 @@
         }))
       ]));
     }
+    if (pane) { pane.scrollTop = scrollTop; }
   }
 
   // Vue graphique du meuble `furnId` (emplacement de premier niveau).

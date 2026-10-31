@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V010
-  Horodatage : 2026-10-26 15:33 (heure de Paris)
-  Résumé : jalon 7 : commutateur Liste / Vue graphique pour les meubles (emplacements de premier niveau).
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : la position de défilement est conservée quand l'affichage est redessiné (hors changement d'écran).
 */
 (function () {
   'use strict';
@@ -94,6 +94,12 @@
   }
 
   function render() {
+    var top = container.scrollTop;
+    renderView();
+    container.scrollTop = top;
+  }
+
+  function renderView() {
     R.ui.dom.clear(container);
 
     var route = R.ui.router.current();
