@@ -1,8 +1,8 @@
 /*
   js/features/furniture.js — Application « Rangement »
-  Version : V011
-  Horodatage : 2026-10-30 00:22 (heure de Paris)
-  Résumé : grille de placement (colonnes, lignes, bandes au-dessus / en dessous du meuble) ; position et taille en cases de chaque sous-emplacement, stockées dans `geometry`.
+  Version : V012
+  Horodatage : 2026-10-31 14:31 (heure de Paris)
+  Résumé : un déplacement sur une case occupée échange les deux emplacements (si l'autre tient à la place libérée).
 */
 (function () {
   'use strict';
@@ -163,6 +163,10 @@
     return null;
   }
 
+  function overlap(a, b) {
+    return a.zone === b.zone && a.col < b.col + b.w && b.col < a.col + a.w && a.row < b.row + b.h && b.row < a.row + a.h;
+  }
+
   // Décale un sous-emplacement de `dc` colonnes et `dr` lignes (le passage d'une zone à l'autre se fait ligne par ligne).
   function move(cid, dc, dr) {
     return edit(cid, function (p, c) {
@@ -172,7 +176,13 @@
       var last = zoneAt(p, g + c.h - 1);
       if (!at || c.col + dc < 0 || c.col + dc + c.w > p.C) { return 'Déjà au bord de la grille.'; }
       if (!last || last.z !== at.z) { return 'Cet emplacement chevaucherait deux zones : réduisez sa hauteur ou choisissez une autre place.'; }
+      var old = { zone: c.zone, col: c.col, row: c.row };
       c.zone = at.z; c.row = at.row; c.col += dc;
+      var hit = p.cells.filter(function (o) { return o !== c && overlap(c, o); });
+      if (hit.length === 1) {        // une seule case occupée : les deux emplacements échangent leur place
+        hit[0].zone = old.zone; hit[0].col = old.col; hit[0].row = old.row;
+        if (check(p)) { return 'Échange impossible : l\u2019autre emplacement ne tient pas à la place libérée.'; }
+      }
       return null;
     });
   }
