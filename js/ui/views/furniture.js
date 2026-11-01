@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V012
-  Horodatage : 2026-10-31 14:31 (heure de Paris)
-  Résumé : pavés de flèches (déplacer, taille) fixés en bas de l'écran, position de défilement conservée.
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : plan du logement : la même grille dessine les pièces (createPlan, commutateur Liste / Plan, réglages colonnes et lignes), mode d'ajustement réinitialisé au changement d'écran.
 */
 (function () {
   'use strict';
@@ -13,6 +13,7 @@
 
   var LEVEL_NAMES = ['Pièce', 'Emplacement', 'Sous-emplacement', 'Sous-sous-emplacement'];
   var ZONE_LABELS = { top: 'Au-dessus du meuble', body: 'Dans le meuble', bottom: 'En dessous du meuble' };
+  var PLAN_COL = 72;      // largeur minimale d'une colonne du plan (px) : au-delà, le plan défile horizontalement dans son cadre
   var ROW_MIN = 64;       // hauteur minimale d'une ligne du meuble (px) : le cadre grandit plutôt que de laisser déborder
   var BAND_ROW = 56;      // hauteur d'une ligne d'une bande (px)
   var editing = false;    // réglages de disposition affichés
@@ -21,27 +22,33 @@
   var focus = {};         // identifiant du meuble → niveau inférieur actuellement dessiné
   var uid = 0;
 
+  // Libellé d'une zone ; dans le plan du logement il n'y a qu'une zone : le plan.
+  function zoneLabel(zone, atRoot) { return atRoot ? 'Dans le plan' : ZONE_LABELS[zone]; }
+
   function levelName(depth) { return LEVEL_NAMES[depth] || ('Niveau ' + (depth + 1)); }
 
   // ---------- mode d'affichage (mémorisé sur l'appareil) ----------
 
-  function mode() { return R.storage.getAux('view') === 'graphic' ? 'graphic' : 'list'; }
+  // scope 'plan' : choix propre au logement (clé annexe `planview`) ; sinon celui des meubles (clé `view`).
+  function viewKey(scope) { return scope === 'plan' ? 'planview' : 'view'; }
 
-  function setMode(next) {
-    if (next === mode()) { return; }
-    R.storage.setAux('view', next);
+  function mode(scope) { return R.storage.getAux(viewKey(scope)) === 'graphic' ? 'graphic' : 'list'; }
+
+  function setMode(next, scope) {
+    if (next === mode(scope)) { return; }
+    R.storage.setAux(viewKey(scope), next);
     R.events.emit('view:changed', {});
   }
 
-  function switcher() {
-    var current = mode();
+  function switcher(scope) {
+    var current = mode(scope);
     function b(label, value) {
       return el('button', {
         class: 'button button--secondary view-switch-btn', type: 'button', 'aria-pressed': current === value ? 'true' : 'false',
-        onclick: function () { setMode(value); }
+        onclick: function () { setMode(value, scope); }
       }, [label]);
     }
-    return el('div', { class: 'view-switch', role: 'group', 'aria-label': 'Mode d\u2019affichage' }, [b('Liste', 'list'), b('Vue graphique', 'graphic')]);
+    return el('div', { class: 'view-switch', role: 'group', 'aria-label': 'Mode d\u2019affichage' }, [b('Liste', 'list'), b(scope === 'plan' ? 'Plan' : 'Vue graphique', 'graphic')]);
   }
 
   // ---------- réglages ----------
@@ -76,7 +83,14 @@
   function controls(shownId, lay, redraw) {
     var F = R.features.furniture;
     var g = F.get(shownId);
-    var L = F.limits;
+    var L = F.limitsFor(shownId);
+    if (F.isRoot(shownId)) {
+      var gridRoot = function (key) { return function (v) { var p = {}; p[key] = Number(v); run(redraw, F.setGrid(shownId, p)); }; };
+      return el('div', { class: 'furn-controls' }, [
+        control('Colonnes', select(range(1, L.cols, lay.C), lay.C, gridRoot('cols'))),
+        control('Lignes', select(range(1, L.rows, lay.L), lay.L, gridRoot('rows')))
+      ]);
+    }
     var feet = el('input', { type: 'checkbox', checked: g.feet ? true : null });
     feet.addEventListener('change', function () { run(redraw, F.set(shownId, { feet: feet.checked })); });
     function grid(key) { return function (v) { var p = {}; p[key] = Number(v); run(redraw, F.setGrid(shownId, p)); }; }
@@ -99,12 +113,12 @@
     return el('div', { class: 'furn-pad', role: 'group', 'aria-label': name }, nodes);
   }
 
-  function selectionPanel(c, lay, redraw) {
+  function selectionPanel(c, lay, redraw, atRoot) {
     var F = R.features.furniture;
     var loc = R.store.getLocation(c.id);
     function k(dir, glyph, label, fn) { return { dir: dir, glyph: glyph, label: label, run: function () { run(redraw, fn()); } }; }
     return el('div', { class: 'furn-sel', role: 'group', 'aria-label': 'Emplacement sélectionné' }, [
-      el('p', { class: 'furn-sel-text' }, ['Sélection : \u00ab ' + loc.name + ' \u00bb \u2014 ' + ZONE_LABELS[c.zone].toLowerCase() + ', colonne ' + (c.col + 1) + ', ligne ' + (c.row + 1) + ', taille ' + c.w + ' \u00d7 ' + c.h + ' (cases).']),
+      el('p', { class: 'furn-sel-text' }, ['Sélection : \u00ab ' + loc.name + ' \u00bb \u2014 ' + zoneLabel(c.zone, atRoot).toLowerCase() + ', colonne ' + (c.col + 1) + ', ligne ' + (c.row + 1) + ', taille ' + c.w + ' \u00d7 ' + c.h + ' (cases).']),
       pad('Déplacer', '\u271B', [
         k('up', '\u25B2', 'Décaler vers le haut', function () { return F.move(c.id, 0, -1); }),
         k('left', '\u25C0', 'Décaler à gauche', function () { return F.move(c.id, -1, 0); }),
@@ -160,36 +174,40 @@
     var pane = wrap.closest ? wrap.closest('.pane') : null;     // le défilement ne doit pas remonter à chaque action
     var scrollTop = pane ? pane.scrollTop : 0;
     R.ui.dom.clear(wrap);
+    var rootMode = F.isRoot(furnId);          // plan du logement : les pièces sont les cases
     var shownId = focus[furnId];
-    if (!shownId || !R.store.getLocation(shownId) || !R.store.pathOf(shownId).some(function (p) { return p.id === furnId; })) { shownId = furnId; }
-    var loc = R.store.getLocation(shownId);
-    var depth = R.store.depthOf(shownId);
-    var level = R.models.levelOf(depth);
+    if (!shownId || !R.store.getLocation(shownId) || (!rootMode && !R.store.pathOf(shownId).some(function (p) { return p.id === furnId; }))) { shownId = furnId; }
+    var atRoot = F.isRoot(shownId);
+    var loc = atRoot ? null : R.store.getLocation(shownId);
+    var depth = atRoot ? -1 : R.store.depthOf(shownId);
+    var level = atRoot ? 'racine' : R.models.levelOf(depth);
     var lay = F.layout(shownId);
     var g = F.get(shownId);
     var sel = editing ? lay.cells.filter(function (c) { return c.id === selected; })[0] : null;
     var kidsCount = lay.cells.length;
 
-    wrap.appendChild(el('p', { class: 'furn-caption', 'data-level': level }, ['Niveau ' + (depth + 1) + ' \u2014 ' + levelName(depth) + ' \u00ab ' + loc.name + ' \u00bb' + (kidsCount
-      ? ' : ses ' + plural(kidsCount, 'sous-emplacement', 'sous-emplacements') + ' (niveau ' + (depth + 2) + ') sont dessinés ci-dessous.'
-      : ' : aucun sous-emplacement.')]));
+    wrap.appendChild(el('p', { class: 'furn-caption', 'data-level': level }, [atRoot
+      ? 'Plan du logement' + (kidsCount ? ' : ses ' + plural(kidsCount, 'pièce', 'pièces') + ' (niveau 1) sont dessinées ci-dessous.' : ' : aucune pièce.')
+      : 'Niveau ' + (depth + 1) + ' \u2014 ' + levelName(depth) + ' \u00ab ' + loc.name + ' \u00bb' + (kidsCount
+        ? ' : ses ' + plural(kidsCount, 'sous-emplacement', 'sous-emplacements') + ' (niveau ' + (depth + 2) + ') sont dessinés ci-dessous.'
+        : ' : aucun sous-emplacement.')]));
 
     var bar = [];
     if (shownId !== furnId) {
       var up = loc.parentId;
       bar.push(el('button', {
         class: 'button button--secondary', type: 'button',
-        onclick: function () { if (up === furnId) { delete focus[furnId]; } else { focus[furnId] = up; } selected = null; redraw(); }
-      }, ['\u2190 Remonter au niveau ' + depth]));
+        onclick: function () { if (up === furnId || (rootMode && !up)) { delete focus[furnId]; } else { focus[furnId] = up; } selected = null; redraw(); }
+      }, [rootMode && depth === 0 ? '\u2190 Remonter au plan du logement' : '\u2190 Remonter au niveau ' + depth]));
     }
     bar.push(el('button', {
       class: 'button button--secondary', type: 'button', 'aria-pressed': editing ? 'true' : 'false',
       onclick: function () { editing = !editing; selected = null; message = null; redraw(); }
-    }, [editing ? 'Terminer l\u2019ajustement' : 'Ajuster la disposition']));
+    }, [editing ? 'Terminer l\u2019ajustement' : (atRoot ? 'Ajuster le plan' : 'Ajuster la disposition')]));
     wrap.appendChild(el('div', { class: 'furn-bar' }, bar));
     if (editing) { wrap.appendChild(controls(shownId, lay, redraw)); }
     if (message) { wrap.appendChild(el('p', { class: 'form-error furn-msg', role: 'status' }, [message])); message = null; }
-    if (!sel && editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, ['Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
+    if (!sel && editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, [atRoot ? 'Touchez une pièce pour la sélectionner, puis déplacez-la ou changez sa taille ; une case libre y place la pièce sélectionnée.' : 'Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
 
     var start = { top: 0, body: lay.T, bottom: lay.T + lay.L };
     function zoneGrid(zone, rows) {
@@ -207,7 +225,7 @@
             if (taken[r + ',' + c0]) { continue; }
             (function (row, col) {
               var slot = el('button', {
-                class: 'furn-slot', type: 'button', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + ZONE_LABELS[zone].toLowerCase() + ')',
+                class: 'furn-slot', type: 'button', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + zoneLabel(zone, atRoot).toLowerCase() + ')',
                 onclick: function () {
                   if (!sel) { message = 'Sélectionnez d\u2019abord un emplacement à déplacer.'; redraw(); return; }
                   run(redraw, F.move(sel.id, col - sel.col, (start[zone] + row) - (start[sel.zone] + sel.row)));
@@ -222,24 +240,29 @@
       return grid;
     }
     function band(zone, rows) {
-      return el('div', { class: 'furn-band', 'data-zone': zone }, [el('p', { class: 'furn-band-label' }, [ZONE_LABELS[zone]]), zoneGrid(zone, rows)]);
+      return el('div', { class: 'furn-band', 'data-zone': zone }, [el('p', { class: 'furn-band-label' }, [zoneLabel(zone, atRoot)]), zoneGrid(zone, rows)]);
     }
 
     var frame = [];
     if (lay.T) { frame.push(band('top', lay.T)); }
     var bodyContent = (!kidsCount && !editing)
-      ? el('p', { class: 'furn-empty' }, ['Aucun sous-emplacement : les objets sont rangés directement ici.'])
+      ? el('p', { class: 'furn-empty' }, [atRoot ? 'Aucune pièce à dessiner.' : 'Aucun sous-emplacement : les objets sont rangés directement ici.'])
       : zoneGrid('body', lay.L);
     var body = el('div', { class: 'furn-body', 'data-level': level }, [bodyContent]);
-    body.style.aspectRatio = String(g.ratio);
+    if (atRoot) {         // plan : cases à peu près carrées, le cadre défile horizontalement si les colonnes sont nombreuses
+      body.style.aspectRatio = lay.C + ' / ' + lay.L;
+      body.style.minWidth = (lay.C * PLAN_COL) + 'px';
+    } else {
+      body.style.aspectRatio = String(g.ratio);
+    }
     body.style.minHeight = (lay.L * ROW_MIN) + 'px';
     frame.push(body);
     if (g.feet) { frame.push(el('div', { class: 'furn-feet', 'data-level': level }, [el('span', { class: 'furn-foot' }), el('span', { class: 'furn-foot' })])); }
     if (lay.B) { frame.push(band('bottom', lay.B)); }
-    wrap.appendChild(el('div', { class: 'furn-frame' }, frame));
-    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw)); }
+    wrap.appendChild(el('div', { class: 'furn-frame' + (atRoot ? ' furn-frame--plan' : '') }, frame));
+    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw, atRoot)); }
 
-    var items = R.store.itemsIn(shownId);
+    var items = atRoot ? [] : R.store.itemsIn(shownId);
     if (items.length) {
       wrap.appendChild(el('section', { class: 'section' }, [
         el('h3', { class: 'section-title' }, ['Objets rangés dans \u00ab ' + loc.name + ' \u00bb (niveau ' + (depth + 1) + ') : ' + items.length]),
@@ -262,5 +285,11 @@
     return wrap;
   }
 
-  R.ns('ui.views').furniture = { create: create, switcher: switcher, mode: mode, setMode: setMode };
+  // Plan du logement : la même grille, où les cases sont les pièces.
+  function createPlan() { return create(R.features.furniture.ROOT); }
+
+  // Un changement d'écran referme l'ajustement (il ne doit pas suivre d'un meuble ou d'un plan à l'autre).
+  R.events.on('route:changed', function () { editing = false; selected = null; message = null; });
+
+  R.ns('ui.views').furniture = { create: create, createPlan: createPlan, switcher: switcher, mode: mode, setMode: setMode };
 })();
