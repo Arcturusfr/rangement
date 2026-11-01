@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V012
-  Horodatage : 2026-10-31 14:31 (heure de Paris)
-  Résumé : V012 : échange d'emplacements, pavés de flèches, défilement conservé.
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : V013 : jalon 8, plan du logement (la grille sert aux pièces).
 -->
 
-# ARCHITECTURE — Rangement `V012`
+# ARCHITECTURE — Rangement `V013`
 
-> Dernière mise à jour : 31/10/2026 14:31 (Paris) — **V012**
-> Statut : **jalon 7 livré, grille de placement (V011) et ergonomie (V012)** (vue graphique des meubles). Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 01/11/2026 12:00 (Paris) — **V013**
+> Statut : **jalon 8 livré (plan du logement en tuiles collées, V013)**, après le jalon 7 (vue graphique des meubles, validé). Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -41,6 +41,7 @@
 │   ├── test_jalon5.py         Tests Playwright/Chromium : sauvegarde (export, import, annulation, réglages)
 │   ├── test_jalon6.py         Tests Playwright/Chromium : PWA (manifeste, pré-cache, hors ligne, mise à jour, vidage du cache)
 │   ├── test_jalon7.py         Tests Playwright/Chromium : vue graphique des meubles (disposition, niveaux, nombre d'objets dans l'arborescence)
+│   ├── test_jalon8.py         Tests Playwright/Chromium : plan du logement (pièces sur la grille, ajustement, sauvegarde, cadre défilant)
 │   └── test_jalon6bis.py      Tests Playwright/Chromium : évolutions ergonomiques (arborescence, rail, en-têtes figés, duplication, Retour, flèches, saisie interdite, pastille, couleurs)
 ├── css/
 │   ├── base.css               Variables (couleurs, espacements), reset, typographie
@@ -60,7 +61,7 @@
     │   ├── locations.js       Créer/modifier/déplacer/supprimer des emplacements, avec garde-fous
     │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (quantité, mots-clés, note)
     │   ├── search.js          Recherche d'objets et d'emplacements (nom, mots-clés, note, chemin), classée par pertinence
-    │   ├── furniture.js       Grille d'un meuble (colonnes, lignes, bandes dessus / dessous, proportions, pieds) et place de chaque sous-emplacement en cases (`geometry`)
+    │   ├── furniture.js       Grille d'un meuble **ou du plan du logement** (colonnes, lignes, bandes dessus / dessous pour un meuble, proportions, pieds) et place de chaque sous-emplacement / pièce en cases (`geometry`) ; identifiant spécial `ROOT` = le logement
     │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
@@ -79,7 +80,7 @@
     │       ├── item-actions.js  Dialogues d'action : ajouter, modifier, déplacer, supprimer un objet
     │       ├── location.js    Volet principal : contenu d'un emplacement + barre d'actions ; affiche aussi la fiche d'un objet
     │       ├── item.js        Fiche d'un objet (emplacement, quantité, mots-clés, note, actions)
-    │       ├── furniture.js   Vue graphique d'un meuble sur grille (cases, bandes, sélection, détail des niveaux inférieurs) et commutateur Liste / Vue graphique
+    │       ├── furniture.js   Vue graphique d'un meuble sur grille (cases, bandes, sélection, détail des niveaux inférieurs) et du plan du logement (`createPlan`) ; commutateurs Liste / Vue graphique (meubles) et Liste / Plan (logement)
     │       ├── searchbar.js   Champ de recherche permanent sous l'en-tête (synchronisé avec la route)
     │       ├── search.js      Résultats de recherche : objets puis emplacements, avec chemin complet
     │       └── settings.js    Écran Réglages (`#/r`) : export, import, annulation d'import, application hors ligne (mise à jour, cache, installation), à propos
@@ -124,9 +125,12 @@ Le logement est une **arborescence d'emplacements** de profondeur libre, dans la
   "schemaVersion": 1,
   "appVersion": "V007",
   "locations": [],
-  "items": []
+  "items": [],
+  "plan": { "cols": 3, "rows": 2 }
 }
 ```
+
+`plan` est **facultatif** (V013) : colonnes et lignes de la grille du plan du logement ; absent = disposition automatique. Les pièces portent leur place dans leur propre `geometry`.
 
 `schemaVersion` permet de migrer les données si le modèle évolue. Un fichier de sauvegarde exporté a la même forme, avec en plus `exportedAt` (date ISO de l'export).
 
@@ -200,7 +204,9 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.ui.router` | Routes : `#/` (logement), `#/l/<id>` (emplacement), `#/o/<id>` (fiche d'un objet), `#/s/<texte>` (recherche), `#/r` (réglages). `current()` renvoie `{ locationId, itemId, query, settings }` (`query` vaut `null` hors recherche) ; `href(id)`, `itemHref(id)`, `searchHref(texte)`, `settingsHref()`, `navigate(id)`, `search(texte)` |
 | `Rangement.ui.components.dialog.form / confirm / alert` | Dialogues modaux (`<dialog>`), retour du focus à la fermeture |
 | `Rangement.features.furniture.layout(id[, essai]) / get(id) / set(id, { ratio, feet }) / setGrid(id, { cols, rows, top, bottom }) / move(id, dc, dr) / resize(id, dw, dh) / isFurniture(id)` | Grille d'un emplacement dessiné : `layout` renvoie `{ C, L, T, B, cells: [{ id, zone, col, row, w, h }] }` (places automatiques calculées si rien n'est enregistré). `move`, `resize` et `setGrid` enregistrent toute la grille et renvoient `{ ok }` ou `{ ok: false, error }` (message en français). |
-| `Rangement.ui.views.furniture.create(id) / switcher() / mode() / setMode(m)` | Vue graphique d'un meuble ; commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) |
+| `Rangement.ui.views.furniture.create(id) / createPlan() / switcher(portée) / mode(portée) / setMode(m, portée)` | Vue graphique d'un meuble ; plan du logement (`createPlan`) ; commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) ou, avec la portée `'plan'`, Liste / Plan (clé annexe `planview`) |
+| `Rangement.features.furniture.ROOT` | Identifiant spécial du logement : `layout(ROOT)`, `setGrid(ROOT, { cols, rows })` ; `move` / `resize` sur une pièce travaillent sur le plan. Une seule zone (`body`), 20 colonnes et 20 lignes au plus proposées |
+| `Rangement.store.plan() / Rangement.models.cleanPlan(p)` | Plan du logement `{ cols, rows }` ou `null` ; nettoyage d'un plan lu (import, stockage) |
 | `Rangement.events` | `view:changed`, `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed`, `pwa:changed` |
 
 Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli affiche un avertissement.
@@ -276,6 +282,14 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Stockage** : dans `geometry` (`ratio`, `feet`, `cols`, `rows`, `top`, `bottom` pour l'emplacement dessiné ; `zone`, `col`, `row`, `w`, `h` pour la place d'un sous-emplacement) ; `schemaVersion` inchangé (1) ; repris par l'export / import.
 - **Arborescence** : le nombre d'objets (total, sous-emplacements compris) s'affiche à droite de chaque libellé (rien s'il est nul), hors du lien.
 
+### Règles du jalon 8 (V013)
+
+- **Plan du logement** : à la racine, un commutateur « Liste / Plan » (choix mémorisé séparément de celui des meubles, clé annexe `planview`) ; la liste reste le mode par défaut. Les **pièces** sont des tuiles collées sur la même grille que les meubles ; **pas de murs, portes ni fenêtres** pour l'instant, pas de formes en L (une pièce = un rectangle de cases).
+- **Grille** : `cols` × `rows` enregistrés dans `plan` (enveloppe de stockage), réglables de 1 à 20 ; une seule zone (pas de bandes, pas de pieds, pas de proportions) ; le cadre est à peu près carré par case, il **défile horizontalement dans son cadre** (jamais la page) quand les colonnes sont nombreuses (72 px minimum par colonne). Disposition automatique : 2 colonnes jusqu'à 4 pièces, 3 jusqu'à 9, 4 au-delà ; les places sont **figées** dès la première modification, une pièce créée ensuite prend la première case libre.
+- **Ajustement** (« Ajuster le plan ») : mêmes commandes que pour un meuble (sélection, deux pavés de flèches fixés en bas, échange de deux pièces, cases libres, refus en clair) ; un changement d'écran referme l'ajustement.
+- **Place d'une pièce** : dans sa `geometry` (`zone: 'body'`, `col`, `row`, `w`, `h`) ; `schemaVersion` inchangé ; reprise par l'export / import (le `plan` aussi ; une sauvegarde sans `plan` rétablit la disposition automatique ; un `plan` illisible est ignoré).
+- **Niveaux** : l'icône sur une tuile ouvre les emplacements de la pièce sur la même grille (bouton « Remonter au plan du logement ») ; c'est une première version de la disposition des meubles dans une pièce (jalon 8 bis).
+
 ### 5.1 Diagnostic de démarrage
 
 Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `treerail.js` et `furniture.js` (fonction et vue)).
@@ -328,3 +342,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V010 | 26/10/2026 15:33 | Jalon 7 : vue graphique des meubles (rectangle, pieds, sous-emplacements, détail des niveaux), disposition automatique ajustable, nombre d'objets dans l'arborescence |
 | V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles (cases, tailles, déplacements, bandes dessus / dessous), correction du débordement des cases et libellés |
 | V012 | 31/10/2026 14:31 | Jalon 7 : échange de deux emplacements, pavés de flèches fixés en bas de l'écran, défilement conservé |
+| V013 | 01/11/2026 12:00 | Jalon 8 : plan du logement (pièces en tuiles sur la grille, commutateur Liste / Plan, `plan` dans les données et la sauvegarde) |
