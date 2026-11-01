@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V012
-  Horodatage : 2026-10-31 14:31 (heure de Paris)
-  Résumé : V012 livrée — fichiers à enregistrer et tests.
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : V013 livrée — fichiers à enregistrer et tests.
 -->
 
-# ToDo Utilisateur — Rangement `V012`
+# ToDo Utilisateur — Rangement `V013`
 
-> Dernière mise à jour : 31/10/2026 14:31 (Paris) — **V012**
+> Dernière mise à jour : 01/11/2026 12:00 (Paris) — **V013**
 
 ## Fait
 
+- [x] Tester la V012 : fluide ; valider le jalon 7 ; choisir pour le jalon 8 des pièces en tuiles collées (sans portes ni fenêtres pour l'instant)
 - [x] Tester la V011 sur le Z Fold : fonctionne bien et fluide ; trois améliorations demandées (échange, défilement, pavé de flèches)
 - [x] Tester la vue graphique V010 (Z Fold, iPad) et répondre au sujet de la grille (deux bandes ; flèches)
 - [x] Valider le jalon 6 bis (V009) : aucun bug ; répondre aux points du jalon 7
@@ -35,13 +36,20 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V012** (archive `V012.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V012.txt`).
-  - **Remplacés** : `css/furniture.css`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `js/config.js`, `sw.js` (**à la racine**, pas dans `js/`), `tests/test_jalon6.py`, `tests/test_jalon7.py` et les trois `.md`.
-  - **Inchangés** : tout le reste (aucun nouveau fichier).
-- [ ] **Vérifier que la version affichée est `V012`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
-- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V012 (supprimer les versions remplacées).
-- [ ] **Tester la V012** : « Ajuster la disposition » sur un meuble dont toutes les cases sont remplies : déplacer un emplacement sur un autre (échange) ; vérifier que la page ne remonte plus et que les deux pavés de flèches restent visibles en bas de l'écran (déplacer, taille) ; écran replié.
-- [ ] **Répondre** : l'échange (refusé si plusieurs emplacements sont sur le chemin ou si l'autre ne tient pas à la place libérée) et les pavés vous conviennent-ils ? Autres évolutions ?
+- [ ] **Enregistrer les fichiers de la V013** (archive `V013.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V013.txt`).
+  - **Nouveau** : `tests/test_jalon8.py`.
+  - **Remplacés** : `css/furniture.css`, `js/config.js`, `js/core/models.js`, `js/core/store.js`, `js/features/backup.js`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `sw.js` (**à la racine**, pas dans `js/`) et les trois `.md`.
+  - **Inchangés** : tout le reste (`index.html` et `js/main.js` ne changent pas : aucun nouveau fichier de code).
+- [ ] **Vérifier que la version affichée est `V013`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V013 (supprimer les versions remplacées).
+- [ ] **Exporter une sauvegarde** de vos vraies données avant la mise à jour (précaution habituelle ; le fichier exporté contiendra désormais aussi le plan).
+- [ ] **Tester la V013** : écran « Logement » › bouton « Plan » ; « Ajuster le plan » : choisir le nombre de colonnes et de lignes, sélectionner une pièce, la déplacer, la faire grandir, la faire échanger sa place avec une autre ; vérifier que les deux pavés de flèches restent visibles en bas ; toucher l'icône d'une tuile (meubles de la pièce) puis « Remonter au plan du logement » ; écran replié ; export puis import (le plan doit être retrouvé).
+- [ ] **Répondre** : la disposition proposée vous convient-elle (2 / 3 / 4 colonnes au départ, cadre à défilement horizontal si beaucoup de colonnes) ? Faut-il des formes de pièces non rectangulaires, ou des portes et fenêtres ? Que souhaitez-vous pour le jalon 8 bis (meubles dans une pièce) ?
+- [ ] **Si vous utilisez `STRUCTURE_JSON.md`** (livré en V008a) : le fichier exporté peut maintenant contenir un champ facultatif `plan` (`{ cols, rows }`) ; dites-moi si vous voulez que je mette ce fichier à jour (il n'est pas dans la base Contexte).
+
+### (historique) À faire à la V012
+
+- [ ] Enregistrer les fichiers de la V012, tester l'échange d'emplacements, les pavés de flèches et le défilement conservé (testée : fluide).
 
 ### (historique) À faire à la V008
 
@@ -90,3 +98,4 @@
 | V010 | 26/10/2026 15:33 | Jalon 7 livré : fichiers à enregistrer, tests de la vue graphique des meubles, base Contexte à mettre à jour |
 | V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V012 | 31/10/2026 14:31 | Jalon 7 : échange d'emplacements, pavés de flèches, défilement conservé ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V013 | 01/11/2026 12:00 | Jalon 8 livré : plan du logement ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
