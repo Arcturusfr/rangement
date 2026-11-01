@@ -1,8 +1,8 @@
 /*
   js/core/models.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : ajout de levelOf (niveau de couleur) et rootLabel (libellé « Logement » + précision).
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : cleanPlan (plan du logement : colonnes et lignes de la grille).
 */
 (function () {
   'use strict';
@@ -77,6 +77,14 @@
     };
   }
 
+  // Plan du logement : { cols, rows } (entiers positifs) ou null. Tout le reste est ignoré.
+  function cleanPlan(plan) {
+    if (!plan || typeof plan !== 'object' || Array.isArray(plan)) { return null; }
+    function n(v, max) { return (typeof v === 'number' && v === Math.floor(v) && v >= 1 && v <= max) ? v : null; }
+    var cols = n(plan.cols, 40), rows = n(plan.rows, 60);
+    return (cols || rows) ? { cols: cols || 0, rows: rows || 0 } : null;
+  }
+
   function emptyData() {
     return { schemaVersion: R.config.schemaVersion, appVersion: R.config.version, locations: [], items: [] };
   }
@@ -141,6 +149,7 @@
     newLocation: newLocation,
     newItem: newItem,
     emptyData: emptyData,
+    cleanPlan: cleanPlan,
     validateData: validateData,
     normalizeText: normalizeText,
     kindLabel: kindLabel,
