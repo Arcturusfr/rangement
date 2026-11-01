@@ -1,8 +1,8 @@
 /*
   js/features/backup.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : ajout de needsBackup() (pastille « modifications non sauvegardées ») ; sinon inchangé.
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : le plan du logement (colonnes, lignes) fait partie de la sauvegarde exportée, importée et annulable.
 */
 (function () {
   'use strict';
@@ -23,12 +23,14 @@
 
   // Copie des données courantes sous forme d'enveloppe complète.
   function snapshot() {
-    return JSON.parse(JSON.stringify({
+    var snap = {
       schemaVersion: R.config.schemaVersion,
       appVersion: R.config.version,
       locations: R.store.locations(),
       items: R.store.items()
-    }));
+    };
+    if (R.store.plan()) { snap.plan = R.store.plan(); }
+    return JSON.parse(JSON.stringify(snap));
   }
 
   // ---------- suivi de la dernière sauvegarde ----------
@@ -155,6 +157,8 @@
       locations: raw.locations.map(cleanLocation),
       items: raw.items.map(cleanItem)
     };
+    var plan = R.models.cleanPlan(raw.plan);
+    if (plan) { data.plan = plan; }
     var check = R.models.validateData(data);
     if (!check.ok) {
       var shown = check.errors.slice(0, 3).join(' ');
