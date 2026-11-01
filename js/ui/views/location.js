@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V012
-  Horodatage : 2026-10-31 14:31 (heure de Paris)
-  Résumé : la position de défilement est conservée quand l'affichage est redessiné (hors changement d'écran).
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : à la racine, commutateur Liste / Plan et plan du logement (vue graphique des pièces).
 */
 (function () {
   'use strict';
@@ -149,6 +149,14 @@
       ]));
     }
     container.appendChild(bar.manage);
+
+    if (!loc) {                                   // racine : le plan du logement
+      container.appendChild(R.ui.views.furniture.switcher('plan'));
+      if (R.ui.views.furniture.mode('plan') === 'graphic') {
+        container.appendChild(R.ui.views.furniture.createPlan());
+        return;
+      }
+    }
 
     if (loc && R.features.furniture.isFurniture(loc.id)) {
       container.appendChild(R.ui.views.furniture.switcher());
