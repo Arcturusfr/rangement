@@ -1,14 +1,14 @@
 /*
   js/core/store.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : ajout de depthOf(id) ; sinon inchangé.
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : plan du logement (state.plan, plan()) conservé, sauvegardé et remplacé avec les données.
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
-  var state = { locations: [], items: [] };
+  var state = { locations: [], items: [], plan: null };
   var byId = {};          // id → emplacement
   var childrenOf = {};    // parentId ('' = racine) → emplacements triés
   var itemsOf = {};       // locationId → objets triés
@@ -22,12 +22,14 @@
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
 
   function envelope(s) {
-    return {
+    var env = {
       schemaVersion: R.config.schemaVersion,
       appVersion: R.config.version,
       locations: s.locations,
       items: s.items
     };
+    if (s.plan) { env.plan = s.plan; }
+    return env;
   }
 
   function reindex() {
@@ -64,7 +66,7 @@
     } else if (res.data) {
       var check = R.models.validateData(res.data);
       if (check.ok) {
-        state = { locations: res.data.locations, items: res.data.items };
+        state = { locations: res.data.locations, items: res.data.items, plan: R.models.cleanPlan(res.data.plan) };
       } else {
         R.storage.quarantine(res.raw);
         notices.push('Les données enregistrées sont incohérentes. Une copie a été mise de côté et l\u2019application démarre à vide.');
@@ -106,6 +108,7 @@
     return update(function (d) {
       d.locations = clone(data.locations);
       d.items = clone(data.items);
+      d.plan = R.models.cleanPlan(data.plan);
     });
   }
 
@@ -114,6 +117,8 @@
   function getItem(id) { return itemById[id] || null; }
   function locations() { return state.locations; }
   function items() { return state.items; }
+  // Plan du logement : { cols, rows } ou null (0 = automatique).
+  function plan() { return state.plan; }
   function childLocations(parentId) { return childrenOf[parentId || ''] || []; }
   function itemsIn(locationId) { return itemsOf[locationId] || []; }
 
@@ -150,6 +155,7 @@
     replaceAll: replaceAll,
     locations: locations,
     items: items,
+    plan: plan,
     getLocation: getLocation,
     getItem: getItem,
     childLocations: childLocations,
