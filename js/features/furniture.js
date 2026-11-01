@@ -1,14 +1,15 @@
 /*
   js/features/furniture.js — Application « Rangement »
-  Version : V012
-  Horodatage : 2026-10-31 14:31 (heure de Paris)
-  Résumé : un déplacement sur une case occupée échange les deux emplacements (si l'autre tient à la place libérée).
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : la grille sert aussi au plan du logement (identifiant spécial ROOT : les pièces sont les cases ; colonnes et lignes dans store.plan()).
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
 
+  var ROOT = '@plan';                               // « emplacement » virtuel : le logement lui-même (ses cases sont les pièces)
   var RATIOS = [
     { id: 'haut', label: 'Haut', value: 0.7 },
     { id: 'carre', label: 'Carré', value: 1 },
@@ -16,28 +17,37 @@
     { id: 'tres-large', label: 'Très large', value: 2.2 }
   ];
   var DEFAULT_RATIO = 1.5;
-  var LIMITS = { cols: 6, rows: 8, band: 3 };      // bornes proposées dans les réglages
+  var LIMITS = { cols: 6, rows: 8, band: 3 };      // bornes proposées dans les réglages d'un meuble
+  var PLAN_LIMITS = { cols: 20, rows: 20, band: 0 }; // bornes proposées pour le plan du logement
   var ABS = { cols: 12, rows: 30, band: 10 };      // bornes acceptées en lecture (une grille agrandie automatiquement reste lisible)
+  var PLAN_ABS = { cols: 40, rows: 60, band: 0 };
   var GRID_REFUSED = 'Des emplacements occupent les cases à supprimer : déplacez-les d\u2019abord.';
 
   function fail(error) { return { ok: false, error: error }; }
 
+  function isRoot(id) { return id === ROOT; }
+  function limitsFor(id) { return isRoot(id) ? PLAN_LIMITS : LIMITS; }
+  function absFor(id) { return isRoot(id) ? PLAN_ABS : ABS; }
+  function exists(id) { return isRoot(id) || !!R.store.getLocation(id); }
+  function parentKey(l) { return l.parentId || ROOT; }
+
   // Un meuble = emplacement de premier niveau (directement dans une pièce).
-  function isFurniture(id) { return !!R.store.getLocation(id) && R.store.depthOf(id) === 1; }
+  function isFurniture(id) { return !isRoot(id) && !!R.store.getLocation(id) && R.store.depthOf(id) === 1; }
 
   function geomOf(l) { return (l && l.geometry && typeof l.geometry === 'object') ? l.geometry : {}; }
   function intIn(v, min, max) { return (typeof v === 'number' && v === Math.floor(v) && v >= min && v <= max) ? v : null; }
 
   // Réglages d'un emplacement dessiné : { ratio, feet, cols, rows, top, bottom } (0 = automatique pour cols et rows).
   function get(id) {
-    var g = geomOf(R.store.getLocation(id));
+    var a = absFor(id);
+    var g = isRoot(id) ? (R.store.plan() || {}) : geomOf(R.store.getLocation(id));
     return {
       ratio: (typeof g.ratio === 'number' && g.ratio >= 0.3 && g.ratio <= 4) ? g.ratio : DEFAULT_RATIO,
-      feet: g.feet === true,
-      cols: intIn(g.cols, 1, ABS.cols) || 0,
-      rows: intIn(g.rows, 1, ABS.rows) || 0,
-      top: intIn(g.top, 0, ABS.band) || 0,
-      bottom: intIn(g.bottom, 0, ABS.band) || 0
+      feet: !isRoot(id) && g.feet === true,
+      cols: intIn(g.cols, 1, a.cols) || 0,
+      rows: intIn(g.rows, 1, a.rows) || 0,
+      top: isRoot(id) ? 0 : (intIn(g.top, 0, a.band) || 0),
+      bottom: isRoot(id) ? 0 : (intIn(g.bottom, 0, a.band) || 0)
     };
   }
 
@@ -45,7 +55,7 @@
 
   // Sous-emplacements dans l'ordre de remplissage automatique : ancien ordre manuel (V010), sinon alphabétique.
   function ordered(parentId) {
-    return R.store.childLocations(parentId).map(function (l, i) { return { l: l, i: i }; })
+    return R.store.childLocations(isRoot(parentId) ? null : parentId).map(function (l, i) { return { l: l, i: i }; })
       .sort(function (a, b) {
         var pa = posOf(a.l), pb = posOf(b.l);
         return pa === pb ? a.i - b.i : (pa < pb ? -1 : 1);
@@ -66,17 +76,20 @@
   // Grille de `id` : { C colonnes, L lignes du meuble, T lignes au-dessus, B lignes en dessous, cells: [{ id, zone, col, row, w, h }] }.
   // Les sous-emplacements sans place enregistrée prennent la première case libre ; la grille s'agrandit si besoin (rien n'est jamais caché).
   // `override` ({ cols, rows, top, bottom }) : réglages à essayer à la place de ceux enregistrés (les places automatiques sont recalculées).
+  // Pour le plan du logement (ROOT) : une seule zone (« body »), les bandes n'existent pas.
   function layout(id, override) {
+    var root = isRoot(id);
     var kids = ordered(id);
     var n = kids.length;
     var cfg = Object.assign(get(id), override || {});
+    if (root) { cfg.top = 0; cfg.bottom = 0; }
     var cells = [];
     var pending = [];
     kids.forEach(function (l) {
       var e = explicit(l);
-      if (e) { e.id = l.id; cells.push(e); } else { pending.push(l); }
+      if (e && (!root || e.zone === 'body')) { e.id = l.id; cells.push(e); } else { pending.push(l); }
     });
-    var C = cfg.cols || (n <= 3 ? 1 : (n <= 8 ? 2 : 3));
+    var C = cfg.cols || (root ? (n <= 4 ? 2 : (n <= 9 ? 3 : 4)) : (n <= 3 ? 1 : (n <= 8 ? 2 : 3)));
     cells.forEach(function (c) { C = Math.max(C, c.col + c.w); });
 
     var occ = { top: {}, body: {}, bottom: {} };
@@ -132,8 +145,12 @@
     var res = R.store.update(function (d) {
       var byId = {};
       d.locations.forEach(function (l) { byId[l.id] = l; });
-      var t = byId[parentId];
-      t.geometry = Object.assign({}, t.geometry || {}, { cols: p.C, rows: p.L, top: p.T, bottom: p.B });
+      if (isRoot(parentId)) {
+        d.plan = Object.assign({}, d.plan || {}, { cols: p.C, rows: p.L });
+      } else {
+        var t = byId[parentId];
+        t.geometry = Object.assign({}, t.geometry || {}, { cols: p.C, rows: p.L, top: p.T, bottom: p.B });
+      }
       p.cells.forEach(function (c) {
         var k = byId[c.id];
         var g = Object.assign({}, k.geometry || {}, { zone: c.zone, col: c.col, row: c.row, w: c.w, h: c.h });
@@ -148,11 +165,12 @@
 
   function edit(cid, fn) {
     var l = R.store.getLocation(cid);
-    if (!l || !l.parentId) { return fail('Cet emplacement n\u2019existe plus.'); }
-    var p = layout(l.parentId);
+    if (!l) { return fail('Cet emplacement n\u2019existe plus.'); }
+    var pk = parentKey(l);
+    var p = layout(pk);
     var c = p.cells.filter(function (x) { return x.id === cid; })[0];
     var err = fn(p, c) || check(p);
-    return err ? fail(err) : commit(l.parentId, p);
+    return err ? fail(err) : commit(pk, p);
   }
 
   function zoneAt(p, g) {
@@ -197,19 +215,19 @@
 
   // patch : { cols?, rows?, top?, bottom? } — refusé si des emplacements occupent les cases supprimées.
   function setGrid(id, patch) {
-    if (!R.store.getLocation(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
+    if (!exists(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
     var p = layout(id, patch);
     if (patch.cols !== undefined) { p.C = patch.cols; }
     if (patch.rows !== undefined) { p.L = patch.rows; }
-    if (patch.top !== undefined) { p.T = patch.top; }
-    if (patch.bottom !== undefined) { p.B = patch.bottom; }
-    if (p.C < 1 || p.L < 1 || p.T < 0 || p.B < 0) { return fail('Valeur de grille invalide.'); }
+    if (patch.top !== undefined && !isRoot(id)) { p.T = patch.top; }
+    if (patch.bottom !== undefined && !isRoot(id)) { p.B = patch.bottom; }
+    if (p.C < 1 || p.L < 1 || p.T < 0 || p.B < 0 || p.C > absFor(id).cols || p.L > absFor(id).rows) { return fail('Valeur de grille invalide.'); }
     return check(p) ? fail(GRID_REFUSED) : commit(id, p);
   }
 
-  // patch : { ratio?, feet? }
+  // patch : { ratio?, feet? } (meubles seulement)
   function set(id, patch) {
-    if (!R.store.getLocation(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
+    if (isRoot(id) || !R.store.getLocation(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
     var clean = {};
     if (patch.ratio !== undefined && typeof patch.ratio === 'number' && patch.ratio >= 0.3 && patch.ratio <= 4) { clean.ratio = patch.ratio; }
     if (patch.feet !== undefined) { clean.feet = patch.feet === true; }
@@ -222,7 +240,8 @@
   }
 
   R.ns('features').furniture = {
-    ratios: RATIOS, limits: LIMITS, isFurniture: isFurniture, get: get, ordered: ordered, layout: layout,
+    ROOT: ROOT, ratios: RATIOS, limits: LIMITS, planLimits: PLAN_LIMITS, limitsFor: limitsFor, isRoot: isRoot,
+    isFurniture: isFurniture, get: get, ordered: ordered, layout: layout,
     set: set, setGrid: setGrid, move: move, resize: resize
   };
 })();
