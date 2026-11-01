@@ -1,15 +1,21 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V012
-  Horodatage : 2026-10-31 14:31 (heure de Paris)
-  Résumé : jalon 7 : échange d'emplacements, pavés de flèches, défilement conservé (V012).
+  Version : V013
+  Horodatage : 2026-11-01 12:00 (heure de Paris)
+  Résumé : jalon 8 livré : plan du logement en tuiles (V013).
 -->
 
-# Roadmap et avancement — Rangement `V012`
+# Roadmap et avancement — Rangement `V013`
 
-> Dernière mise à jour : 31/10/2026 14:31 (Paris) — **V012**
+> Dernière mise à jour : 01/11/2026 12:00 (Paris) — **V013**
 
 ## État actuel
+
+- **Jalon 7 validé** (V012 testée : fluide). **Jalon 8 livré** (V013) : **plan du logement** — à la racine, un commutateur « Liste / Plan » ; les pièces sont des tuiles collées sur la grille des meubles (déplacement, taille en cases, échange, cases libres, colonnes et lignes jusqu'à 20), nombre d'objets sur chaque pièce, icône pour voir les meubles d'une pièce.
+- Tests Playwright/Chromium : **830 tests** (62 jalon 1, 73 jalon 2, 131 jalon 3, 73 jalon 4, 137 jalon 5, 52 jalon 6, 139 jalon 6 bis, 87 jalon 7, **76 jalon 8**), 0 échec.
+- En attente : **validation de la V013 par l'utilisateur** (voir `ToDo_Utilisateur.md`).
+
+### (historique) État à la V012
 
 - **Jalon 6 bis validé** (V009). **Jalon 7** : V010 (vue graphique), V011 (grille de placement, bandes dessus / dessous) ; V011 testée sur Z Fold : fonctionne bien et fluide, trois améliorations demandées.
 - **V012** : déplacer un emplacement sur une case occupée **échange** les deux emplacements ; la page **ne remonte plus** en haut à chaque action ; les commandes d'ajustement sont **deux pavés de quatre flèches** sans libellé (déplacer, taille), **fixés en bas de l'écran**.
@@ -60,6 +66,7 @@
 | Icônes PWA | Fournies par l'utilisateur et intégrées en V008 (`icons/`) ; les mêmes images servent aux versions `any` et `maskable` |
 | Jalon 6 bis (V009) | Niveaux de couleur par profondeur (pièce / premier ordre / sous-emplacement / objet / épuisé). *(Hypothèses de Claude, à valider à l'usage :)* flèche ▼ = dernier enfant visité sinon premier ; duplication d'un emplacement : choix du contenu copié (seul par défaut) ; on arrive sur la copie ; l'état déplié de l'arborescence n'est pas mémorisé, la largeur (rail) l'est ; pastille orange = données jamais exportées ou modifiées depuis. |
 | Jalon 7 (V010 / V011) | **Validé** : vue graphique des meubles uniquement (pas de plan de pièce pour l'instant) ; géométrie dans `geometry` ; commutateur Liste / Vue graphique ; niveau rappelé à chaque affichage ; nombre d'objets sur les cases. **V011 (demandé par l'utilisateur)** : grille de cases remplie automatiquement, nombre de cases modifiable, emplacements déplaçables et redimensionnables en cases (flèches, pas de glisser-déposer), **deux bandes** au-dessus et en dessous du meuble. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix mémorisé ; dessin en HTML/CSS ; places figées dès la première modification ; **V012 (demandé par l'utilisateur)** : échange de deux emplacements en cas de déplacement sur une case occupée, pavés de flèches (déplacer, taille) fixés en bas de l'écran ; *hypothèses de Claude :* l'échange est refusé si plusieurs emplacements sont sur le chemin ou si l'autre ne tient pas à la place libérée ; 6 colonnes, 8 lignes et 3 lignes par bande au maximum ; nombre d'objets de l'arborescence = total sous-niveaux compris, masqué si zéro. |
+| Jalon 8 (V013) | **Validé** : pièces en **tuiles collées** (pas de murs, portes ni fenêtres pour l'instant), réutilisation de la grille des meubles, pièces = rectangles de cases (pas de formes en L), nom + nombre d'objets sur chaque case, grille jusqu'à 20 × 20, places automatiques puis figées, disposition des meubles dans une pièce = jalon 8 bis à part. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix Liste / Plan mémorisé séparément de celui des meubles ; 2 / 3 / 4 colonnes automatiques selon le nombre de pièces ; plan stocké dans l'enveloppe (`plan`), facultatif ; cadre à défilement horizontal si beaucoup de colonnes ; l'icône d'une tuile ouvre les meubles de la pièce sur la même grille (première version du jalon 8 bis). |
 | PWA (V008) | Pré-cache explicite versionné ; **mise à jour sur accord** (jamais de `skipWaiting` automatique) ; bouton « Vider le cache » (données intactes) ; pas de service worker en `file://`. *(Règles de ARCHITECTURE.md §5, §6.)* |
 
 ## Jalons
@@ -132,9 +139,15 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
 - ⬜ *(plus tard)* Mise en évidence d'un emplacement depuis une recherche ; vue d'une pièce
 
-### Jalon 8 — Plan du logement *(plus tard)*
-- ⬜ Plan SVG complet du logement
-- ⬜ Outil simple de construction/modification du plan
+### Jalon 8 — Plan du logement ✅ (livré en V013, validation utilisateur en attente)
+- ✅ Commutateur Liste / Plan à la racine ; pièces en tuiles sur la grille (déplacer, taille, échange, cases libres, colonnes et lignes)
+- ✅ Nombre d'objets sur chaque pièce, icône pour voir les meubles d'une pièce, `plan` conservé dans les données, l'export, l'import et l'annulation d'import
+- ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
+- ⬜ *(plus tard, si utile)* portes et fenêtres ; formes de pièces non rectangulaires
+
+### Jalon 8 bis — Disposition des meubles dans une pièce *(à venir)*
+- ⬜ Vue d'une pièce avec ses meubles posés sur la grille (première version déjà accessible par l'icône d'une tuile du plan)
+- ⬜ Mise en évidence d'un emplacement depuis une recherche
 
 ### Idées reportées
 - QR codes / étiquettes imprimables par boîte
@@ -161,3 +174,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V010 | 26/10/2026 15:33 | Jalon 6 bis validé ; jalon 7 livré (55 tests dédiés, 722 au total) |
 | V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles (72 tests dédiés, 739 au total) |
 | V012 | 31/10/2026 14:31 | Jalon 7 : échange d'emplacements, pavés de flèches, défilement conservé (87 tests dédiés, 754 au total) |
+| V013 | 01/11/2026 12:00 | Jalon 7 validé ; jalon 8 livré (plan du logement, 76 tests dédiés, 830 au total) |
