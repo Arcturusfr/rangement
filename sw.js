@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V013
-  Horodatage : 2026-11-01 12:00 (heure de Paris)
-  Résumé : version V013 (jalon 8, plan du logement).
+  Version : V014
+  Horodatage : 2026-11-02 22:47 (heure de Paris)
+  Résumé : version V014 (jalon 9, étape 1 : plan ajusté à l'écran, plan d'une pièce).
 */
 'use strict';
 
-var VERSION = 'V013';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V014';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
