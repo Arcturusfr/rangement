@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V013
-  Horodatage : 2026-11-01 12:00 (heure de Paris)
-  Résumé : V013 livrée — fichiers à enregistrer et tests.
+  Version : V014
+  Horodatage : 2026-11-02 22:47 (heure de Paris)
+  Résumé : V014 livrée — fichiers à enregistrer et tests.
 -->
 
-# ToDo Utilisateur — Rangement `V013`
+# ToDo Utilisateur — Rangement `V014`
 
-> Dernière mise à jour : 01/11/2026 12:00 (Paris) — **V013**
+> Dernière mise à jour : 02/11/2026 22:47 (Paris) — **V014**
 
 ## Fait
 
+- [x] Tester la V013 (plan du logement) : très satisfait de la grille et du rendu ; décider la réorientation vers les plans (jalon 9) et valider le découpage en étapes
 - [x] Tester la V012 : fluide ; valider le jalon 7 ; choisir pour le jalon 8 des pièces en tuiles collées (sans portes ni fenêtres pour l'instant)
 - [x] Tester la V011 sur le Z Fold : fonctionne bien et fluide ; trois améliorations demandées (échange, défilement, pavé de flèches)
 - [x] Tester la vue graphique V010 (Z Fold, iPad) et répondre au sujet de la grille (deux bandes ; flèches)
@@ -36,16 +37,18 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V013** (archive `V013.zip` : `gestion_fichiers.py` les range ; liste complète dans `liste_fichiers_V013.txt`).
-  - **Nouveau** : `tests/test_jalon8.py`.
-  - **Remplacés** : `css/furniture.css`, `js/config.js`, `js/core/models.js`, `js/core/store.js`, `js/features/backup.js`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `sw.js` (**à la racine**, pas dans `js/`) et les trois `.md`.
-  - **Inchangés** : tout le reste (`index.html` et `js/main.js` ne changent pas : aucun nouveau fichier de code).
-- [ ] **Vérifier que la version affichée est `V013`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
-- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V013 (supprimer les versions remplacées).
-- [ ] **Exporter une sauvegarde** de vos vraies données avant la mise à jour (précaution habituelle ; le fichier exporté contiendra désormais aussi le plan).
-- [ ] **Tester la V013** : écran « Logement » › bouton « Plan » ; « Ajuster le plan » : choisir le nombre de colonnes et de lignes, sélectionner une pièce, la déplacer, la faire grandir, la faire échanger sa place avec une autre ; vérifier que les deux pavés de flèches restent visibles en bas ; toucher l'icône d'une tuile (meubles de la pièce) puis « Remonter au plan du logement » ; écran replié ; export puis import (le plan doit être retrouvé).
-- [ ] **Répondre** : la disposition proposée vous convient-elle (2 / 3 / 4 colonnes au départ, cadre à défilement horizontal si beaucoup de colonnes) ? Faut-il des formes de pièces non rectangulaires, ou des portes et fenêtres ? Que souhaitez-vous pour le jalon 8 bis (meubles dans une pièce) ?
-- [ ] **Si vous utilisez `STRUCTURE_JSON.md`** (livré en V008a) : le fichier exporté peut maintenant contenir un champ facultatif `plan` (`{ cols, rows }`) ; dites-moi si vous voulez que je mette ce fichier à jour (il n'est pas dans la base Contexte).
+- [ ] **Enregistrer les fichiers de la V014** (archive `V014.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V014.txt`).
+  - **Nouveau** : `tests/test_jalon9.py`.
+  - **Remplacés** : `css/furniture.css`, `js/config.js`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `sw.js` (**à la racine**), `tests/test_jalon7.py`, `tests/test_jalon8.py` et les trois `.md`.
+  - **Inchangés** : tout le reste (aucun nouveau fichier de code).
+- [ ] **Vérifier que la version affichée est `V014`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V014 (supprimer les versions remplacées). Pensez à y mettre aussi à jour `index.html`, `js/main.js` et `js/ui/views/browse.js` (les copies de la base datent de la V009 : ils ne sont pas modifiés par la V014).
+- [ ] **Tester la V014** : écran « Logement » › « Plan » : le plan doit tenir dans la largeur (et, autant que possible, la hauteur) de l'écran déplié comme replié ; replier la barre « Actions » (le plan s'agrandit) ; bouton « Agrandir » (taille réelle, défilement) et retour ; ouvrir une pièce (bouton « Ouvrir » de la liste ou icône d'une tuile) › « Plan » : ses meubles sont posés sur la grille, « Ajuster le plan » directement ; tuiles compactes quand elles sont petites.
+- [ ] **Répondre** : la taille minimale des cases et le passage en tuiles compactes vous conviennent-ils ? Que doit afficher une tuile compacte en priorité ? Autre remarque pour préparer l'étape 9.2 (menu contextuel) ?
+
+### (historique) À faire à la V013
+
+- [ ] Enregistrer les fichiers de la V013, tester le plan du logement (testé : très satisfait).
 
 ### (historique) À faire à la V012
 
@@ -99,3 +102,4 @@
 | V011 | 30/10/2026 00:22 | Jalon 7 : grille de placement des meubles ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V012 | 31/10/2026 14:31 | Jalon 7 : échange d'emplacements, pavés de flèches, défilement conservé ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V013 | 01/11/2026 12:00 | Jalon 8 livré : plan du logement ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V014 | 02/11/2026 22:47 | Jalon 9 étape 1 : plan ajusté à l'écran, plan d'une pièce ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
