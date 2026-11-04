@@ -1,8 +1,8 @@
 /*
   js/features/furniture.js — Application « Rangement »
-  Version : V013
-  Horodatage : 2026-11-01 12:00 (heure de Paris)
-  Résumé : la grille sert aussi au plan du logement (identifiant spécial ROOT : les pièces sont les cases ; colonnes et lignes dans store.plan()).
+  Version : V014
+  Horodatage : 2026-11-02 22:47 (heure de Paris)
+  Résumé : isPlanLike : le logement ET les pièces se dessinent comme un plan (cases carrées, une seule zone, 20 × 20 au plus).
 */
 (function () {
   'use strict';
@@ -26,8 +26,10 @@
   function fail(error) { return { ok: false, error: error }; }
 
   function isRoot(id) { return id === ROOT; }
-  function limitsFor(id) { return isRoot(id) ? PLAN_LIMITS : LIMITS; }
-  function absFor(id) { return isRoot(id) ? PLAN_ABS : ABS; }
+  // « Plan » : le logement (cases = pièces) ou une pièce (cases = meubles) ; un meuble et ses niveaux inférieurs gardent bandes, proportions et pieds.
+  function isPlanLike(id) { return isRoot(id) || (!!R.store.getLocation(id) && R.store.depthOf(id) === 0); }
+  function limitsFor(id) { return isPlanLike(id) ? PLAN_LIMITS : LIMITS; }
+  function absFor(id) { return isPlanLike(id) ? PLAN_ABS : ABS; }
   function exists(id) { return isRoot(id) || !!R.store.getLocation(id); }
   function parentKey(l) { return l.parentId || ROOT; }
 
@@ -43,11 +45,11 @@
     var g = isRoot(id) ? (R.store.plan() || {}) : geomOf(R.store.getLocation(id));
     return {
       ratio: (typeof g.ratio === 'number' && g.ratio >= 0.3 && g.ratio <= 4) ? g.ratio : DEFAULT_RATIO,
-      feet: !isRoot(id) && g.feet === true,
+      feet: !isPlanLike(id) && g.feet === true,
       cols: intIn(g.cols, 1, a.cols) || 0,
       rows: intIn(g.rows, 1, a.rows) || 0,
-      top: isRoot(id) ? 0 : (intIn(g.top, 0, a.band) || 0),
-      bottom: isRoot(id) ? 0 : (intIn(g.bottom, 0, a.band) || 0)
+      top: isPlanLike(id) ? 0 : (intIn(g.top, 0, a.band) || 0),
+      bottom: isPlanLike(id) ? 0 : (intIn(g.bottom, 0, a.band) || 0)
     };
   }
 
@@ -76,9 +78,9 @@
   // Grille de `id` : { C colonnes, L lignes du meuble, T lignes au-dessus, B lignes en dessous, cells: [{ id, zone, col, row, w, h }] }.
   // Les sous-emplacements sans place enregistrée prennent la première case libre ; la grille s'agrandit si besoin (rien n'est jamais caché).
   // `override` ({ cols, rows, top, bottom }) : réglages à essayer à la place de ceux enregistrés (les places automatiques sont recalculées).
-  // Pour le plan du logement (ROOT) : une seule zone (« body »), les bandes n'existent pas.
+  // Pour un plan (logement ou pièce) : une seule zone (« body »), les bandes n'existent pas.
   function layout(id, override) {
-    var root = isRoot(id);
+    var root = isPlanLike(id);
     var kids = ordered(id);
     var n = kids.length;
     var cfg = Object.assign(get(id), override || {});
@@ -219,8 +221,8 @@
     var p = layout(id, patch);
     if (patch.cols !== undefined) { p.C = patch.cols; }
     if (patch.rows !== undefined) { p.L = patch.rows; }
-    if (patch.top !== undefined && !isRoot(id)) { p.T = patch.top; }
-    if (patch.bottom !== undefined && !isRoot(id)) { p.B = patch.bottom; }
+    if (patch.top !== undefined && !isPlanLike(id)) { p.T = patch.top; }
+    if (patch.bottom !== undefined && !isPlanLike(id)) { p.B = patch.bottom; }
     if (p.C < 1 || p.L < 1 || p.T < 0 || p.B < 0 || p.C > absFor(id).cols || p.L > absFor(id).rows) { return fail('Valeur de grille invalide.'); }
     return check(p) ? fail(GRID_REFUSED) : commit(id, p);
   }
@@ -240,7 +242,7 @@
   }
 
   R.ns('features').furniture = {
-    ROOT: ROOT, ratios: RATIOS, limits: LIMITS, planLimits: PLAN_LIMITS, limitsFor: limitsFor, isRoot: isRoot,
+    ROOT: ROOT, ratios: RATIOS, limits: LIMITS, planLimits: PLAN_LIMITS, limitsFor: limitsFor, isRoot: isRoot, isPlanLike: isPlanLike,
     isFurniture: isFurniture, get: get, ordered: ordered, layout: layout,
     set: set, setGrid: setGrid, move: move, resize: resize
   };

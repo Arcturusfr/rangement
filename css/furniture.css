@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V013
-  Horodatage : 2026-11-01 12:00 (heure de Paris)
-  Résumé : plan du logement : le cadre du plan défile horizontalement quand les colonnes sont nombreuses.
+  Version : V014
+  Horodatage : 2026-11-02 22:47 (heure de Paris)
+  Résumé : plan ajusté à l'écran : tuiles compactes, cadre centré.
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -35,6 +35,14 @@
 
 .furn-frame { width: 100%; }
 .furn-frame--plan { overflow-x: auto; padding-bottom: var(--space-1); }
+.furn-frame--plan .furn-body { margin: 0 auto; flex: none; }
+/* Tuiles compactes (cases petites) : nom tronqué, nombre d'objets seul, pas de niveau */
+.furn-compact .furn-open { padding: 2px var(--space-1); }
+.furn-compact .furn-name { font-size: 0.8rem; }
+.furn-compact .furn-count { font-size: 0.75rem; }
+.furn-compact .furn-count-word, .furn-compact .furn-kind { display: none; }
+.furn-compact .furn-more { width: 30px; font-size: 0.8rem; }
+.furn-compact .furn-nest { width: 14px; height: 11px; }
 .furn-body { display: flex; padding: var(--space-2); border: 4px solid var(--level-color, var(--ink)); border-radius: 8px; background: var(--surface); }
 .furn-grid { display: grid; flex: 1; min-width: 0; min-height: 0; gap: var(--space-2); }
 .furn-band { margin: var(--space-2) 0; }

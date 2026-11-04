@@ -1,7 +1,7 @@
 # tests/test_jalon8.py — Application « Rangement »
-# Version : V013
-# Horodatage : 2026-11-01 12:00 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 8 (plan du logement : pièces en tuiles sur la grille, ajustement, sauvegarde, défilement du cadre).
+# Version : V014
+# Horodatage : 2026-11-02 22:47 (heure de Paris)
+# Résumé : adaptation V014 : le plan est ajusté à l'écran par défaut (attente du calcul, bouton « Agrandir » pour la taille réelle).
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon8.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -73,6 +73,7 @@ def start(browser, base, w=884, h=1100, errors=None):
 def plan(page):
     page.get_by_role("button", name="Plan", exact=True).click()
     page.wait_for_selector("#pane-detail .furn-view")
+    page.wait_for_selector(".furn-body[data-fit]")
 
 
 def names(page):
@@ -322,15 +323,25 @@ def scenario_wide(browser, base):
     errors = []
     ctx, page = start(browser, base, 390, 844, errors)
     plan(page)
+    js(page, "%s.setGrid(%s.ROOT,{cols:8, rows:2})" % (F, F))
+    page.wait_for_function("Rangement.store.plan().cols === 8")
+    page.wait_for_function("document.querySelector('.furn-body').dataset.fit === 'fit'")
+    check("large | 8 colonnes sur écran replié : ajusté, pas de défilement du cadre", js(page, "(function(){var f=document.querySelector('.furn-frame--plan'); return f.scrollWidth <= f.clientWidth + 1;})()"))
     res = js(page, "%s.setGrid(%s.ROOT,{cols:20, rows:2})" % (F, F))
     check("large | 20 colonnes acceptées", res["ok"] is True, res)
     page.wait_for_function("Rangement.store.plan().cols === 20")
+    page.wait_for_function("document.querySelector('.furn-body').dataset.fit === 'fit'")
+    check("large | 20 colonnes : cases à 28 px minimum, le cadre défile plutôt que d'écraser le plan", js(page, "(function(){var f=document.querySelector('.furn-frame--plan'); return f.scrollWidth > f.clientWidth;})()"))
+    page.get_by_role("button", name="Agrandir").click()
+    page.wait_for_function("document.querySelector('.furn-body').dataset.fit === 'real'")
     check("large | le cadre défile horizontalement", js(page, "(function(){var f=document.querySelector('.furn-frame--plan'); return f.scrollWidth > f.clientWidth + 100;})()"))
     check("large | la page ne défile pas horizontalement", js(page, "document.documentElement.scrollWidth - window.innerWidth") <= 0)
     check("large | tout dans le cadre", inside(page) == [], inside(page))
     res = js(page, "%s.setGrid(%s.ROOT,{cols:3})" % (F, F))
     check("large | repasser à 3 colonnes (pièces à gauche)", res["ok"] is True, res)
     page.wait_for_function("Rangement.store.plan().cols === 3")
+    page.get_by_role("button", name="Ajuster à l’écran").click()
+    page.wait_for_function("document.querySelector('.furn-body').dataset.fit === 'fit'")
     check("large | plus de défilement du cadre", js(page, "(function(){var f=document.querySelector('.furn-frame--plan'); return f.scrollWidth <= f.clientWidth + 1;})()"))
     check("large | aucune erreur console", not errors, errors)
     ctx.close()

@@ -1,7 +1,7 @@
 # tests/test_jalon7.py — Application « Rangement »
-# Version : V012
-# Horodatage : 2026-10-31 14:31 (heure de Paris)
-# Résumé : grille de placement, échange d'emplacements, pavés de flèches, défilement conservé, correction des débordements.
+# Version : V014
+# Horodatage : 2026-11-02 22:47 (heure de Paris)
+# Résumé : adaptation V014 : une pièce a désormais un commutateur Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon7.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -110,7 +110,7 @@ def scenario_view(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
     goto(page, base, "Séjour")
-    check("vue | pas de commutateur sur une pièce", page.locator(".view-switch").count() == 0)
+    check("vue | une pièce a un commutateur Liste / Plan (pas « Vue graphique »)", page.get_by_role("button", name="Plan", exact=True).count() == 1 and page.get_by_role("button", name="Vue graphique").count() == 0)
     goto(page, base, "Tiroir bas gauche")
     check("vue | pas de commutateur sur un sous-emplacement", page.locator(".view-switch").count() == 0)
     goto(page, base, "Meuble living")

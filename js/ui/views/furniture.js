@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V013
-  Horodatage : 2026-11-01 12:00 (heure de Paris)
-  Résumé : plan du logement : la même grille dessine les pièces (createPlan, commutateur Liste / Plan, réglages colonnes et lignes), mode d'ajustement réinitialisé au changement d'écran.
+  Version : V014
+  Horodatage : 2026-11-02 22:47 (heure de Paris)
+  Résumé : plan ajusté à l'écran (largeur et hauteur) avec bouton « Agrandir » (taille réelle, défilement), tuiles compactes, plan d'une pièce (même rendu que le logement).
 */
 (function () {
   'use strict';
@@ -13,6 +13,10 @@
 
   var LEVEL_NAMES = ['Pièce', 'Emplacement', 'Sous-emplacement', 'Sous-sous-emplacement'];
   var ZONE_LABELS = { top: 'Au-dessus du meuble', body: 'Dans le meuble', bottom: 'En dessous du meuble' };
+  var MIN_CELL = 28;      // taille minimale d'une case du plan ajusté (px) : en dessous, le cadre défile plutôt que de rétrécir encore
+  var FIT_CELL = 48;      // la hauteur de l'écran ne réduit pas les cases en dessous de cette taille (la page défile alors)
+  var COMPACT = 60;       // en dessous de cette taille de case (px), les tuiles n'affichent plus que l'essentiel
+  var REAL_CELL = 72;     // taille minimale d'une case en « taille réelle » (px)
   var PLAN_COL = 72;      // largeur minimale d'une colonne du plan (px) : au-delà, le plan défile horizontalement dans son cadre
   var ROW_MIN = 64;       // hauteur minimale d'une ligne du meuble (px) : le cadre grandit plutôt que de laisser déborder
   var BAND_ROW = 56;      // hauteur d'une ligne d'une bande (px)
@@ -21,6 +25,9 @@
   var message = null;     // refus à afficher une fois
   var focus = {};         // identifiant du meuble → niveau inférieur actuellement dessiné
   var uid = 0;
+
+  // Plan « taille réelle » (défilement) ou « ajusté à l'écran » (choix mémorisé sur l'appareil).
+  function zoomReal() { return R.storage.getAux('planzoom') === 'real'; }
 
   // Libellé d'une zone ; dans le plan du logement il n'y a qu'une zone : le plan.
   function zoneLabel(zone, atRoot) { return atRoot ? 'Dans le plan' : ZONE_LABELS[zone]; }
@@ -84,7 +91,7 @@
     var F = R.features.furniture;
     var g = F.get(shownId);
     var L = F.limitsFor(shownId);
-    if (F.isRoot(shownId)) {
+    if (F.isPlanLike(shownId)) {
       var gridRoot = function (key) { return function (v) { var p = {}; p[key] = Number(v); run(redraw, F.setGrid(shownId, p)); }; };
       return el('div', { class: 'furn-controls' }, [
         control('Colonnes', select(range(1, L.cols, lay.C), lay.C, gridRoot('cols'))),
@@ -149,7 +156,7 @@
     var isSel = editing && selected === k.id;
     var inner = [
       el('span', { class: 'furn-name' + (c.h > 1 ? ' furn-name--wrap' : '') }, [k.name]),
-      el('span', { class: 'furn-count' }, [plural(n.items, 'objet', 'objets')]),
+      el('span', { class: 'furn-count' }, [String(n.items), el('span', { class: 'furn-count-word' }, [n.items > 1 ? ' objets' : ' objet'])]),
       c.w * c.h >= 2 ? el('span', { class: 'furn-kind' }, ['Niveau ' + (kidDepth + 1) + ', ' + R.models.kindLabel(k.kind).toLowerCase()]) : null
     ];
     var open = editing
@@ -168,6 +175,61 @@
     return node;
   }
 
+  // ---------- plan ajusté à l'écran ----------
+
+  // Calcule la taille d'une case pour que le plan tienne en largeur (et, autant que possible, en hauteur) dans le volet.
+  function fit(wrap) {
+    if (!wrap.isConnected || !wrap._plan) { return; }
+    var body = wrap.querySelector('.furn-body[data-plan]');
+    if (!body) { return; }
+    var p = wrap._plan;
+    var frame = body.parentNode;
+    var pane = wrap.closest('.pane');
+    var availW = frame.clientWidth;
+    if (availW <= 0) { return; }
+    if (p.real) {         // taille réelle : cases carrées d'au moins REAL_CELL px, le cadre défile si besoin
+      var rw0 = 24 + (p.C - 1) * 8, rh0 = 24 + (p.L - 1) * 8;
+      var rs = Math.max(REAL_CELL, Math.floor((availW - rw0) / p.C));
+      body.style.aspectRatio = 'auto';
+      body.style.minHeight = '0';
+      body.style.width = (p.C * rs + rw0) + 'px';
+      body.style.height = (p.L * rs + rh0) + 'px';
+      body.classList.remove('furn-compact');
+      body.setAttribute('data-fit', 'real');
+      return;
+    }
+    var availH = 0;
+    if (pane) {
+      var top = frame.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop;
+      availH = pane.clientHeight - top - p.reserve;
+    }
+    var w0 = 24 + (p.C - 1) * 8;      // cadre + remplissage + espaces entre colonnes
+    var h0 = 24 + (p.L - 1) * 8;
+    var s = Math.min((availW - w0) / p.C, Math.max((availH - h0) / p.L, FIT_CELL));
+    s = Math.floor(Math.max(s, MIN_CELL));
+    body.style.aspectRatio = 'auto';
+    body.style.minHeight = '0';
+    body.style.width = (p.C * s + w0) + 'px';
+    body.style.height = (p.L * s + h0) + 'px';
+    body.classList.toggle('furn-compact', s < COMPACT);
+    body.setAttribute('data-fit', 'fit');
+    if (!wrap._ro && pane && window.ResizeObserver) {      // la barre d'actions qui se replie déplace le plan : on le recalcule
+      wrap._ro = new window.ResizeObserver(function () { fit(wrap); });
+      Array.prototype.forEach.call(pane.querySelectorAll('.manage, .detail-sticky'), function (n) { wrap._ro.observe(n); });
+    }
+  }
+
+  function schedule(wrap) {
+    fit(wrap);
+    if (window.requestAnimationFrame) { window.requestAnimationFrame(function () { fit(wrap); window.requestAnimationFrame(function () { fit(wrap); }); }); }
+  }
+
+  function refitAll() {
+    Array.prototype.forEach.call(document.querySelectorAll('.furn-view'), function (w) { fit(w); });
+  }
+  window.addEventListener('resize', refitAll);
+  R.events.on('layout:changed', refitAll);
+
   function draw(wrap, furnId) {
     var F = R.features.furniture;
     var redraw = function () { draw(wrap, furnId); };
@@ -181,6 +243,7 @@
     var loc = atRoot ? null : R.store.getLocation(shownId);
     var depth = atRoot ? -1 : R.store.depthOf(shownId);
     var level = atRoot ? 'racine' : R.models.levelOf(depth);
+    var planLike = atRoot || depth === 0;      // logement ou pièce : dessinés comme un plan
     var lay = F.layout(shownId);
     var g = F.get(shownId);
     var sel = editing ? lay.cells.filter(function (c) { return c.id === selected; })[0] : null;
@@ -203,7 +266,14 @@
     bar.push(el('button', {
       class: 'button button--secondary', type: 'button', 'aria-pressed': editing ? 'true' : 'false',
       onclick: function () { editing = !editing; selected = null; message = null; redraw(); }
-    }, [editing ? 'Terminer l\u2019ajustement' : (atRoot ? 'Ajuster le plan' : 'Ajuster la disposition')]));
+    }, [editing ? 'Terminer l\u2019ajustement' : (planLike ? 'Ajuster le plan' : 'Ajuster la disposition')]));
+    if (planLike) {
+      bar.push(el('button', {
+        class: 'button button--secondary', type: 'button', id: 'plan-zoom', 'aria-pressed': zoomReal() ? 'true' : 'false',
+        title: zoomReal() ? 'Revenir à un plan qui tient dans l\u2019écran' : 'Afficher le plan en taille réelle (défilement)',
+        onclick: function () { R.storage.setAux('planzoom', zoomReal() ? 'fit' : 'real'); redraw(); }
+      }, [zoomReal() ? 'Ajuster à l\u2019écran' : 'Agrandir']));
+    }
     wrap.appendChild(el('div', { class: 'furn-bar' }, bar));
     if (editing) { wrap.appendChild(controls(shownId, lay, redraw)); }
     if (message) { wrap.appendChild(el('p', { class: 'form-error furn-msg', role: 'status' }, [message])); message = null; }
@@ -225,7 +295,7 @@
             if (taken[r + ',' + c0]) { continue; }
             (function (row, col) {
               var slot = el('button', {
-                class: 'furn-slot', type: 'button', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + zoneLabel(zone, atRoot).toLowerCase() + ')',
+                class: 'furn-slot', type: 'button', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + zoneLabel(zone, planLike).toLowerCase() + ')',
                 onclick: function () {
                   if (!sel) { message = 'Sélectionnez d\u2019abord un emplacement à déplacer.'; redraw(); return; }
                   run(redraw, F.move(sel.id, col - sel.col, (start[zone] + row) - (start[sel.zone] + sel.row)));
@@ -240,7 +310,7 @@
       return grid;
     }
     function band(zone, rows) {
-      return el('div', { class: 'furn-band', 'data-zone': zone }, [el('p', { class: 'furn-band-label' }, [zoneLabel(zone, atRoot)]), zoneGrid(zone, rows)]);
+      return el('div', { class: 'furn-band', 'data-zone': zone }, [el('p', { class: 'furn-band-label' }, [zoneLabel(zone, planLike)]), zoneGrid(zone, rows)]);
     }
 
     var frame = [];
@@ -249,20 +319,28 @@
       ? el('p', { class: 'furn-empty' }, [atRoot ? 'Aucune pièce à dessiner.' : 'Aucun sous-emplacement : les objets sont rangés directement ici.'])
       : zoneGrid('body', lay.L);
     var body = el('div', { class: 'furn-body', 'data-level': level }, [bodyContent]);
-    if (atRoot) {         // plan : cases à peu près carrées, le cadre défile horizontalement si les colonnes sont nombreuses
+    if (planLike) {       // plan : cases carrées ; ajusté à l'écran par fit(), ou en taille réelle avec défilement du cadre
+      body.setAttribute('data-plan', '');
       body.style.aspectRatio = lay.C + ' / ' + lay.L;
-      body.style.minWidth = (lay.C * PLAN_COL) + 'px';
+      if (zoomReal()) {
+        body.style.minWidth = (lay.C * PLAN_COL) + 'px';
+        body.style.minHeight = (lay.L * ROW_MIN) + 'px';
+      } else {
+        body.style.minHeight = (lay.L * MIN_CELL) + 'px';
+      }
     } else {
+      body.removeAttribute('data-plan');
       body.style.aspectRatio = String(g.ratio);
+      body.style.minHeight = (lay.L * ROW_MIN) + 'px';
     }
-    body.style.minHeight = (lay.L * ROW_MIN) + 'px';
     frame.push(body);
     if (g.feet) { frame.push(el('div', { class: 'furn-feet', 'data-level': level }, [el('span', { class: 'furn-foot' }), el('span', { class: 'furn-foot' })])); }
     if (lay.B) { frame.push(band('bottom', lay.B)); }
-    wrap.appendChild(el('div', { class: 'furn-frame' + (atRoot ? ' furn-frame--plan' : '') }, frame));
-    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw, atRoot)); }
+    wrap.appendChild(el('div', { class: 'furn-frame' + (planLike ? ' furn-frame--plan' : '') }, frame));
+    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw, planLike)); }
 
     var items = atRoot ? [] : R.store.itemsIn(shownId);
+    wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: editing ? 210 : 16 } : null;
     if (items.length) {
       wrap.appendChild(el('section', { class: 'section' }, [
         el('h3', { class: 'section-title' }, ['Objets rangés dans \u00ab ' + loc.name + ' \u00bb (niveau ' + (depth + 1) + ') : ' + items.length]),
@@ -275,6 +353,7 @@
       ]));
     }
     if (pane) { pane.scrollTop = scrollTop; }
+    schedule(wrap);
   }
 
   // Vue graphique du meuble `furnId` (emplacement de premier niveau).
@@ -286,7 +365,7 @@
   }
 
   // Plan du logement : la même grille, où les cases sont les pièces.
-  function createPlan() { return create(R.features.furniture.ROOT); }
+  function createPlan(id) { return create(id || R.features.furniture.ROOT); }
 
   // Un changement d'écran referme l'ajustement (il ne doit pas suivre d'un meuble ou d'un plan à l'autre).
   R.events.on('route:changed', function () { editing = false; selected = null; message = null; });

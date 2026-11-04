@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V013
-  Horodatage : 2026-11-01 12:00 (heure de Paris)
-  Résumé : à la racine, commutateur Liste / Plan et plan du logement (vue graphique des pièces).
+  Version : V014
+  Horodatage : 2026-11-02 22:47 (heure de Paris)
+  Résumé : commutateur Liste / Plan aussi sur une pièce (plan de la pièce sans passer par le logement).
 */
 (function () {
   'use strict';
@@ -150,10 +150,10 @@
     }
     container.appendChild(bar.manage);
 
-    if (!loc) {                                   // racine : le plan du logement
+    if (!loc || depth === 0) {                    // logement ou pièce : un plan (cases = pièces, ou meubles de la pièce)
       container.appendChild(R.ui.views.furniture.switcher('plan'));
       if (R.ui.views.furniture.mode('plan') === 'graphic') {
-        container.appendChild(R.ui.views.furniture.createPlan());
+        container.appendChild(R.ui.views.furniture.createPlan(loc ? loc.id : null));
         return;
       }
     }
