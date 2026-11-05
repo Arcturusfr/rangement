@@ -1,8 +1,8 @@
 /*
   js/config.js — Application « Rangement »
-  Version : V015
+  Version : V015a
   Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : version V015 (jalon 9, étape 2 : menu contextuel, bouton « + »).
+  Résumé : version V015a (correctif : niveau inférieur du plan oublié au changement d'écran).
 */
 (function () {
   'use strict';
@@ -21,7 +21,7 @@
 
   R.config = Object.freeze({
     appName: 'Rangement',
-    version: 'V015',
+    version: 'V015a',
     dwellingName: '',          // précision affichée après « Logement » (plusieurs logements, plus tard)
     schemaVersion: 1,
     storageKey: 'rangement.data',

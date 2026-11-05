@@ -1,13 +1,13 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V015
+  Version : V015a
   Horodatage : 2026-11-05 02:30 (heure de Paris)
   Résumé : jalon 9 (interface centrée sur les plans), étapes 1 et 2 livrées (V015).
 -->
 
-# Roadmap et avancement — Rangement `V015`
+# Roadmap et avancement — Rangement `V015a`
 
-> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015**
+> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015a**
 
 ## État actuel
 
@@ -198,3 +198,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V013 | 01/11/2026 12:00 | Jalon 7 validé ; jalon 8 livré (plan du logement, 76 tests dédiés, 830 au total) |
 | V014 | 02/11/2026 22:47 | Jalon 9 : réorientation vers les plans décidée ; étape 1 livrée (plan ajusté à l'écran, plan d'une pièce ; 43 tests dédiés, 875 au total) |
 | V015 | 05/11/2026 02:30 | Jalons 8 et 9.1 validés ; étape 9.2 livrée (menu contextuel, bouton « + », grille en boîte de dialogue ; 84 tests dédiés, 958 au total) |
+| V015a | 05/11/2026 | Correctif : niveau inférieur du plan oublié au changement d'écran (88 tests dédiés au 9.2, 962 au total) |

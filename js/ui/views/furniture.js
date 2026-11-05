@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V015
+  Version : V015a
   Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : jalon 9.2 — un appui sur une case ouvre un menu contextuel (« Ouvrir » en tête, puis les commandes de l'élément) ; bouton « + » flottant (créer, régler la grille) ; réglages de grille dans une boîte de dialogue ; pavés de flèches avec « Grille… » et « Terminer » (le bouton « Ajuster » disparaît).
+  Résumé : correctif : le niveau inférieur ouvert (icône de niveau) est oublié à chaque changement d'écran. Jalon 9.2 — un appui sur une case ouvre un menu contextuel (« Ouvrir » en tête, puis les commandes de l'élément) ; bouton « + » flottant (créer, régler la grille) ; réglages de grille dans une boîte de dialogue ; pavés de flèches avec « Grille… » et « Terminer » (le bouton « Ajuster » disparaît).
 */
 (function () {
   'use strict';
@@ -424,8 +424,8 @@
   // Plan du logement : la même grille, où les cases sont les pièces.
   function createPlan(id) { return create(id || R.features.furniture.ROOT); }
 
-  // Un changement d'écran referme l'ajustement (il ne doit pas suivre d'un meuble ou d'un plan à l'autre).
-  R.events.on('route:changed', function () { editing = false; selected = null; message = null; });
+  // Un changement d'écran referme le placement et oublie le niveau inférieur ouvert (ils ne doivent pas suivre d'un meuble ou d'un plan à l'autre).
+  R.events.on('route:changed', function () { editing = false; selected = null; message = null; focus = {}; });
 
   R.ns('ui.views').furniture = { create: create, createPlan: createPlan, switcher: switcher, mode: mode, setMode: setMode };
 })();

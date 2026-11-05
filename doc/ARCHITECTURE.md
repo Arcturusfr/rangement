@@ -1,13 +1,13 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V015
+  Version : V015a
   Horodatage : 2026-11-05 02:30 (heure de Paris)
   Résumé : V015 : jalon 9 étape 2, menu contextuel, bouton « + », réglages de grille en boîte de dialogue.
 -->
 
-# ARCHITECTURE — Rangement `V015`
+# ARCHITECTURE — Rangement `V015a`
 
-> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015**
+> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015a**
 > Statut : **jalon 9 (interface centrée sur les plans), étapes 1 et 2 livrées** : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
@@ -364,3 +364,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V013 | 01/11/2026 12:00 | Jalon 8 : plan du logement (pièces en tuiles sur la grille, commutateur Liste / Plan, `plan` dans les données et la sauvegarde) |
 | V014 | 02/11/2026 22:47 | Jalon 9 étape 1 : plan ajusté à l'écran (largeur et hauteur), taille réelle, tuiles compactes, plan d'une pièce |
 | V015 | 05/11/2026 02:30 | Jalon 9 étape 2 : menu contextuel sur les cases (« Ouvrir » en tête), bouton « + » flottant, réglages de grille en boîte de dialogue, pavé de flèches avec « Grille… » et « Terminer » |
+| V015a | 05/11/2026 | Correctif : le niveau inférieur ouvert dans un plan (icône de niveau) est oublié à chaque changement d'écran |

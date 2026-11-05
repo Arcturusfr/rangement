@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V015
+  Version : V015a
   Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : version V015 (jalon 9, étape 2) ; contextmenu.js pré-caché.
+  Résumé : version V015a (correctif) ; contextmenu.js pré-caché.
 */
 'use strict';
 
-var VERSION = 'V015';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V015a';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 

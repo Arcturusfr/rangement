@@ -1,13 +1,13 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V015
+  Version : V015a
   Horodatage : 2026-11-05 02:30 (heure de Paris)
   Résumé : V015 livrée — fichiers à enregistrer et tests.
 -->
 
-# ToDo Utilisateur — Rangement `V015`
+# ToDo Utilisateur — Rangement `V015a`
 
-> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015**
+> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015a**
 
 ## Fait
 
@@ -37,6 +37,8 @@
 - [x] Valider le jalon 4 (recherche) : testé longuement sur GitHub, aucun bug ; améliorations ergonomiques notées pour le jalon 6 bis
 
 ## À faire maintenant
+
+- [ ] **Enregistrer les fichiers de la V015a** (archive `V015a.zip`) : `js/ui/views/furniture.js`, `js/config.js`, `sw.js` (racine), `tests/test_jalon9_2.py` et les trois `.md` (le reste est inchangé). Corrige l'ouverture d'une pièce qui affichait un meuble en bas. Puis vérifier la version `V015a`.
 
 - [ ] **Enregistrer les fichiers de la V015** (archive `V015.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V015.txt`).
   - **Nouveaux** : `js/ui/components/contextmenu.js`, `tests/test_jalon9_2.py`.
@@ -110,3 +112,4 @@
 | V013 | 01/11/2026 12:00 | Jalon 8 livré : plan du logement ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V014 | 02/11/2026 22:47 | Jalon 9 étape 1 : plan ajusté à l'écran, plan d'une pièce ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V015 | 05/11/2026 02:30 | Jalon 9 étape 2 : menu contextuel, bouton « + », grille en boîte de dialogue ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V015a | 05/11/2026 | Correctif du niveau inférieur du plan ; fichiers à enregistrer (voir liste) |

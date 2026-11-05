@@ -1,5 +1,5 @@
 # tests/test_jalon9_2.py — Application « Rangement »
-# Version : V015
+# Version : V015a
 # Horodatage : 2026-11-05 02:30 (heure de Paris)
 # Résumé : création — tests Playwright/Chromium du jalon 9, étape 2 (menu contextuel près d'une case, bouton « + » flottant, réglage de la grille, pavé de flèches avec « Grille… » et « Terminer »).
 #
@@ -405,6 +405,30 @@ def scenario_plus(browser, base):
     ctx.close()
 
 
+def scenario_focus(browser, base):
+    """Régression V015 : le niveau inférieur ouvert (icône de niveau) ne doit pas suivre d'un écran à l'autre."""
+    errors = []
+    ctx, page = start(browser, base, errors=errors)
+    sej = loc_id(page, "Séjour")
+    page.goto(base + "#/l/" + sej)
+    wait_title(page, "Séjour")
+    plan(page)
+    cell(page, "Meuble living").locator(".furn-more").click()
+    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 2') === 0")
+    page.goto(base + "#/")
+    page.wait_for_selector(".furn-body[data-fit]")
+    page.goto(base + "#/l/" + sej)
+    wait_title(page, "Séjour")
+    page.wait_for_selector(".furn-body[data-fit]")
+    check("niveau | revenir sur la pièce : on voit la pièce, pas le meuble ouvert avant", page.inner_text(".furn-caption").startswith("Niveau 1"), page.inner_text(".furn-caption"))
+    check("niveau | les meubles de la pièce sont dessinés", page.locator(".furn-cell .furn-name").all_inner_texts() == ["Meuble living"])
+    cell(page, "Meuble living").locator(".furn-more").click()
+    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 2') === 0")
+    check("niveau | l'icône de niveau fonctionne toujours", True)
+    check("niveau | aucune erreur console", not errors, errors)
+    ctx.close()
+
+
 def scenario_narrow(browser, base):
     errors = []
     ctx, page = start(browser, base, 390, 844, errors)
@@ -465,6 +489,7 @@ def main():
         scenario_commands(browser, base)
         scenario_place(browser, base)
         scenario_plus(browser, base)
+        scenario_focus(browser, base)
         scenario_narrow(browser, base)
         browser.close()
     failed = [r for r in results if not r[1]]
