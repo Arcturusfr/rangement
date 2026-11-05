@@ -1,7 +1,7 @@
 # tests/test_jalon8.py — Application « Rangement »
-# Version : V014
-# Horodatage : 2026-11-02 22:47 (heure de Paris)
-# Résumé : adaptation V014 : le plan est ajusté à l'écran par défaut (attente du calcul, bouton « Agrandir » pour la taille réelle).
+# Version : V015
+# Horodatage : 2026-11-05 02:30 (heure de Paris)
+# Résumé : adaptation V015 : menu contextuel sur les cases, placement par « Placer et dimensionner », réglages de la grille dans une boîte de dialogue.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon8.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -84,9 +84,52 @@ def cell(page, name):
     return page.locator(".furn-cell", has_text=name)
 
 
-def select_cell(page, name):
-    cell(page, name).locator(".furn-open").click()
+
+
+def open_menu(page, name):
+    page.locator(".furn-cell", has_text=name).locator(".furn-open").click()
+    page.wait_for_selector(".ctx-menu")
+
+
+def open_cell(page, name):
+    open_menu(page, name)
+    page.locator(".ctx-menu").get_by_role("button", name="Ouvrir", exact=True).click()
+
+
+def start_edit(page, name):
+    open_menu(page, name)
+    page.locator(".ctx-menu").get_by_role("button", name="Placer et dimensionner", exact=True).click()
     page.wait_for_selector(".furn-sel")
+
+
+def set_grid(page, **kw):
+    """Réglages de la grille (pavé « Grille… » en placement, sinon bouton « + »). Renvoie le message de refus, ou None."""
+    sel = page.locator(".furn-sel")
+    if sel.count():
+        sel.get_by_role("button", name="Grille…").click()
+    else:
+        page.locator("#plan-add").click()
+        page.locator(".ctx-menu").get_by_role("button", name="Régler la grille…", exact=True).click()
+    d = page.locator("dialog.dialog[open]")
+    labels = {"cols": "Colonnes", "rows": "Lignes", "top": "Dessus", "bottom": "Dessous", "ratio": "Proportions", "feet": "Pieds"}
+    for key, value in kw.items():
+        d.get_by_label(labels[key]).select_option(str(value))
+    d.get_by_role("button", name="Appliquer").click()
+    page.wait_for_timeout(150)
+    if page.locator("dialog.dialog[open]").count():
+        msg = page.locator("dialog.dialog[open] .form-error").inner_text()
+        page.locator("dialog.dialog[open]").get_by_role("button", name="Annuler").click()
+        page.wait_for_selector("dialog.dialog[open]", state="detached")
+        return msg
+    return None
+
+
+def select_cell(page, name):
+    if page.locator(".furn-view[data-editing='true']").count():
+        page.locator(".furn-cell", has_text=name).locator(".furn-open").click()
+        page.wait_for_selector(".furn-sel")
+    else:
+        start_edit(page, name)
 
 
 def tool(page, label):
@@ -133,15 +176,15 @@ def scenario_view(browser, base):
     lay = js(page, "%s.layout(%s.ROOT)" % (F, F))
     check("plan | placement automatique : 2 colonnes, 2 lignes, une seule zone", lay["C"] == 2 and lay["L"] == 2 and lay["T"] == 0 and lay["B"] == 0 and all(c["zone"] == "body" for c in lay["cells"]), lay)
     check("plan | pas de pieds ni de bandes", page.locator(".furn-feet, .furn-band").count() == 0)
-    check("plan | lecture seule : pas de réglages ni de cases libres", page.locator(".furn-controls, .furn-slot").count() == 0)
+    check("plan | lecture seule : pas de réglages ni de cases libres", page.locator(".furn-controls, .furn-slot, .ctx-menu").count() == 0)
     check("plan | couleur des pièces (niveau pièce)", page.locator(".furn-cell").first.get_attribute("data-level") == "piece")
     check("plan | tout dans le cadre", inside(page) == [], inside(page))
     page.reload()
     page.wait_for_selector("#pane-detail .furn-view")
     check("plan | choix conservé après rechargement", page.get_by_role("button", name="Plan", exact=True).get_attribute("aria-pressed") == "true")
-    cell(page, "Séjour").locator(".furn-open").click()
+    open_cell(page, "Séjour")
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Séjour'")
-    check("plan | toucher une pièce l'ouvre", True)
+    check("plan | toucher une pièce, puis « Ouvrir », l'ouvre", True)
     check("plan | le choix du plan ne change pas celui des meubles", js(page, "Rangement.ui.views.furniture.mode()") == "list")
     page.goto(base + "#/l/" + loc_id(page, "Meuble living"))
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Meuble living'")
@@ -159,19 +202,20 @@ def scenario_edit(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
     plan(page)
-    page.get_by_role("button", name="Ajuster le plan").click()
-    check("ajuster | seulement colonnes et lignes", page.get_by_label("Colonnes").count() == 1 and page.get_by_label("Lignes").count() == 1 and page.get_by_label("Dessus").count() == 0 and page.get_by_label("Proportions").count() == 0 and page.get_by_label("Pieds").count() == 0)
-    check("ajuster | choix de colonnes jusqu'à 20", page.get_by_label("Colonnes").locator("option").count() == 20 and page.get_by_label("Lignes").locator("option").count() == 20)
-    check("ajuster | aide adaptée aux pièces", "pièce" in page.inner_text("#pane-detail .furn-view .hint"))
-    check("ajuster | cases libres affichées", page.locator(".furn-slot").count() == 1, page.locator(".furn-slot").count())
-
     select_cell(page, "Entrée")
+    check("ajuster | cases libres affichées", page.locator(".furn-slot").count() == 1, page.locator(".furn-slot").count())
+    page.locator(".furn-sel").get_by_role("button", name="Grille…").click()
+    d = page.locator("dialog.dialog[open]")
+    check("ajuster | seulement colonnes et lignes", d.get_by_label("Colonnes").count() == 1 and d.get_by_label("Lignes").count() == 1 and d.get_by_label("Dessus").count() == 0 and d.get_by_label("Proportions").count() == 0 and d.get_by_label("Pieds").count() == 0)
+    check("ajuster | choix de colonnes jusqu'à 20", d.get_by_label("Colonnes").locator("option").count() == 20 and d.get_by_label("Lignes").locator("option").count() == 20)
+    d.get_by_role("button", name="Annuler").click()
+    page.wait_for_selector("dialog.dialog[open]", state="detached")
     check("ajuster | sélection : position, taille, « dans le plan »", "dans le plan" in page.inner_text(".furn-sel-text") and "1 × 1" in page.inner_text(".furn-sel-text"), page.inner_text(".furn-sel-text"))
-    page.get_by_label("Colonnes").select_option("4")
+    set_grid(page, cols=4)
     page.wait_for_function("Rangement.store.plan() && Rangement.store.plan().cols === 4")
     check("ajuster | colonnes enregistrées dans le plan", js(page, "Rangement.store.plan()")["cols"] == 4)
     check("ajuster | places des pièces enregistrées (figées)", all(geo(page, n)["zone"] == "body" and geo(page, n)["w"] == 1 for n in ("Chambre à coucher", "Entrée", "Séjour")))
-    page.get_by_label("Lignes").select_option("3")
+    set_grid(page, rows=3)
     page.wait_for_function("Rangement.store.plan().rows === 3")
     select_cell(page, "Séjour")
     pos = geo(page, "Séjour")
@@ -193,8 +237,8 @@ def scenario_edit(browser, base):
     tool(page, "Largeur +")
     check("refus | sortie du plan : message clair, rien ne change", "sortirait de la grille" in page.inner_text(".furn-msg") or "occupée" in page.inner_text(".furn-msg"), page.locator(".furn-msg").count())
     before = js(page, "Rangement.store.plan()")
-    page.get_by_label("Lignes").select_option("1")
-    check("refus | réduire le plan sur des pièces : refusé", "déplacez-les" in page.inner_text(".furn-msg") and js(page, "Rangement.store.plan()") == before, js(page, "Rangement.store.plan()"))
+    msg = set_grid(page, rows=1)
+    check("refus | réduire le plan sur des pièces : refusé", bool(msg) and "déplacez-les" in msg and js(page, "Rangement.store.plan()") == before, js(page, "Rangement.store.plan()"))
     res = js(page, "[%s.setGrid(%s.ROOT,{cols:21}).ok, %s.setGrid(%s.ROOT,{cols:0}).ok, %s.move('nope',1,0).ok]" % (F, F, F, F, F))
     check("garde-fous | valeurs de grille invalides et emplacement inconnu refusés", res == [True, False, False], res)
 
@@ -209,7 +253,6 @@ def scenario_swap(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
     plan(page)
-    page.get_by_role("button", name="Ajuster le plan").click()
     a, b = "Chambre à coucher", "Entrée"
     ga = js(page, "%s.layout(%s.ROOT).cells" % (F, F))
     pos = {c["id"]: (c["col"], c["row"]) for c in ga}
@@ -233,7 +276,7 @@ def scenario_swap(browser, base):
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === %r" % a)
     page.goto(base + "#/")
     page.wait_for_selector("#pane-detail .furn-view")
-    check("route | l'ajustement est refermé après un changement d'écran", page.locator(".furn-controls").count() == 0 and page.get_by_role("button", name="Ajuster le plan").count() == 1)
+    check("route | le placement est refermé après un changement d'écran", page.locator(".furn-sel").count() == 0 and page.locator(".furn-view[data-editing='true']").count() == 0 and page.locator("#plan-add").count() == 1)
     check("échange | aucune erreur console", not errors, errors)
     ctx.close()
 
@@ -261,7 +304,6 @@ def scenario_backup(browser, base):
     ctx, page = start(browser, base, errors=errors)
     plan(page)
     js(page, "%s.setGrid(%s.ROOT,{cols:3, rows:2})" % (F, F))
-    page.get_by_role("button", name="Ajuster le plan").click()
     select_cell(page, "Séjour")
     tool(page, "Hauteur +")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.h === 2" % loc_id(page, "Séjour"))
@@ -368,7 +410,6 @@ def scenario_misc(browser, base):
     page.wait_for_function("document.querySelectorAll('.furn-cell').length === %d" % (n - 1))
     check("plan | une suppression est répercutée", len(names(page)) == n - 1)
     # nouvelle pièce : prend la première case libre sans bouger les autres
-    page.get_by_role("button", name="Ajuster le plan").click()
     js(page, "%s.setGrid(%s.ROOT,{cols:4})" % (F, F))
     before = {c["id"]: (c["col"], c["row"]) for c in js(page, "%s.layout(%s.ROOT).cells" % (F, F))}
     js(page, "Rangement.features.locations.create({name:'Garage', kind:'piece'})")
@@ -388,10 +429,9 @@ def scenario_narrow(browser, base):
     ctx, page = start(browser, base, 390, 844, errors)
     check("replié | commutateur ≥ 44 px et dans l'écran", all(b["height"] >= 44 and b["x"] >= 0 and b["x"] + b["width"] <= 390 for b in [page.get_by_role("button", name=n, exact=True).bounding_box() for n in ("Liste", "Plan")]))
     plan(page)
-    page.get_by_role("button", name="Ajuster le plan").click()
     select_cell(page, "Séjour")
     check("replié | pas de défilement horizontal", js(page, "document.documentElement.scrollWidth - window.innerWidth") <= 0)
-    btns = page.locator(".furn-view .button:visible, .furn-pad-btn:visible, .furn-more:visible, .furn-ctl select:visible")
+    btns = page.locator(".furn-view .button:visible, .furn-pad-btn:visible, .furn-more:visible")
     check("replié | boutons et listes ≥ 44 px", all(btns.nth(i).bounding_box()["height"] >= 43 for i in range(btns.count())), [btns.nth(i).bounding_box()["height"] for i in range(btns.count())])
     check("replié | les deux pavés de flèches restent visibles en bas", page.locator(".furn-sel").bounding_box()["y"] + page.locator(".furn-sel").bounding_box()["height"] <= 844 + 1)
     check("replié | libellés dans leur case", inside(page) == [], inside(page))

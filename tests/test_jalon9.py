@@ -1,7 +1,7 @@
 # tests/test_jalon9.py — Application « Rangement »
-# Version : V014
-# Horodatage : 2026-11-02 22:47 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 9, étape 1 (plan ajusté à l'écran, bouton Agrandir, tuiles compactes, plan d'une pièce).
+# Version : V015
+# Horodatage : 2026-11-05 02:30 (heure de Paris)
+# Résumé : adaptation V015 : menu contextuel sur les cases, placement par « Placer et dimensionner », réglages de la grille dans une boîte de dialogue.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -83,6 +83,52 @@ def frame_scrolls(page):
     return js(page, "(function(){var f=document.querySelector('.furn-frame--plan'); return f.scrollWidth > f.clientWidth + 1;})()")
 
 
+def open_menu(page, name):
+    page.locator(".furn-cell", has_text=name).locator(".furn-open").click()
+    page.wait_for_selector(".ctx-menu")
+
+
+def open_cell(page, name):
+    open_menu(page, name)
+    page.locator(".ctx-menu").get_by_role("button", name="Ouvrir", exact=True).click()
+
+
+def start_edit(page, name):
+    open_menu(page, name)
+    page.locator(".ctx-menu").get_by_role("button", name="Placer et dimensionner", exact=True).click()
+    page.wait_for_selector(".furn-sel")
+
+
+def set_grid(page, **kw):
+    """Réglages de la grille (pavé « Grille… » en placement, sinon bouton « + »). Renvoie le message de refus, ou None."""
+    sel = page.locator(".furn-sel")
+    if sel.count():
+        sel.get_by_role("button", name="Grille…").click()
+    else:
+        page.locator("#plan-add").click()
+        page.locator(".ctx-menu").get_by_role("button", name="Régler la grille…", exact=True).click()
+    d = page.locator("dialog.dialog[open]")
+    labels = {"cols": "Colonnes", "rows": "Lignes", "top": "Dessus", "bottom": "Dessous", "ratio": "Proportions", "feet": "Pieds"}
+    for key, value in kw.items():
+        d.get_by_label(labels[key]).select_option(str(value))
+    d.get_by_role("button", name="Appliquer").click()
+    page.wait_for_timeout(150)
+    if page.locator("dialog.dialog[open]").count():
+        msg = page.locator("dialog.dialog[open] .form-error").inner_text()
+        page.locator("dialog.dialog[open]").get_by_role("button", name="Annuler").click()
+        page.wait_for_selector("dialog.dialog[open]", state="detached")
+        return msg
+    return None
+
+
+def select_cell(page, name):
+    if page.locator(".furn-view[data-editing='true']").count():
+        page.locator(".furn-cell", has_text=name).locator(".furn-open").click()
+        page.wait_for_selector(".furn-sel")
+    else:
+        start_edit(page, name)
+
+
 def scenario_fit(browser, base):
     errors = []
     ctx, page = start(browser, base, 884, 1100, errors)
@@ -161,9 +207,7 @@ def scenario_editing(browser, base):
     ctx, page = start(browser, base, 884, 1100, errors)
     plan(page)
     settle(page)
-    page.get_by_role("button", name="Ajuster le plan").click()
-    page.locator(".furn-cell", has_text="Séjour").locator(".furn-open").click()
-    page.wait_for_selector(".furn-sel")
+    start_edit(page, "Séjour")
     page.wait_for_timeout(200)
     check("ajusté | avec la sélection, le plan et les pavés de flèches tiennent dans l'écran", js(page, "(function(){var s=document.querySelector('.furn-sel').getBoundingClientRect(); return s.bottom <= window.innerHeight + 1;})()") and inside(page) == [])
     check("ajusté | aucune erreur console", not errors, errors)
@@ -194,18 +238,18 @@ def scenario_room(browser, base):
     check("pièce | le choix du plan est commun au logement et aux pièces", page.get_by_role("button", name="Plan", exact=True).get_attribute("aria-pressed") == "true")
     page.goto(base + "#/l/" + sej)
     page.wait_for_selector(".furn-body[data-fit]")
-    page.get_by_role("button", name="Ajuster le plan").click()
-    check("pièce | ajustement direct : colonnes et lignes seulement", page.get_by_label("Colonnes").count() == 1 and page.get_by_label("Dessus").count() == 0 and page.get_by_label("Proportions").count() == 0)
+    page.locator("#plan-add").click()
+    page.locator(".ctx-menu").get_by_role("button", name="Régler la grille…", exact=True).click()
+    d = page.locator("dialog.dialog[open]")
+    check("pièce | réglage direct de la grille : colonnes et lignes seulement", d.get_by_label("Colonnes").count() == 1 and d.get_by_label("Dessus").count() == 0 and d.get_by_label("Proportions").count() == 0)
+    d.get_by_role("button", name="Annuler").click()
+    page.wait_for_selector("dialog.dialog[open]", state="detached")
     before = js(page, "Rangement.store.getLocation('%s').geometry" % sej) or {}
-    page.get_by_label("Colonnes").select_option("3")
-    page.wait_for_function("Rangement.features.furniture.get('%s').cols === 3" % sej)
-    page.get_by_label("Lignes").select_option("2")
+    set_grid(page, cols=3, rows=2)
     page.wait_for_function("Rangement.features.furniture.get('%s').rows === 2" % sej)
     g = js(page, "Rangement.store.getLocation('%s').geometry" % sej)
     check("pièce | grille de la pièce enregistrée sans toucher à sa place dans le logement", g["cols"] == 3 and g["rows"] == 2 and g.get("top") == 0 and g.get("bottom") == 0 and all(g.get(k) == before.get(k) for k in before), (before, g))
-    mid = page.locator(".furn-cell", has_text="Meuble living")
-    mid.locator(".furn-open").click()
-    page.wait_for_selector(".furn-sel")
+    start_edit(page, "Meuble living")
     page.get_by_role("button", name="Largeur +", exact=True).click()
     page.wait_for_function("Rangement.store.locations().filter(function(l){return l.name==='Meuble living';})[0].geometry.w === 2")
     check("pièce | le meuble se redimensionne dans le plan de la pièce", True)

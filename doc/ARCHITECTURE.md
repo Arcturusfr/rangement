@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V014
-  Horodatage : 2026-11-02 22:47 (heure de Paris)
-  Résumé : V014 : jalon 9 étape 1, plan ajusté à l'écran, plan d'une pièce.
+  Version : V015
+  Horodatage : 2026-11-05 02:30 (heure de Paris)
+  Résumé : V015 : jalon 9 étape 2, menu contextuel, bouton « + », réglages de grille en boîte de dialogue.
 -->
 
-# ARCHITECTURE — Rangement `V014`
+# ARCHITECTURE — Rangement `V015`
 
-> Dernière mise à jour : 02/11/2026 22:47 (Paris) — **V014**
-> Statut : **jalon 9 (interface centrée sur les plans), étape 1 livrée** : plan ajusté à l'écran, plan d'une pièce. Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015**
+> Statut : **jalon 9 (interface centrée sur les plans), étapes 1 et 2 livrées** : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -42,13 +42,14 @@
 │   ├── test_jalon6.py         Tests Playwright/Chromium : PWA (manifeste, pré-cache, hors ligne, mise à jour, vidage du cache)
 │   ├── test_jalon7.py         Tests Playwright/Chromium : vue graphique des meubles (disposition, niveaux, nombre d'objets dans l'arborescence)
 │   ├── test_jalon9.py         Tests Playwright/Chromium : plan ajusté à l'écran, taille réelle, tuiles compactes, plan d'une pièce
+│   ├── test_jalon9_2.py       Tests Playwright/Chromium : menu contextuel d'une case, bouton « + », réglage de la grille, placement (pavés de flèches)
 │   ├── test_jalon8.py         Tests Playwright/Chromium : plan du logement (pièces sur la grille, ajustement, sauvegarde, cadre défilant)
 │   └── test_jalon6bis.py      Tests Playwright/Chromium : évolutions ergonomiques (arborescence, rail, en-têtes figés, duplication, Retour, flèches, saisie interdite, pastille, couleurs)
 ├── css/
 │   ├── base.css               Variables (couleurs, espacements), reset, typographie
 │   ├── layout.css             Mise en page : 1 volet / 2 volets, en-tête, navigation
 │   ├── components.css         Boutons, listes, formulaires, fil d'Ariane, dialogues
-│   └── furniture.css          Vue graphique d'un meuble, commutateur Liste / Vue graphique, nombre d'objets de l'arborescence
+│   └── furniture.css          Vue graphique d'un meuble, commutateur Liste / Vue graphique, nombre d'objets de l'arborescence ; menu contextuel (`.ctx-*`) et bouton « + » (`.furn-add`)
 └── js/
     ├── config.js              Crée `window.Rangement` ; version, constantes, clé de stockage
     ├── core/
@@ -73,7 +74,8 @@
     │   │   ├── list.js        Liste générique
     │   │   ├── form.js        Champs de formulaire (texte, zone de texte, liste), validation champ par champ et lecture des valeurs
     │   │   ├── dialog.js      Dialogues : formulaire (avec blocage de saisie interdite), confirmation, message
-    │   │   └── detailbar.js   En-tête figé du volet de détail : fil d'Ariane, titre, flèches de niveau, bouton « Actions » (gestion repliable)
+    │   │   ├── detailbar.js   En-tête figé du volet de détail : fil d'Ariane, titre, flèches de niveau, bouton « Actions » (gestion repliable)
+    │   │   └── contextmenu.js Menu contextuel ouvert près d'un élément : commande principale « Ouvrir » (plus grande), puis les autres commandes ; fermé par Échap, un appui ailleurs ou un changement d'écran
     │   └── views/
     │       ├── browse.js      Volet gauche : arborescence repliable, ligne « Logement » figée, bascule large / rail
     │       ├── treerail.js    Arborescence minimale (rail sans libellés) et infobulle Ok / Annuler
@@ -161,7 +163,7 @@ Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser
 1. `js/config.js` (crée `window.Rangement`, l'aide `Rangement.ns('a.b')` et `Rangement.config`)
 2. `js/core/events.js`, `ids.js`, `models.js`, `storage.js`, `store.js`
 3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js`, `backup.js`, `furniture.js`
-4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `detailbar.js`
+4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `detailbar.js`, `contextmenu.js`
 5. `js/ui/layout.js`
 6. `js/ui/views/treerail.js`, `browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `settings.js`, `furniture.js` (vue), `location.js`
 7. `js/pwa.js`
@@ -208,6 +210,7 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.ui.views.furniture.create(id) / createPlan([id]) / switcher(portée) / mode(portée) / setMode(m, portée)` | Vue graphique d'un meuble ; plan du logement (`createPlan`) ; commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) ou, avec la portée `'plan'`, Liste / Plan (clé annexe `planview`) |
 | `Rangement.features.furniture.ROOT` | Identifiant spécial du logement : `layout(ROOT)`, `setGrid(ROOT, { cols, rows })` ; `move` / `resize` sur une pièce travaillent sur le plan. Une seule zone (`body`), 20 colonnes et 20 lignes au plus proposées |
 | `Rangement.store.plan() / Rangement.models.cleanPlan(p)` | Plan du logement `{ cols, rows }` ou `null` ; nettoyage d'un plan lu (import, stockage) |
+| `Rangement.ui.components.contextmenu.open({ anchor, focusTo?, title, subtitle?, level?, primary?, items })` / `close()` / `isOpen()` | Menu contextuel placé près de `anchor` (sous, sinon au-dessus, toujours dans l'écran) ; `primary` = `{ label, run }` (grand bouton en tête), `items` = `[{ label, run, danger? }]` ; choisir une commande ferme le menu puis l'exécute ; Échap / appui ailleurs rendent le focus à `focusTo` |
 | `Rangement.events` | `view:changed`, `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed`, `pwa:changed` |
 
 Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli affiche un avertissement.
@@ -298,9 +301,17 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Taille réelle** : bouton « Agrandir » / « Ajuster à l'écran » (choix mémorisé, clé annexe `planzoom`) ; cases carrées d'au moins 72 px, le cadre défile horizontalement dans son cadre (jamais la page).
 - **Plan d'une pièce** : une pièce a, comme le logement, un commutateur Liste / Plan (même choix mémorisé, clé `planview`) ; ses meubles sont posés sur la même grille (jusqu'à 20 × 20, une seule zone, ni bandes ni pieds ni proportions), ajustables directement sans passer par l'ajustement du logement. Colonnes et lignes de la pièce dans sa `geometry` (à côté de sa propre place dans le plan du logement). Un meuble et ses niveaux inférieurs gardent leur vue d'origine (bandes, proportions, pieds).
 
+### Règles du jalon 9, étape 2 (V015)
+
+- **Menu contextuel** : dans un plan (logement, pièce) ou la vue graphique d'un meuble, une case n'est plus un lien mais un bouton ; un appui ouvre près d'elle un menu : **« Ouvrir »** (plus grand, en gras, a le focus), puis **Placer et dimensionner**, **Ajouter un objet ici**, **Ajouter un emplacement ici**, **Modifier**, **Déplacer**, **Dupliquer**, **Supprimer** (mêmes boîtes de dialogue et mêmes garde-fous que le menu « Actions »). En-tête du menu : chemin du parent et nom (colorés par niveau). Pas d'appui long. L'icône de niveau inférieur d'une case reste un bouton à part.
+- **Placement** : « Placer et dimensionner » sélectionne la case et affiche les deux pavés de flèches (déplacer / taille, échange, cases libres) fixés en bas, avec deux boutons : **Grille…** (réglages de la grille) et **Terminer** (masque le pavé). Pendant le placement, un appui sur une case la sélectionne (pas de menu) ; un changement d'écran referme le placement. Le bouton « Ajuster le plan / la disposition » et les listes de réglages en ligne **disparaissent**.
+- **Bouton « + » flottant** (rond, en bas à droite de l'écran, caché pendant le placement) : menu pour agir **au niveau affiché** : à la racine « Ajouter une pièce » ; dans une pièce, un meuble ou un niveau inférieur « Ajouter un objet ici », « Ajouter un emplacement ici » ; toujours « Régler la grille… ».
+- **Réglage de la grille** (boîte de dialogue, valeurs actuelles préremplies) : colonnes et lignes (1 à 20 pour un plan, 1 à 6 × 1 à 8 pour un meuble) ; pour un meuble aussi proportions, dessus, dessous (0 à 3) et pieds. Un refus (cases occupées) s'affiche dans la boîte, qui reste ouverte, rien ne change ; « Appliquer » sans changement ne fige aucune place.
+- Le pavé de flèches affiche « « nom » : dans le plan, colonne N, ligne M, taille w × h. » ; la hauteur réservée au plan pendant le placement est de 230 px.
+
 ### 5.1 Diagnostic de démarrage
 
-Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `treerail.js` et `furniture.js` (fonction et vue)).
+Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `treerail.js` et `furniture.js` (fonction et vue)).
 
 ## 6. PWA et service worker (règles strictes, mises en œuvre en V008)
 
@@ -352,3 +363,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V012 | 31/10/2026 14:31 | Jalon 7 : échange de deux emplacements, pavés de flèches fixés en bas de l'écran, défilement conservé |
 | V013 | 01/11/2026 12:00 | Jalon 8 : plan du logement (pièces en tuiles sur la grille, commutateur Liste / Plan, `plan` dans les données et la sauvegarde) |
 | V014 | 02/11/2026 22:47 | Jalon 9 étape 1 : plan ajusté à l'écran (largeur et hauteur), taille réelle, tuiles compactes, plan d'une pièce |
+| V015 | 05/11/2026 02:30 | Jalon 9 étape 2 : menu contextuel sur les cases (« Ouvrir » en tête), bouton « + » flottant, réglages de grille en boîte de dialogue, pavé de flèches avec « Grille… » et « Terminer » |

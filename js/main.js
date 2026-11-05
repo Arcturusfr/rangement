@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V010
-  Horodatage : 2026-10-26 15:33 (heure de Paris)
-  Résumé : jalon 7 : modules furniture (feature et vue) déclarés.
+  Version : V015
+  Horodatage : 2026-11-05 02:30 (heure de Paris)
+  Résumé : contextmenu, features.furniture et ui.views.furniture déclarés dans REQUIRED (jalon 9.2).
 */
 (function () {
   'use strict';
@@ -29,6 +29,7 @@
     ['ui.components.form', 'js/ui/components/form.js'],
     ['ui.components.dialog', 'js/ui/components/dialog.js'],
     ['ui.components.detailbar', 'js/ui/components/detailbar.js'],
+    ['ui.components.contextmenu', 'js/ui/components/contextmenu.js'],
     ['ui.layout', 'js/ui/layout.js'],
     ['ui.views.treerail', 'js/ui/views/treerail.js'],
     ['ui.views.browse', 'js/ui/views/browse.js'],

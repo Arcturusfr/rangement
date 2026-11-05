@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V014
-  Horodatage : 2026-11-02 22:47 (heure de Paris)
-  Résumé : plan ajusté à l'écran (largeur et hauteur) avec bouton « Agrandir » (taille réelle, défilement), tuiles compactes, plan d'une pièce (même rendu que le logement).
+  Version : V015
+  Horodatage : 2026-11-05 02:30 (heure de Paris)
+  Résumé : jalon 9.2 — un appui sur une case ouvre un menu contextuel (« Ouvrir » en tête, puis les commandes de l'élément) ; bouton « + » flottant (créer, régler la grille) ; réglages de grille dans une boîte de dialogue ; pavés de flèches avec « Grille… » et « Terminer » (le bouton « Ajuster » disparaît).
 */
 (function () {
   'use strict';
@@ -60,15 +60,6 @@
 
   // ---------- réglages ----------
 
-  function control(label, node) { return el('label', { class: 'furn-ctl' }, [el('span', null, [label]), node]); }
-
-  function select(options, value, onchange) {
-    var s = el('select', null, options.map(function (o) { return el('option', { value: String(o.value) }, [o.label]); }));
-    s.value = String(value);
-    s.addEventListener('change', function () { onchange(s.value); });
-    return s;
-  }
-
   function range(min, max, current) {
     var out = [];
     for (var i = min; i <= max; i++) { out.push({ value: i, label: String(i) }); }
@@ -87,28 +78,78 @@
     if (!res.ok) { message = res.error; redraw(); }
   }
 
-  function controls(shownId, lay, redraw) {
+  // Réglages de la grille de `shownId` (boîte de dialogue) : colonnes et lignes ; pour un meuble, aussi proportions, dessus, dessous et pieds.
+  function openGrid(shownId) {
     var F = R.features.furniture;
+    var lay = F.layout(shownId);
     var g = F.get(shownId);
     var L = F.limitsFor(shownId);
-    if (F.isPlanLike(shownId)) {
-      var gridRoot = function (key) { return function (v) { var p = {}; p[key] = Number(v); run(redraw, F.setGrid(shownId, p)); }; };
-      return el('div', { class: 'furn-controls' }, [
-        control('Colonnes', select(range(1, L.cols, lay.C), lay.C, gridRoot('cols'))),
-        control('Lignes', select(range(1, L.rows, lay.L), lay.L, gridRoot('rows')))
-      ]);
+    var planLike = F.isPlanLike(shownId);
+    var loc = F.isRoot(shownId) ? null : R.store.getLocation(shownId);
+    var fields = [
+      { name: 'cols', label: 'Colonnes', type: 'select', options: range(1, L.cols, lay.C), value: lay.C },
+      { name: 'rows', label: 'Lignes', type: 'select', options: range(1, L.rows, lay.L), value: lay.L }
+    ];
+    if (!planLike) {
+      fields.push(
+        { name: 'ratio', label: 'Proportions', type: 'select', options: F.ratios, value: nearestRatio(g.ratio) },
+        { name: 'top', label: 'Dessus', type: 'select', options: range(0, L.band, lay.T), value: lay.T },
+        { name: 'bottom', label: 'Dessous', type: 'select', options: range(0, L.band, lay.B), value: lay.B },
+        { name: 'feet', label: 'Pieds', type: 'select', options: [{ value: '0', label: 'Sans' }, { value: '1', label: 'Avec' }], value: g.feet ? '1' : '0' }
+      );
     }
-    var feet = el('input', { type: 'checkbox', checked: g.feet ? true : null });
-    feet.addEventListener('change', function () { run(redraw, F.set(shownId, { feet: feet.checked })); });
-    function grid(key) { return function (v) { var p = {}; p[key] = Number(v); run(redraw, F.setGrid(shownId, p)); }; }
-    return el('div', { class: 'furn-controls' }, [
-      control('Proportions', select(F.ratios, nearestRatio(g.ratio), function (v) { run(redraw, F.set(shownId, { ratio: Number(v) })); })),
-      control('Colonnes', select(range(1, L.cols, lay.C), lay.C, grid('cols'))),
-      control('Lignes', select(range(1, L.rows, lay.L), lay.L, grid('rows'))),
-      control('Dessus', select(range(0, L.band, lay.T), lay.T, grid('top'))),
-      control('Dessous', select(range(0, L.band, lay.B), lay.B, grid('bottom'))),
-      control('Pieds', feet)
-    ]);
+    R.ui.components.dialog.form({
+      title: 'Grille de \u00ab ' + (loc ? loc.name : R.models.rootLabel()) + ' \u00bb',
+      fields: fields,
+      submitLabel: 'Appliquer',
+      onSubmit: function (v) {
+        var patch = { cols: Number(v.cols), rows: Number(v.rows) };
+        if (!planLike) { patch.top = Number(v.top); patch.bottom = Number(v.bottom); }
+        var changed = patch.cols !== lay.C || patch.rows !== lay.L || (!planLike && (patch.top !== lay.T || patch.bottom !== lay.B));
+        var res = changed ? F.setGrid(shownId, patch) : { ok: true };
+        if (res.ok && !planLike) { res = F.set(shownId, { ratio: Number(v.ratio), feet: v.feet === '1' }); }
+        return res;
+      }
+    });
+  }
+
+  // Menu contextuel d'une case : « Ouvrir » en tête, puis les commandes de l'élément (celles du menu « Actions »).
+  function openCellMenu(anchor, opener, k, redraw) {
+    var A = R.ui.views.locationActions;
+    var parents = R.store.pathOf(k.id).slice(0, -1).map(function (p) { return p.name; }).join(' \u203a ');
+    R.ui.components.contextmenu.open({
+      anchor: anchor, focusTo: opener, title: k.name, subtitle: parents || R.models.rootLabel(),
+      level: R.models.levelOf(R.store.depthOf(k.id)),
+      primary: { label: 'Ouvrir', run: function () { R.ui.router.navigate(k.id); } },
+      items: [
+        { label: 'Placer et dimensionner', run: function () { editing = true; selected = k.id; message = null; redraw(); } },
+        { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(k.id); } },
+        { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(k.id); } },
+        { label: 'Modifier', run: function () { A.openEdit(k.id); } },
+        { label: 'D\u00e9placer', run: function () { A.openMove(k.id); } },
+        { label: 'Dupliquer', run: function () { A.openDuplicate(k.id); } },
+        { label: 'Supprimer', danger: true, run: function () { A.askDelete(k.id); } }
+      ]
+    });
+  }
+
+  // Menu du bouton « + » : créer au niveau du plan affiché, ou régler sa grille.
+  function openAddMenu(anchor, shownId) {
+    var F = R.features.furniture;
+    var A = R.ui.views.locationActions;
+    var atRoot = F.isRoot(shownId);
+    var loc = atRoot ? null : R.store.getLocation(shownId);
+    var items = atRoot
+      ? [{ label: 'Ajouter une pi\u00e8ce', run: function () { A.openCreate(null); } }]
+      : [
+          { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(shownId); } },
+          { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(shownId); } }
+        ];
+    items.push({ label: 'R\u00e9gler la grille\u2026', run: function () { openGrid(shownId); } });
+    R.ui.components.contextmenu.open({
+      anchor: anchor, title: loc ? loc.name : R.models.rootLabel(), subtitle: 'Ajouter ou r\u00e9gler ici',
+      label: 'Ajouter ou r\u00e9gler', level: loc ? R.models.levelOf(R.store.depthOf(shownId)) : 'racine', items: items
+    });
   }
 
   // Pavé de quatre flèches (sans libellé visible : le nom accessible est dans aria-label).
@@ -120,12 +161,18 @@
     return el('div', { class: 'furn-pad', role: 'group', 'aria-label': name }, nodes);
   }
 
-  function selectionPanel(c, lay, redraw, atRoot) {
+  function selectionPanel(c, lay, redraw, atRoot, shownId) {
     var F = R.features.furniture;
     var loc = R.store.getLocation(c.id);
     function k(dir, glyph, label, fn) { return { dir: dir, glyph: glyph, label: label, run: function () { run(redraw, fn()); } }; }
     return el('div', { class: 'furn-sel', role: 'group', 'aria-label': 'Emplacement sélectionné' }, [
-      el('p', { class: 'furn-sel-text' }, ['Sélection : \u00ab ' + loc.name + ' \u00bb \u2014 ' + zoneLabel(c.zone, atRoot).toLowerCase() + ', colonne ' + (c.col + 1) + ', ligne ' + (c.row + 1) + ', taille ' + c.w + ' \u00d7 ' + c.h + ' (cases).']),
+      el('div', { class: 'furn-sel-head' }, [
+        el('p', { class: 'furn-sel-text' }, ['\u00ab ' + loc.name + ' \u00bb : ' + zoneLabel(c.zone, atRoot).toLowerCase() + ', colonne ' + (c.col + 1) + ', ligne ' + (c.row + 1) + ', taille ' + c.w + ' \u00d7 ' + c.h + '.']),
+        el('div', { class: 'furn-sel-btns' }, [
+          el('button', { class: 'button button--secondary', type: 'button', onclick: function () { openGrid(shownId); } }, ['Grille\u2026']),
+          el('button', { class: 'button', type: 'button', id: 'plan-done', onclick: function () { endEditing(redraw); } }, ['Terminer'])
+        ])
+      ]),
       pad('Déplacer', '\u271B', [
         k('up', '\u25B2', 'Décaler vers le haut', function () { return F.move(c.id, 0, -1); }),
         k('left', '\u25C0', 'Décaler à gauche', function () { return F.move(c.id, -1, 0); }),
@@ -140,6 +187,8 @@
       ])
     ]);
   }
+
+  function endEditing(redraw) { editing = false; selected = null; message = null; redraw(); }
 
   // ---------- dessin ----------
 
@@ -159,9 +208,10 @@
       el('span', { class: 'furn-count' }, [String(n.items), el('span', { class: 'furn-count-word' }, [n.items > 1 ? ' objets' : ' objet'])]),
       c.w * c.h >= 2 ? el('span', { class: 'furn-kind' }, ['Niveau ' + (kidDepth + 1) + ', ' + R.models.kindLabel(k.kind).toLowerCase()]) : null
     ];
+    var node = null;
     var open = editing
       ? el('button', { class: 'furn-open', type: 'button', 'aria-pressed': isSel ? 'true' : 'false', onclick: function () { selected = k.id; redraw(); } }, inner)
-      : el('a', { class: 'furn-open', href: R.ui.router.href(k.id) }, inner);
+      : el('button', { class: 'furn-open', type: 'button', 'aria-haspopup': 'true', onclick: function () { openCellMenu(node, open, k, redraw); } }, inner);
     var parts = [open];
     if (subs) {
       parts.push(el('button', {
@@ -170,7 +220,7 @@
         onclick: function () { focus[furnId] = k.id; selected = null; redraw(); }
       }, [el('span', { class: 'furn-nest', 'aria-hidden': 'true' }), String(subs)]));
     }
-    var node = el('div', { class: 'furn-cell' + (isSel ? ' is-selected' : ''), 'data-level': R.models.levelOf(kidDepth), title: k.name + ' \u2014 ' + plural(n.items, 'objet', 'objets') }, parts);
+    node = el('div', { class: 'furn-cell' + (isSel ? ' is-selected' : ''), 'data-level': R.models.levelOf(kidDepth), title: k.name + ' \u2014 ' + plural(n.items, 'objet', 'objets') }, parts);
     place(node, c);
     return node;
   }
@@ -236,6 +286,7 @@
     var pane = wrap.closest ? wrap.closest('.pane') : null;     // le défilement ne doit pas remonter à chaque action
     var scrollTop = pane ? pane.scrollTop : 0;
     R.ui.dom.clear(wrap);
+    wrap.setAttribute('data-editing', editing ? 'true' : 'false');
     var rootMode = F.isRoot(furnId);          // plan du logement : les pièces sont les cases
     var shownId = focus[furnId];
     if (!shownId || !R.store.getLocation(shownId) || (!rootMode && !R.store.pathOf(shownId).some(function (p) { return p.id === furnId; }))) { shownId = furnId; }
@@ -263,10 +314,9 @@
         onclick: function () { if (up === furnId || (rootMode && !up)) { delete focus[furnId]; } else { focus[furnId] = up; } selected = null; redraw(); }
       }, [rootMode && depth === 0 ? '\u2190 Remonter au plan du logement' : '\u2190 Remonter au niveau ' + depth]));
     }
-    bar.push(el('button', {
-      class: 'button button--secondary', type: 'button', 'aria-pressed': editing ? 'true' : 'false',
-      onclick: function () { editing = !editing; selected = null; message = null; redraw(); }
-    }, [editing ? 'Terminer l\u2019ajustement' : (planLike ? 'Ajuster le plan' : 'Ajuster la disposition')]));
+    if (editing && !sel) {
+      bar.push(el('button', { class: 'button', type: 'button', id: 'plan-done', onclick: function () { endEditing(redraw); } }, ['Terminer']));
+    }
     if (planLike) {
       bar.push(el('button', {
         class: 'button button--secondary', type: 'button', id: 'plan-zoom', 'aria-pressed': zoomReal() ? 'true' : 'false',
@@ -274,8 +324,7 @@
         onclick: function () { R.storage.setAux('planzoom', zoomReal() ? 'fit' : 'real'); redraw(); }
       }, [zoomReal() ? 'Ajuster à l\u2019écran' : 'Agrandir']));
     }
-    wrap.appendChild(el('div', { class: 'furn-bar' }, bar));
-    if (editing) { wrap.appendChild(controls(shownId, lay, redraw)); }
+    if (bar.length) { wrap.appendChild(el('div', { class: 'furn-bar' }, bar)); }
     if (message) { wrap.appendChild(el('p', { class: 'form-error furn-msg', role: 'status' }, [message])); message = null; }
     if (!sel && editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, [atRoot ? 'Touchez une pièce pour la sélectionner, puis déplacez-la ou changez sa taille ; une case libre y place la pièce sélectionnée.' : 'Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
 
@@ -337,10 +386,18 @@
     if (g.feet) { frame.push(el('div', { class: 'furn-feet', 'data-level': level }, [el('span', { class: 'furn-foot' }), el('span', { class: 'furn-foot' })])); }
     if (lay.B) { frame.push(band('bottom', lay.B)); }
     wrap.appendChild(el('div', { class: 'furn-frame' + (planLike ? ' furn-frame--plan' : '') }, frame));
-    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw, planLike)); }
+    if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw, planLike, shownId)); }
+    if (!sel) {          // bouton « + » flottant : créer au niveau du plan affiché, régler la grille (caché pendant le placement : le pavé de flèches a « Grille… »)
+      var add = el('button', {
+        class: 'furn-add', id: 'plan-add', type: 'button', 'aria-haspopup': 'true',
+        'aria-label': 'Ajouter ou régler ici', title: 'Ajouter ou régler ici',
+        onclick: function () { openAddMenu(add, shownId); }
+      }, ['+']);
+      wrap.appendChild(add);
+    }
 
     var items = atRoot ? [] : R.store.itemsIn(shownId);
-    wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: editing ? 210 : 16 } : null;
+    wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: editing ? 230 : 16 } : null;
     if (items.length) {
       wrap.appendChild(el('section', { class: 'section' }, [
         el('h3', { class: 'section-title' }, ['Objets rangés dans \u00ab ' + loc.name + ' \u00bb (niveau ' + (depth + 1) + ') : ' + items.length]),
