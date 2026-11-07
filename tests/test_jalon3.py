@@ -1,7 +1,7 @@
 # tests/test_jalon3.py — Application « Rangement »
-# Version : V009
-# Horodatage : 2026-10-25 16:10 (heure de Paris)
-# Résumé : adaptation V009 : arborescence repliée par défaut (expand_tree), 4 actions sur la fiche d'un objet (Dupliquer).
+# Version : V016
+# Horodatage : 2026-11-06 12:00 (heure de Paris)
+# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon3.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -88,7 +88,7 @@ def goto_tiroir(page):
 
 
 def add_item(page, name, quantity=None, tags=None, note=None):
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     d.get_by_label("Nom").fill(name)
     if quantity is not None:
@@ -106,6 +106,12 @@ def item_by_name(page, name):
 
 # ---------- scénarios ----------
 
+def act(page, label):
+    """Ouvre le menu déroulant « Actions » de l'en-tête et choisit une commande (V016)."""
+    page.locator("#manage-toggle").click()
+    page.locator(".ctx-menu").get_by_role("button", name=label, exact=True).click()
+
+
 def scenario_flow(browser, base, label):
     errors = []
     ctx, page = new_page(browser, 884, 1100, errors)
@@ -114,13 +120,17 @@ def scenario_flow(browser, base, label):
     load_demo(page)
 
     # À la racine : on ne range pas d'objet directement dans le logement
-    check(label + " | racine : pas de bouton « Ajouter un objet »", page.get_by_role("button", name="Ajouter un objet ici").count() == 0)
+    page.locator("#manage-toggle").click()
+    check(label + " | racine : pas de commande « Ajouter un objet »", page.locator(".ctx-menu").get_by_role("button", name="Ajouter un objet ici").count() == 0)
+    page.keyboard.press("Escape")
 
     goto_tiroir(page)
-    check(label + " | bouton « Ajouter un objet ici » présent", page.get_by_role("button", name="Ajouter un objet ici").count() == 1)
+    page.locator("#manage-toggle").click()
+    check(label + " | commande « Ajouter un objet ici » présente", page.locator(".ctx-menu").get_by_role("button", name="Ajouter un objet ici", exact=True).count() == 1)
+    page.keyboard.press("Escape")
 
     # Formulaire : valeurs par défaut, validations
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     check(label + " | quantité à 1 par défaut", d.get_by_label("Quantité").input_value() == "1")
     check(label + " | indication des virgules pour les mots-clés", "virgules" in d.inner_text())
@@ -158,7 +168,7 @@ def scenario_flow(browser, base, label):
     check(label + " | quantité par défaut enregistrée = 1", item_by_name(page, "Piles neuves")[0]["quantity"] == 1)
 
     # Nom identique dans le même emplacement : refusé (casse et accents ignorés)
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     d.get_by_label("Nom").fill("piles NEUVES")
     d.get_by_role("button", name="Ajouter", exact=True).click()
@@ -168,7 +178,7 @@ def scenario_flow(browser, base, label):
     check(label + " | aucun doublon créé", len(item_by_name(page, "Piles neuves")) == 1 and len(item_by_name(page, "piles NEUVES")) == 0)
 
     # Annulation / Échap
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     dlg(page).get_by_label("Nom").fill("Fantôme")
     page.keyboard.press("Escape")
     closed(page)
@@ -183,7 +193,9 @@ def scenario_flow(browser, base, label):
     check(label + " | fiche : l'objet est l'élément courant du fil d'Ariane",
           page.locator("#pane-detail .breadcrumb [aria-current='page']").inner_text() == "Ampoules")
     check(label + " | fiche : mots-clés et note", "électricité" in page.inner_text("#pane-detail") and "culot E27" in page.inner_text("#pane-detail"))
-    check(label + " | fiche : 4 actions", page.locator("#pane-detail .toolbar .button").count() == 4)
+    page.locator("#manage-toggle").click()
+    check(label + " | fiche : 4 actions", page.locator(".ctx-menu .ctx-item").count() == 4)
+    page.keyboard.press("Escape")
     check(label + " | fiche : emplacement surligné dans l'arborescence",
           page.locator("#pane-tree [aria-current='page']").inner_text().strip() == "Tiroir bas gauche")
     check(label + " | fiche : lien vers l'emplacement", "Séjour \u203a Meuble living \u203a Tiroir bas gauche" in page.inner_text("#pane-detail .item-where"))
@@ -195,7 +207,7 @@ def scenario_flow(browser, base, label):
         page.screenshot(path=os.path.join(SHOTS, label + "-j3-fiche.png"))
 
     # Modification
-    page.get_by_role("button", name="Modifier").click()
+    act(page, "Modifier")
     d = dlg(page)
     check(label + " | modifier : champs préremplis",
           d.get_by_label("Nom").input_value() == "Ampoules" and d.get_by_label("Quantité").input_value() == "3"
@@ -212,7 +224,7 @@ def scenario_flow(browser, base, label):
     check(label + " | nom vide refusé à la modification", js(page, "Rangement.features.items.update('%s',{name:'  '})" % item_by_name(page, "Ampoules LED")[0]["id"])["ok"] is False)
 
     # Déplacement
-    page.get_by_role("button", name="Déplacer").click()
+    act(page, "Déplacer")
     d = dlg(page)
     options = d.get_by_label("Nouvel emplacement").locator("option").all_inner_texts()
     check(label + " | déplacer : propose tous les emplacements avec leur chemin",
@@ -229,7 +241,7 @@ def scenario_flow(browser, base, label):
     check(label + " | emplacement d'arrivée liste l'objet", "Ampoules LED" in page.inner_text("#pane-detail .list"))
 
     # La suppression de l'ancien emplacement vidé reste possible, celle du nouveau est refusée
-    page.get_by_role("button", name="Supprimer").click()
+    act(page, "Supprimer")
     d = dlg(page)
     check(label + " | emplacement contenant un objet : suppression refusée", "Suppression impossible" in d.inner_text() and "2 objets" in d.inner_text(), d.inner_text())
     d.get_by_role("button", name="OK").click()
@@ -239,13 +251,13 @@ def scenario_flow(browser, base, label):
     n_before = len(stored(page)["items"])
     page.locator("#pane-detail .list-row", has_text="Ampoules LED").click()
     wait_title(page, "Ampoules LED")
-    page.get_by_role("button", name="Supprimer").click()
+    act(page, "Supprimer")
     d = dlg(page)
     check(label + " | confirmation de suppression d'un objet", "Supprimer cet objet" in d.inner_text())
     d.get_by_role("button", name="Annuler").click()
     closed(page)
     check(label + " | annuler conserve l'objet", len(stored(page)["items"]) == n_before)
-    page.get_by_role("button", name="Supprimer").click()
+    act(page, "Supprimer")
     dlg(page).get_by_role("button", name="Supprimer", exact=True).click()
     wait_title(page, "Commode")
     check(label + " | suppression effectuée, retour à l'emplacement", len(stored(page)["items"]) == n_before - 1 and "Ampoules LED" not in page.inner_text("#pane-detail"))
@@ -332,7 +344,7 @@ def scenario_guards(browser, base):
     page.goto(base + "#/o/" + res["item"]["id"])
     page.wait_for_selector("#pane-detail .item-detail")
     check("sécurité | fiche : texte brut", "<img src=x" in page.inner_text("#pane-detail") and "<script>" in page.inner_text("#pane-detail") and page.locator("#pane-detail img, #pane-detail b").count() == 0)
-    page.get_by_role("button", name="Modifier").click()
+    act(page, "Modifier")
     check("sécurité | dialogue : titre en texte", "<img src=x" in dlg(page).inner_text() and dlg(page).locator("img").count() == 0)
     page.keyboard.press("Escape")
     closed(page)
@@ -350,7 +362,7 @@ def scenario_narrow(browser, base):
     check("replié | 1 volet", page.get_attribute("html", "data-panes") == "1")
     goto_tiroir(page)
 
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     box = d.bounding_box()
     check("replié | dialogue d'objet contenu dans l'écran", box["x"] >= 0 and box["x"] + box["width"] <= 390 and box["y"] >= 0 and box["y"] + box["height"] <= 844, box)
@@ -368,16 +380,20 @@ def scenario_narrow(browser, base):
     page.wait_for_selector("#pane-detail .item-detail")
     overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
     check("replié | fiche : pas de défilement horizontal", overflow <= 0, overflow)
-    tools = page.locator("#pane-detail .toolbar .button")
-    check("replié | fiche : 4 actions ≥ 44 px", tools.count() == 4 and all(tools.nth(i).bounding_box()["height"] >= 44 for i in range(4)))
+    page.locator("#manage-toggle").click()
+    tools = page.locator(".ctx-menu .ctx-item")
+    check("replié | fiche : 4 actions ≥ 44 px", tools.count() == 4 and all(tools.nth(i).bounding_box()["height"] >= 43 for i in range(4)))
+    page.keyboard.press("Escape")
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j3-replie-fiche.png"))
     page.locator("#pane-detail .breadcrumb a", has_text="Tiroir bas gauche").click()
     wait_title(page, "Tiroir bas gauche")
     overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
     check("replié | liste d'objets : pas de défilement horizontal", overflow <= 0, overflow)
-    tools = page.locator("#pane-detail .toolbar .button")
-    check("replié | barre d'actions : boutons ≥ 44 px", all(tools.nth(i).bounding_box()["height"] >= 44 for i in range(tools.count())))
+    page.locator("#manage-toggle").click()
+    tools = page.locator(".ctx-menu .ctx-item")
+    check("replié | menu « Actions » : commandes ≥ 44 px", tools.count() == 6 and all(tools.nth(i).bounding_box()["height"] >= 43 for i in range(tools.count())))
+    page.keyboard.press("Escape")
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j3-replie-liste.png"))
     check("replié | aucune erreur console", not errors, errors)

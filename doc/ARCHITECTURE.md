@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V015a
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : V015 : jalon 9 étape 2, menu contextuel, bouton « + », réglages de grille en boîte de dialogue.
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : V016 : jalon 9 étape 3, ℹ️ et info-bulle, menu « Actions » déroulant, libellé de catégorie et Liste / Plan dans l'en-tête figé.
 -->
 
-# ARCHITECTURE — Rangement `V015a`
+# ARCHITECTURE — Rangement `V016`
 
-> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015a**
-> Statut : **jalon 9 (interface centrée sur les plans), étapes 1 et 2 livrées** : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 06/11/2026 12:00 (Paris) — **V016**
+> Statut : **jalon 9 (interface centrée sur les plans), étapes 1, 2 et 3 livrées** (3 : ℹ️ et info-bulle, menu « Actions » déroulant, en-tête figé enrichi, V016) : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -43,6 +43,7 @@
 │   ├── test_jalon7.py         Tests Playwright/Chromium : vue graphique des meubles (disposition, niveaux, nombre d'objets dans l'arborescence)
 │   ├── test_jalon9.py         Tests Playwright/Chromium : plan ajusté à l'écran, taille réelle, tuiles compactes, plan d'une pièce
 │   ├── test_jalon9_2.py       Tests Playwright/Chromium : menu contextuel d'une case, bouton « + », réglage de la grille, placement (pavés de flèches)
+│   ├── test_jalon9_3.py       Tests Playwright/Chromium : ℹ️ et info-bulle, libellé de catégorie tronqué + chevron, menu déroulant « Actions », Liste / Plan dans l'en-tête figé
 │   ├── test_jalon8.py         Tests Playwright/Chromium : plan du logement (pièces sur la grille, ajustement, sauvegarde, cadre défilant)
 │   └── test_jalon6bis.py      Tests Playwright/Chromium : évolutions ergonomiques (arborescence, rail, en-têtes figés, duplication, Retour, flèches, saisie interdite, pastille, couleurs)
 ├── css/
@@ -74,7 +75,8 @@
     │   │   ├── list.js        Liste générique
     │   │   ├── form.js        Champs de formulaire (texte, zone de texte, liste), validation champ par champ et lecture des valeurs
     │   │   ├── dialog.js      Dialogues : formulaire (avec blocage de saisie interdite), confirmation, message
-    │   │   ├── detailbar.js   En-tête figé du volet de détail : fil d'Ariane, titre, flèches de niveau, bouton « Actions » (gestion repliable)
+    │   │   ├── detailbar.js   En-tête figé du volet de détail (deux colonnes) : fil d'Ariane, nom, ℹ️, libellé de catégorie (chevron si tronqué) ; flèches de niveau, menu déroulant « Actions » et commutateur Liste / Plan
+    │   │   ├── bubble.js      Info-bulle ouverte près d'un bouton (ℹ️, chevron du libellé) ; fermée par Échap, un appui ailleurs ou un changement d'écran
     │   │   └── contextmenu.js Menu contextuel ouvert près d'un élément : commande principale « Ouvrir » (plus grande), puis les autres commandes ; fermé par Échap, un appui ailleurs ou un changement d'écran
     │   └── views/
     │       ├── browse.js      Volet gauche : arborescence repliable, ligne « Logement » figée, bascule large / rail
@@ -163,7 +165,7 @@ Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser
 1. `js/config.js` (crée `window.Rangement`, l'aide `Rangement.ns('a.b')` et `Rangement.config`)
 2. `js/core/events.js`, `ids.js`, `models.js`, `storage.js`, `store.js`
 3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js`, `backup.js`, `furniture.js`
-4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `detailbar.js`, `contextmenu.js`
+4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`
 5. `js/ui/layout.js`
 6. `js/ui/views/treerail.js`, `browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `settings.js`, `furniture.js` (vue), `location.js`
 7. `js/pwa.js`
@@ -211,6 +213,8 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.features.furniture.ROOT` | Identifiant spécial du logement : `layout(ROOT)`, `setGrid(ROOT, { cols, rows })` ; `move` / `resize` sur une pièce travaillent sur le plan. Une seule zone (`body`), 20 colonnes et 20 lignes au plus proposées |
 | `Rangement.store.plan() / Rangement.models.cleanPlan(p)` | Plan du logement `{ cols, rows }` ou `null` ; nettoyage d'un plan lu (import, stockage) |
 | `Rangement.ui.components.contextmenu.open({ anchor, focusTo?, title, subtitle?, level?, primary?, items })` / `close()` / `isOpen()` | Menu contextuel placé près de `anchor` (sous, sinon au-dessus, toujours dans l'écran) ; `primary` = `{ label, run }` (grand bouton en tête), `items` = `[{ label, run, danger? }]` ; choisir une commande ferme le menu puis l'exécute ; Échap / appui ailleurs rendent le focus à `focusTo` |
+| `Rangement.ui.components.detailbar.create({ ref, path, title, level, kind?, info?, actions?, switcher?, … })` | En-tête figé ; renvoie `{ head }`. `kind` = libellé de catégorie ; `info` = lignes de l'info-bulle ℹ️ ; `actions` = `[{ label, run, danger? }]` du menu déroulant « Actions » ; `switcher` = commutateur Liste / Plan |
+| `Rangement.ui.components.bubble.open({ anchor, title?, lines, level? }) / toggle(cfg) / close() / isOpen()` | Info-bulle près de `anchor` (texte toujours échappé) ; Échap, un appui ailleurs, un changement d'écran ou de données la ferment |
 | `Rangement.events` | `view:changed`, `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed`, `pwa:changed` |
 
 Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli affiche un avertissement.
@@ -309,9 +313,17 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Réglage de la grille** (boîte de dialogue, valeurs actuelles préremplies) : colonnes et lignes (1 à 20 pour un plan, 1 à 6 × 1 à 8 pour un meuble) ; pour un meuble aussi proportions, dessus, dessous (0 à 3) et pieds. Un refus (cases occupées) s'affiche dans la boîte, qui reste ouverte, rien ne change ; « Appliquer » sans changement ne fige aucune place.
 - Le pavé de flèches affiche « « nom » : dans le plan, colonne N, ligne M, taille w × h. » ; la hauteur réservée au plan pendant le placement est de 230 px.
 
+### Règles du jalon 9, étape 3 (V016)
+
+- **ℹ️** : pictogramme juste après le nom de l'élément affiché (logement, pièce, meuble, niveaux inférieurs, fiche d'un objet ; pas sur la recherche ni les Réglages). Un appui ouvre une **info-bulle** : niveau, nombre de sous-emplacements, objets rangés directement, contenu total (tous niveaux) et note ; pour un objet : niveau, emplacement, quantité. Texte toujours affiché comme du texte.
+- **Texte de rappel supprimé** sous « Liste / Plan » ; il n'apparaît plus que lorsqu'un niveau inférieur est dessiné dans le plan (icône de niveau), car l'en-tête ne décrit alors que l'emplacement ouvert. La ligne « Type — note » sous le titre disparaît (le type monte dans l'en-tête, la note dans l'info-bulle).
+- **Libellé de catégorie** (Pièce, Meuble, Tiroir…, « Objet » sur une fiche) à la suite du nom, sur la même ligne ; il est tronqué en premier si la place manque, et un **petit chevron rotatif** apparaît alors (seulement s'il y a troncature) pour ouvrir une bulle avec le libellé complet.
+- **Menu « Actions »** : le bouton garde sa place dans l'en-tête mais ouvre un **menu déroulant** (même composant que le menu contextuel) ; la barre de boutons sous l'en-tête et la mémorisation « replié / déplié » disparaissent. Commandes : emplacement → Ajouter un objet ici, Ajouter un emplacement ici, Modifier, Déplacer, Dupliquer, Supprimer ; logement → Ajouter une pièce ; objet → Modifier, Déplacer, Dupliquer, Supprimer. Les boutons « Ajouter… » ne sont plus colorés par niveau.
+- **Liste / Plan** (logement, pièces) et **Liste / Vue graphique** (meubles) sont dans l'en-tête figé, **sous les flèches de niveau et « Actions »** ; l'en-tête est en deux colonnes (fil d'Ariane + nom à gauche, commandes à droite) pour que le bandeau ne grandisse pas (à peu près la même hauteur qu'un sous-emplacement sans commutateur). Boutons du commutateur de 32 px de haut, zone d'appui étendue à ~44 px. Écran replié : le fil d'Ariane prend toute la largeur, nom et commandes dessous.
+
 ### 5.1 Diagnostic de démarrage
 
-Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `treerail.js` et `furniture.js` (fonction et vue)).
+Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`, `treerail.js` et `furniture.js` (fonction et vue)).
 
 ## 6. PWA et service worker (règles strictes, mises en œuvre en V008)
 
@@ -365,3 +377,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V014 | 02/11/2026 22:47 | Jalon 9 étape 1 : plan ajusté à l'écran (largeur et hauteur), taille réelle, tuiles compactes, plan d'une pièce |
 | V015 | 05/11/2026 02:30 | Jalon 9 étape 2 : menu contextuel sur les cases (« Ouvrir » en tête), bouton « + » flottant, réglages de grille en boîte de dialogue, pavé de flèches avec « Grille… » et « Terminer » |
 | V015a | 05/11/2026 | Correctif : le niveau inférieur ouvert dans un plan (icône de niveau) est oublié à chaque changement d'écran |
+| V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️ et info-bulle, menu « Actions » déroulant, libellé de catégorie (chevron si tronqué) et Liste / Plan dans l'en-tête figé, texte de rappel du plan supprimé |

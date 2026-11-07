@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V015a
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : V015 livrée — fichiers à enregistrer et tests.
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : V016 livrée (jalon 9.3) — fichiers à enregistrer et tests.
 -->
 
-# ToDo Utilisateur — Rangement `V015a`
+# ToDo Utilisateur — Rangement `V016`
 
-> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015a**
+> Dernière mise à jour : 06/11/2026 12:00 (Paris) — **V016**
 
 ## Fait
 
+- [x] Valider le jalon 9.2 (V015) ; lancer l'étape 9.3 (ℹ️ aussi sur la fiche d'un objet)
 - [x] Valider les jalons 8 et 9.1 (V014) ; lancer l'étape 9.2
 - [x] Tester la V013 (plan du logement) : très satisfait de la grille et du rendu ; décider la réorientation vers les plans (jalon 9) et valider le découpage en étapes
 - [x] Tester la V012 : fluide ; valider le jalon 7 ; choisir pour le jalon 8 des pièces en tuiles collées (sans portes ni fenêtres pour l'instant)
@@ -38,6 +39,16 @@
 
 ## À faire maintenant
 
+- [ ] **Enregistrer les fichiers de la V016** (archive `V016.zip` : `gestion_fichiers.py` les range).
+  - **Nouveaux** : `js/ui/components/bubble.js`, `tests/test_jalon9_3.py`.
+  - **Remplacés** : `index.html`, `sw.js` (**à la racine**), `js/config.js`, `js/main.js`, `css/components.css`, `css/furniture.css`, `js/ui/components/detailbar.js`, `js/ui/views/location.js`, `js/ui/views/item.js`, `js/ui/views/furniture.js`, `tests/test_jalon2.py`, `test_jalon3.py`, `test_jalon6bis.py`, `test_jalon7.py`, `test_jalon8.py`, `test_jalon9.py`, `test_jalon9_2.py` et les trois `.md`.
+  - **Inchangés** : tout le reste.
+- [ ] **Vérifier que la version affichée est `V016`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V016 (supprimer les versions remplacées ; en profiter pour supprimer les doublons `js/ui/views/furniture.js`, `location.js` V012, `events.js`, `test_jalon6bis.py`).
+- [ ] **Tester la V016** : sur un meuble, une pièce, le logement et une fiche d'objet : ℹ️ juste après le nom (info-bulle) ; libellé de catégorie à la suite du nom (tester un nom très long pour voir le chevron) ; menu « Actions » déroulant ; Liste / Plan sous les flèches ; hauteur du bandeau ; écran déplié et replié.
+- [ ] **Répondre** : le contenu de l'info-bulle vous convient-il ? Les boutons Liste / Plan (32 px) sont-ils assez faciles à toucher ? L'écran replié (titre plus petit) est-il lisible ? Remarques pour l'étape 9.4 (plan en vue d'accueil) ?
+
+### (historique) À faire à la V015a
 - [ ] **Enregistrer les fichiers de la V015a** (archive `V015a.zip`) : `js/ui/views/furniture.js`, `js/config.js`, `sw.js` (racine), `tests/test_jalon9_2.py` et les trois `.md` (le reste est inchangé). Corrige l'ouverture d'une pièce qui affichait un meuble en bas. Puis vérifier la version `V015a`.
 
 - [ ] **Enregistrer les fichiers de la V015** (archive `V015.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V015.txt`).
@@ -113,3 +124,4 @@
 | V014 | 02/11/2026 22:47 | Jalon 9 étape 1 : plan ajusté à l'écran, plan d'une pièce ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V015 | 05/11/2026 02:30 | Jalon 9 étape 2 : menu contextuel, bouton « + », grille en boîte de dialogue ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V015a | 05/11/2026 | Correctif du niveau inférieur du plan ; fichiers à enregistrer (voir liste) |
+| V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️, Actions déroulant, en-tête figé enrichi ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

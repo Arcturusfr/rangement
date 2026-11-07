@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V015
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : jalon 9.2 — menu contextuel (.ctx-*), bouton « + » flottant (.furn-add), en-tête du pavé de flèches (Grille… / Terminer) ; les réglages en ligne (.furn-controls) disparaissent.
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : jalon 9.3 — commutateur Liste / Plan compact (dans l'en-tête figé) ; le plan gagne la place du texte de rappel. Jalon 9.2 : menu contextuel (.ctx-*), bouton « + » (.furn-add).
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -10,10 +10,14 @@
 
 /* Commutateur Liste / Vue graphique */
 .view-switch { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
+/* Dans l'en-tête figé : 32 px de haut (zone d'appui étendue par ::after) pour ne pas allonger le bandeau */
+.view-switch--bar { margin-top: 0; gap: var(--space-1); }
+.view-switch--bar .button { position: relative; min-height: 32px; padding: 0 var(--space-3); font-size: 0.9rem; }
+.view-switch--bar .button::after { content: ""; position: absolute; inset: -6px -2px; }
 .view-switch-btn[aria-pressed="true"] { background: var(--ink); color: #FFFFFF; box-shadow: none; }
 
 /* Vue graphique d'un meuble */
-.furn-view { margin-top: var(--space-4); max-width: 40rem; padding-bottom: 80px; }   /* la place du bouton « + » */
+.furn-view { margin-top: var(--space-2); max-width: 40rem; padding-bottom: 80px; }   /* la place du bouton « + » */
 .furn-caption { margin-bottom: var(--space-3); padding-left: var(--space-3); border-left: 5px solid var(--level-color, var(--ink)); color: var(--level-color, var(--ink)); font-weight: 600; }
 .furn-bar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
 .furn-bar .button[aria-pressed="true"] { background: var(--chip-bg); }

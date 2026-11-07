@@ -1,7 +1,7 @@
 # tests/test_jalon6bis.py — Application « Rangement »
-# Version : V009
-# Horodatage : 2026-10-25 16:10 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 6 bis (arborescence repliable et rail, en-têtes figés, duplication, Retour, flèches, Réglages, saisie interdite, pastille, couleurs).
+# Version : V016
+# Horodatage : 2026-11-06 12:00 (heure de Paris)
+# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon6bis.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -96,6 +96,12 @@ def visible_links(page):
 
 
 # ---------- scénarios ----------
+
+def act(page, label):
+    """Ouvre le menu déroulant « Actions » de l'en-tête et choisit une commande (V016)."""
+    page.locator("#manage-toggle").click()
+    page.locator(".ctx-menu").get_by_role("button", name=label, exact=True).click()
+
 
 def scenario_tree(browser, base):
     errors = []
@@ -246,23 +252,22 @@ def scenario_detail(browser, base):
     check("détail | le titre figé contient le bouton Actions", page.locator("#pane-detail .detail-sticky #manage-toggle").is_visible())
 
     page.evaluate("document.getElementById('pane-detail').scrollTop = 0")
-    add = page.get_by_role("button", name="Ajouter un objet ici")
     toggle = page.locator("#manage-toggle")
-    check("détail | gestion dépliée par défaut", toggle.get_attribute("aria-expanded") == "true" and add.is_visible())
-    check("détail | animation définie", page.locator(".manage").evaluate("e => getComputedStyle(e).transitionDuration") == "0.16s")
+    check("détail | « Actions » : menu déroulant, fermé par défaut", toggle.get_attribute("aria-haspopup") == "true" and page.locator(".ctx-menu").count() == 0 and page.get_by_role("button", name="Ajouter un objet ici").count() == 0)
     toggle.click()
-    add.wait_for(state="hidden")
-    check("détail | replier la gestion masque les boutons", toggle.get_attribute("aria-expanded") == "false" and not add.is_visible() and page.locator("#pane-detail .detail-title").is_visible())
+    page.wait_for_selector(".ctx-menu")
+    check("détail | « Actions » : le menu s'ouvre sous le bouton, dans l'écran", page.locator(".ctx-menu").is_visible() and page.locator(".ctx-menu .ctx-item").all_inner_texts() == ["Ajouter un objet ici", "Ajouter un emplacement ici", "Modifier", "Déplacer", "Dupliquer", "Supprimer"], page.locator(".ctx-menu .ctx-item").all_inner_texts())
+    page.keyboard.press("Escape")
+    check("détail | « Actions » : Échap referme", page.locator(".ctx-menu").count() == 0)
     page.goto(base + "#/l/" + sej)
     wait_title(page, "Séjour")
-    check("détail | l'état replié est conservé en changeant d'écran", page.locator("#manage-toggle").get_attribute("aria-expanded") == "false" and not page.get_by_role("button", name="Ajouter un objet ici").is_visible())
-    page.locator("#manage-toggle").click()
-    page.get_by_role("button", name="Ajouter un objet ici").wait_for(state="visible")
-    check("détail | déplier à nouveau", page.get_by_role("button", name="Ajouter un objet ici").is_visible())
+    check("détail | les boutons d'action ne prennent plus de place sous l'en-tête", page.locator("#pane-detail .toolbar").count() == 0)
     # fiche d'un objet : même mécanisme
     page.goto(base + "#/o/" + js(page, "Rangement.store.items().filter(function(i){return i.name==='Objet 05';})[0].id"))
     page.wait_for_selector("#pane-detail .item-detail")
-    check("détail | fiche d'objet : en-tête figé avec Actions", page.locator("#pane-detail .detail-sticky #manage-toggle").is_visible() and page.get_by_role("button", name="Dupliquer").is_visible())
+    page.locator("#manage-toggle").click()
+    check("détail | fiche d'objet : en-tête figé avec Actions", page.locator("#pane-detail .detail-sticky #manage-toggle").is_visible() and page.locator(".ctx-menu").get_by_role("button", name="Dupliquer", exact=True).is_visible())
+    page.keyboard.press("Escape")
     check("détail | aucune erreur console", not errors, errors)
     ctx.close()
 
@@ -274,7 +279,7 @@ def scenario_duplicate(browser, base):
     n_loc, n_it = len(stored(page)["locations"]), len(stored(page)["items"])
 
     goto_loc(page, base, "Meuble living")
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     d = dlg(page)
     check("dupli | emplacement : nom et parent préremplis", d.get_by_label("Nom de la copie").input_value() == "Meuble living" and d.get_by_label("Emplacement parent de la copie").evaluate("s => s.options[s.selectedIndex].text") == "Séjour")
     check("dupli | contenu à copier proposé (par défaut : l'emplacement seul)", d.get_by_label("Contenu à copier").input_value() == "none")
@@ -287,7 +292,7 @@ def scenario_duplicate(browser, base):
     closed(page)
     check("dupli | annuler : rien n'est créé", len(stored(page)["locations"]) == n_loc)
 
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     d = dlg(page)
     d.get_by_label("Nom de la copie").fill("Meuble living 2")
     d.get_by_label("Contenu à copier").select_option("all")
@@ -301,7 +306,7 @@ def scenario_duplicate(browser, base):
     check("dupli | l'original est intact", js(page, "Rangement.store.countIn('%s')" % loc_id(page, "Meuble living")) == {"locations": 2, "items": 2})
 
     goto_loc(page, base, "Meuble living")
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     d = dlg(page)
     d.get_by_label("Nom de la copie").fill("Meuble living 3")
     d.get_by_label("Contenu à copier").select_option("structure")
@@ -311,7 +316,7 @@ def scenario_duplicate(browser, base):
     check("dupli | structure seule : sous-emplacements sans objets", len(s["locations"]) == n_loc + 3 + 3 and len(s["items"]) == n_it + 2, (len(s["locations"]), len(s["items"])))
 
     goto_loc(page, base, "Meuble living")
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     d = dlg(page)
     d.get_by_label("Nom de la copie").fill("Meuble living 4")
     d.get_by_role("button", name="Dupliquer", exact=True).click()
@@ -321,7 +326,7 @@ def scenario_duplicate(browser, base):
     # Même nom accepté si on change d'emplacement
     page.goto(base + "#/l/" + [l for l in stored(page)["locations"] if l["name"] == "Commode" and l["parentId"] == loc_id(page, "Chambre à coucher")][0]["id"])
     wait_title(page, "Commode")
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     d = dlg(page)
     d.get_by_label("Emplacement parent de la copie").select_option(label="Séjour")
     d.get_by_role("button", name="Dupliquer", exact=True).click()
@@ -335,7 +340,7 @@ def scenario_duplicate(browser, base):
     js(page, "Rangement.features.items.update('%s',{quantity:'4', tags:'a, b', note:'AA'})" % item)
     page.goto(base + "#/o/" + item)
     page.wait_for_selector("#pane-detail .item-detail")
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     d = dlg(page)
     check("dupli | objet : nom et emplacement préremplis", d.get_by_label("Nom de la copie").input_value() == "Piles neuves" and "Tiroir bas gauche" in d.get_by_label("Emplacement de la copie").evaluate("s => s.options[s.selectedIndex].text"))
     d.get_by_role("button", name="Dupliquer", exact=True).click()
@@ -346,13 +351,14 @@ def scenario_duplicate(browser, base):
     wait_title(page, "Piles neuves bis")
     cp = [i for i in stored(page)["items"] if i["name"] == "Piles neuves bis"][0]
     check("dupli | objet : quantité, mots-clés et note repris", cp["quantity"] == 4 and cp["tags"] == ["a", "b"] and cp["note"] == "AA" and cp["id"] != item)
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     d = dlg(page)
     d.get_by_label("Emplacement de la copie").select_option(label="Entrée \u203a Commode")
     d.get_by_label("Nom de la copie").fill("Piles neuves")
     d.get_by_role("button", name="Dupliquer", exact=True).click()
     closed(page)
-    check("dupli | objet : même nom accepté dans un autre emplacement", "Entrée" in page.inner_text("#pane-detail .breadcrumb"))
+    page.wait_for_function("document.querySelector('#pane-detail .breadcrumb') && document.querySelector('#pane-detail .breadcrumb').textContent.indexOf('Entrée') !== -1", timeout=5000)
+    check("dupli | objet : même nom accepté dans un autre emplacement", "Entrée" in page.inner_text("#pane-detail .breadcrumb"), page.inner_text("#pane-detail .breadcrumb"))
     check("dupli | données valides", js(page, "Rangement.models.validateData(JSON.parse(localStorage.getItem('rangement.data'))).ok"))
     check("dupli | aucune erreur console", not errors, errors)
     ctx.close()
@@ -457,7 +463,7 @@ def scenario_input(browser, base):
     load_demo(page, base)
     goto_loc(page, base, "Tiroir bas gauche")
     n_items = len(stored(page)["items"])
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     d.get_by_label("Nom").fill("Ampoules")
     q = d.get_by_label("Quantité")
@@ -475,7 +481,7 @@ def scenario_input(browser, base):
     closed(page)
     check("saisie | Annuler reste possible : rien n'est enregistré", len(stored(page)["items"]) == n_items)
 
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     d.get_by_label("Quantité").fill("-1")
     d.get_by_label("Quantité").press("Tab")
@@ -483,7 +489,7 @@ def scenario_input(browser, base):
     closed(page)
     check("saisie | Échap reste possible", len(stored(page)["items"]) == n_items)
 
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     d.get_by_label("Nom").fill("Ampoules")
     q = d.get_by_label("Quantité")
@@ -504,7 +510,7 @@ def scenario_input(browser, base):
     # Modification d'un objet
     page.locator("#pane-detail .list-row", has_text="Ampoules").click()
     page.wait_for_selector("#pane-detail .item-detail")
-    page.get_by_role("button", name="Modifier").click()
+    act(page, "Modifier")
     d = dlg(page)
     d.get_by_label("Quantité").fill("2.5")
     d.get_by_label("Nom").click()
@@ -514,7 +520,7 @@ def scenario_input(browser, base):
     check("saisie | modification annulée : quantité inchangée", [i["quantity"] for i in stored(page)["items"] if i["name"] == "Ampoules"] == [7])
 
     # Un changement de vue ferme la boîte sans rien enregistrer
-    page.get_by_role("button", name="Modifier").click()
+    act(page, "Modifier")
     dlg(page).get_by_label("Nom").fill("Renommé")
     page.evaluate("window.location.hash = '#/'")
     closed(page)
@@ -549,6 +555,7 @@ def scenario_badge(browser, base):
 
 
 def scenario_colors(browser, base):
+    # V016 : les commandes « Ajouter… » sont dans le menu déroulant « Actions » (plus de boutons colorés)
     errors = []
     ctx, page = new_ctx(browser, 884, 1100, errors)
     page.goto(base)
@@ -556,22 +563,17 @@ def scenario_colors(browser, base):
     check("couleurs | « Créer ma première pièce » : couleur des pièces", color(page.get_by_role("button", name="Créer ma première pièce"), "backgroundColor") == TEAL)
     page.get_by_role("button", name="Charger les données de démonstration").click()
     page.wait_for_selector("#pane-detail .list")
-    check("couleurs | racine : « Ajouter une pièce » (pièces)", color(page.get_by_role("button", name="Ajouter une pièce"), "backgroundColor") == TEAL)
     check("couleurs | liste des pièces", color(page.locator("#pane-detail .list-title")) == TEAL)
     page.locator("#pane-detail .list-row", has_text="Séjour").click()
     wait_title(page, "Séjour")
     check("couleurs | titre de la pièce", color(page.locator("#pane-detail .detail-title")) == TEAL)
-    check("couleurs | « Ajouter un emplacement ici » dans une pièce (1er ordre)", color(page.get_by_role("button", name="Ajouter un emplacement ici"), "backgroundColor") == BROWN)
-    check("couleurs | « Ajouter un objet ici » (objets)", color(page.get_by_role("button", name="Ajouter un objet ici"), "backgroundColor") == BLUE)
     check("couleurs | liste des emplacements de premier ordre", color(page.locator("#pane-detail .list-title")) == BROWN)
     page.locator("#pane-detail .list-row", has_text="Meuble living").click()
     wait_title(page, "Meuble living")
-    check("couleurs | « Ajouter un emplacement ici » dans un emplacement (sous-emplacement)", color(page.get_by_role("button", name="Ajouter un emplacement ici"), "backgroundColor") == ORANGE)
     check("couleurs | liste des sous-emplacements", color(page.locator("#pane-detail .list-title")) == ORANGE)
     page.locator("#pane-detail .list-row", has_text="Tiroir bas gauche").click()
     wait_title(page, "Tiroir bas gauche")
     check("couleurs | objets rangés", color(page.locator("#pane-detail .list-title")) == BLUE)
-    check("couleurs | « Ajouter un emplacement ici » plus profond : sous-emplacement", color(page.get_by_role("button", name="Ajouter un emplacement ici"), "backgroundColor") == ORANGE)
     d_id = js(page, "Rangement.features.items.create({name:'Colle', locationId: Rangement.ui.router.current().locationId, quantity:'0'}).item.id")
     check("couleurs | objet à quantité 0 : gris spécifique", color(page.locator("#pane-detail .list-item--muted .list-title")) == "rgb(86, 104, 114)" or color(page.locator("#pane-detail .list-item--muted .list-title")) == GREY, color(page.locator("#pane-detail .list-item--muted .list-title")))
     page.goto(base + "#/o/" + d_id)
@@ -608,14 +610,14 @@ def scenario_narrow(browser, base):
         check("replié | %s ≥ 44 px et dans l'écran" % sel, bb["height"] >= 44 and bb["x"] >= 0 and bb["x"] + bb["width"] <= 390, bb)
     check("replié | pas de défilement horizontal", page.evaluate("document.documentElement.scrollWidth - window.innerWidth") <= 0)
     page.evaluate("document.getElementById('pane-detail').scrollTop = 0")
-    page.get_by_role("button", name="Dupliquer").click()
+    act(page, "Dupliquer")
     box = dlg(page).bounding_box()
     check("replié | dialogue de duplication dans l'écran", box["x"] >= 0 and box["x"] + box["width"] <= 390 and box["y"] >= 0 and box["y"] + box["height"] <= 844, box)
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j6bis-replie-duplication.png"))
     page.keyboard.press("Escape")
     closed(page)
-    page.get_by_role("button", name="Ajouter un objet ici").click()
+    act(page, "Ajouter un objet ici")
     d = dlg(page)
     d.get_by_label("Quantité").fill("1.5")
     d.get_by_label("Quantité").press("Tab")

@@ -1,7 +1,7 @@
 # tests/test_jalon2.py — Application « Rangement »
-# Version : V009
-# Horodatage : 2026-10-25 16:10 (heure de Paris)
-# Résumé : adaptation V009 : arborescence repliée par défaut (expand_tree), 6 actions (Dupliquer).
+# Version : V016
+# Horodatage : 2026-11-06 12:00 (heure de Paris)
+# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon2.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -61,7 +61,7 @@ def open_row(page, name):
 
 
 def add_child(page, name, kind=None, note=None):
-    page.get_by_role("button", name="Ajouter un emplacement ici").click()
+    act(page, "Ajouter un emplacement ici")
     d = dlg(page)
     d.get_by_label("Nom").fill(name)
     if kind:
@@ -84,6 +84,12 @@ def expand_tree(page):
 
 
 # ---------- scénarios ----------
+
+def act(page, label):
+    """Ouvre le menu déroulant « Actions » de l'en-tête et choisit une commande (V016)."""
+    page.locator("#manage-toggle").click()
+    page.locator(".ctx-menu").get_by_role("button", name=label, exact=True).click()
+
 
 def scenario_flow(browser, base, label):
     errors = []
@@ -121,7 +127,7 @@ def scenario_flow(browser, base, label):
     check(label + " | arborescence mise à jour", "Placard sous évier" in page.inner_text("#pane-tree"))
 
     # Doublon (sans tenir compte casse / accents)
-    page.get_by_role("button", name="Ajouter un emplacement ici").click()
+    act(page, "Ajouter un emplacement ici")
     d = dlg(page)
     d.get_by_label("Nom").fill("placard SOUS evier")
     d.get_by_role("button", name="Ajouter", exact=True).click()
@@ -131,7 +137,7 @@ def scenario_flow(browser, base, label):
     check(label + " | annulation : rien n'est créé", len(stored(page)["locations"]) == 2)
 
     # Échap ferme sans rien changer
-    page.get_by_role("button", name="Ajouter un emplacement ici").click()
+    act(page, "Ajouter un emplacement ici")
     dlg(page).get_by_label("Nom").fill("Ne pas créer")
     page.keyboard.press("Escape")
     page.wait_for_selector("dialog.dialog[open]", state="detached")
@@ -139,33 +145,33 @@ def scenario_flow(browser, base, label):
 
     # Modification
     open_row(page, "Placard sous évier")
-    page.get_by_role("button", name="Modifier").click()
+    act(page, "Modifier")
     d = dlg(page)
     check(label + " | modifier : champs préremplis", d.get_by_label("Nom").input_value() == "Placard sous évier" and d.get_by_label("Type").input_value() == "meuble")
     d.get_by_label("Nom").fill("Placard évier")
     d.get_by_label("Type").select_option("autre")
     d.get_by_role("button", name="Enregistrer").click()
     wait_title(page, "Placard évier")
-    check(label + " | modification affichée (titre, type)", "Autre" in page.inner_text("#pane-detail .detail-meta"))
+    check(label + " | modification affichée (titre, type)", "Autre" in page.inner_text("#pane-detail .detail-kind"))
     check(label + " | fil d'Ariane mis à jour", "Placard évier" in page.inner_text("#pane-detail .breadcrumb"))
 
     # Sous-sous-emplacement et déplacement
     add_child(page, "Étagère haute", kind="etagere")
     page.wait_for_selector("#pane-detail .list-row:has-text('Étagère haute')")
-    page.get_by_role("button", name="Ajouter un emplacement ici").click()  # vérifie que la barre reste utilisable
+    act(page, "Ajouter un emplacement ici")  # vérifie que la barre reste utilisable
     page.keyboard.press("Escape")
     page.wait_for_selector("dialog.dialog[open]", state="detached")
 
     page.goto(base + "#/")
     page.wait_for_selector("#pane-detail .list")
-    page.get_by_role("button", name="Ajouter une pièce").click()
+    act(page, "Ajouter une pièce")
     dlg(page).get_by_label("Nom").fill("Garage")
     dlg(page).get_by_role("button", name="Ajouter", exact=True).click()
     page.wait_for_selector("#pane-detail .list-row:has-text('Garage')")
 
     open_row(page, "Cuisine")
     open_row(page, "Placard évier")
-    page.get_by_role("button", name="Déplacer").click()
+    act(page, "Déplacer")
     d = dlg(page)
     options = d.get_by_label("Nouvel emplacement parent").locator("option").all_inner_texts()
     check(label + " | déplacer : propose la racine et les autres emplacements", "Logement (racine)" in options and "Garage" in options and "Cuisine" in options, options)
@@ -180,7 +186,7 @@ def scenario_flow(browser, base, label):
 
     # Suppression refusée (non vide)
     n_before = len(stored(page)["locations"])
-    page.get_by_role("button", name="Supprimer").click()
+    act(page, "Supprimer")
     d = dlg(page)
     check(label + " | suppression d'un emplacement non vide refusée", "Suppression impossible" in d.inner_text() and "1 emplacement" in d.inner_text(), d.inner_text())
     d.get_by_role("button", name="OK").click()
@@ -189,13 +195,13 @@ def scenario_flow(browser, base, label):
 
     # Suppression d'un emplacement vide + retour au parent
     open_row(page, "Étagère haute")
-    page.get_by_role("button", name="Supprimer").click()
+    act(page, "Supprimer")
     d = dlg(page)
     check(label + " | confirmation demandée pour un emplacement vide", "est vide" in d.inner_text())
     d.get_by_role("button", name="Annuler").click()
     page.wait_for_selector("dialog.dialog[open]", state="detached")
     check(label + " | annuler la suppression conserve l'emplacement", len(stored(page)["locations"]) == n_before)
-    page.get_by_role("button", name="Supprimer").click()
+    act(page, "Supprimer")
     dlg(page).get_by_role("button", name="Supprimer", exact=True).click()
     wait_title(page, "Placard évier")
     check(label + " | suppression effectuée, retour au parent", len(stored(page)["locations"]) == n_before - 1)
@@ -218,7 +224,7 @@ def scenario_guards(browser, base):
     open_row(page, "Séjour")
     open_row(page, "Meuble living")
     open_row(page, "Tiroir bas gauche")
-    page.get_by_role("button", name="Supprimer").click()
+    act(page, "Supprimer")
     d = dlg(page)
     check("garde-fous | suppression refusée s'il contient un objet", "1 objet" in d.inner_text(), d.inner_text())
     d.get_by_role("button", name="OK").click()
@@ -249,7 +255,7 @@ def scenario_guards(browser, base):
     page.goto(base + "#/")
     page.wait_for_selector("#pane-detail .list")
     page.locator("#pane-detail .list-row", has_text="<img").first.click()
-    page.get_by_role("button", name="Modifier").click()
+    act(page, "Modifier")
     check("sécurité | dialogue : titre affiché comme texte", "<img src=x" in dlg(page).inner_text() and dlg(page).locator("img").count() == 0)
     check("sécurité | aucun script exécuté", page.evaluate("window.__xss") is None)
     page.keyboard.press("Escape")
@@ -278,9 +284,11 @@ def scenario_narrow(browser, base):
     wait_title(page, "Séjour")
     overflow = page.evaluate("document.documentElement.scrollWidth - window.innerWidth")
     check("replié | pas de défilement horizontal avec la barre d'actions", overflow <= 0, overflow)
-    tools = page.locator("#pane-detail .toolbar .button")
-    check("replié | 6 actions visibles pour un emplacement", tools.count() == 6)
-    check("replié | boutons d'action ≥ 44 px", all(tools.nth(i).bounding_box()["height"] >= 44 for i in range(tools.count())))
+    page.locator("#manage-toggle").click()
+    tools = page.locator(".ctx-menu .ctx-item")
+    check("replié | 6 actions dans le menu « Actions » d'un emplacement", tools.count() == 6)
+    check("replié | commandes d'action ≥ 44 px", all(tools.nth(i).bounding_box()["height"] >= 43 for i in range(tools.count())))
+    page.keyboard.press("Escape")
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j2-replie-fiche.png"))
     check("replié | aucune erreur console", not errors, errors)
@@ -296,7 +304,7 @@ def scenario_narrow(browser, base):
     wait_title(page, "Meuble living")
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j2-deplie-fiche.png"))
-    page.get_by_role("button", name="Déplacer").click()
+    act(page, "Déplacer")
     if SHOTS:
         page.screenshot(path=os.path.join(SHOTS, "j2-deplie-deplacer.png"))
     page.keyboard.press("Escape")

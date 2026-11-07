@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V015
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : contextmenu, features.furniture et ui.views.furniture déclarés dans REQUIRED (jalon 9.2).
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : bubble (info-bulle) déclaré dans REQUIRED (jalon 9.3).
 */
 (function () {
   'use strict';
@@ -30,6 +30,7 @@
     ['ui.components.dialog', 'js/ui/components/dialog.js'],
     ['ui.components.detailbar', 'js/ui/components/detailbar.js'],
     ['ui.components.contextmenu', 'js/ui/components/contextmenu.js'],
+    ['ui.components.bubble', 'js/ui/components/bubble.js'],
     ['ui.layout', 'js/ui/layout.js'],
     ['ui.views.treerail', 'js/ui/views/treerail.js'],
     ['ui.views.browse', 'js/ui/views/browse.js'],

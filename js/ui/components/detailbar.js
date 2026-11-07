@@ -1,8 +1,8 @@
 /*
   js/ui/components/detailbar.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : création — en-tête figé du volet de détail (fil d'Ariane + titre), flèches de niveau, bouton replier la partie « gestion ».
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : jalon 9.3 — en-tête figé : nom + ℹ️ (info-bulle) + libellé de catégorie (chevron si tronqué) ; flèches de niveau et « Actions » (menu déroulant) ; commutateur Liste / Plan dessous, sans bande supplémentaire.
 */
 (function () {
   'use strict';
@@ -10,7 +10,6 @@
   var R = window.Rangement;
   var el = R.ui.dom.el;
 
-  var manageOpen = true;   // état de la partie « gestion » : conservé d'un écran à l'autre
   var lastDown = {};       // identifiant du parent ('' = racine) → dernier enfant affiché { type, id }
 
   // ref : { type: 'root' } | { type: 'location', id } | { type: 'item', id }
@@ -57,40 +56,87 @@
       : el('button', { class: 'button button--secondary button--icon', type: 'button', disabled: true, 'aria-label': label, title: label }, [glyph]);
   }
 
-  // opts : { ref, path, currentLabel?, currentLevel?, title, level, depleted?, toolbar }
-  // Renvoie { head, manage } : `head` est figé en haut du volet, `manage` contient la barre d'actions repliable.
+  // Libellé de catégorie à la suite du nom : tronqué si la place manque, avec un chevron qui ouvre une bulle avec le libellé complet.
+  function kindNode(kind, level) {
+    var text = el('span', { class: 'detail-kind-text' }, [kind]);
+    var more = el('button', {
+      class: 'kind-more', type: 'button', hidden: true, 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
+      'aria-label': 'Afficher le libellé complet : ' + kind, title: kind
+    }, [el('span', { class: 'kind-chev', 'aria-hidden': 'true' }, ['\u25BE'])]);
+    more.addEventListener('click', function () {
+      R.ui.components.bubble.toggle({ anchor: more, lines: [kind], level: level, label: 'Libellé complet' });
+    });
+    var node = el('span', { class: 'detail-kind' }, [text, more]);
+
+    function refresh() {
+      if (!text.isConnected) { return; }
+      more.hidden = true;                                   // on mesure sans le chevron : s'il n'y a pas de troncature, il reste caché
+      more.hidden = !(text.scrollWidth > text.clientWidth + 1);
+    }
+    function schedule() {
+      refresh();
+      if (window.requestAnimationFrame) { window.requestAnimationFrame(function () { refresh(); window.requestAnimationFrame(refresh); }); }
+    }
+    function onResize() {
+      if (!text.isConnected) { window.removeEventListener('resize', onResize); return; }
+      refresh();
+    }
+    window.addEventListener('resize', onResize);
+    node._refresh = schedule;
+    return node;
+  }
+
+  // opts : { ref, path, currentLabel?, currentLevel?, title, level, depleted?, kind?, info?: string[], actions?: [{ label, run, danger? }], switcher?: Node }
+  // Renvoie { head } : l'en-tête, figé en haut du volet.
   function create(opts) {
     remember(opts.ref);
 
-    var toolbarId = 'manage-panel';
-    var wrap = el('div', { class: 'manage', id: toolbarId, 'data-open': manageOpen ? 'true' : 'false' }, [
-      el('div', { class: 'manage-inner' }, [opts.toolbar])
-    ]);
-    var caret = el('span', { 'aria-hidden': 'true' }, [manageOpen ? '\u25BE' : '\u25B8']);
-    var toggle = el('button', {
-      class: 'button button--secondary button--toggle', type: 'button',
-      'aria-expanded': manageOpen ? 'true' : 'false', 'aria-controls': toolbarId, id: 'manage-toggle'
-    }, ['Actions', caret]);
-    toggle.addEventListener('click', function () {
-      manageOpen = !manageOpen;
-      wrap.setAttribute('data-open', manageOpen ? 'true' : 'false');
-      toggle.setAttribute('aria-expanded', manageOpen ? 'true' : 'false');
-      caret.textContent = manageOpen ? '\u25BE' : '\u25B8';
-    });
-
-    var nodes = [];
-    if (opts.path.length || opts.currentLabel) {
-      nodes.push(R.ui.components.breadcrumb.create(opts.path, opts.currentLabel, opts.currentLevel));
+    var tools = [
+      arrow('\u25B2', 'Niveau supérieur', upTarget(opts.ref)),
+      arrow('\u25BC', 'Niveau inférieur', downTarget(opts.ref))
+    ];
+    if (opts.actions && opts.actions.length) {
+      var toggle = el('button', {
+        class: 'button button--secondary button--toggle', type: 'button', id: 'manage-toggle', 'aria-haspopup': 'true'
+      }, ['Actions', el('span', { 'aria-hidden': 'true' }, ['\u25BE'])]);
+      toggle.addEventListener('click', function () {
+        R.ui.components.contextmenu.open({
+          anchor: toggle, title: opts.title, subtitle: 'Actions', label: 'Actions', level: opts.level, items: opts.actions
+        });
+      });
+      tools.push(toggle);
     }
-    nodes.push(el('header', { class: 'detail-head detail-bar' + (opts.depleted ? ' detail-head--depleted' : ''), 'data-level': opts.level }, [
-      el('h2', { class: 'detail-title' }, [opts.title]),
-      el('div', { class: 'detail-bar-tools' }, [
-        arrow('\u25B2', 'Niveau supérieur', upTarget(opts.ref)),
-        arrow('\u25BC', 'Niveau inférieur', downTarget(opts.ref)),
-        toggle
-      ])
-    ]));
-    return { head: el('div', { class: 'detail-sticky' }, nodes), manage: wrap };
+
+    var row = [el('h2', { class: 'detail-title' }, [opts.title])];
+    if (opts.info && opts.info.length) {
+      var infoBtn = el('button', {
+        class: 'info-btn', type: 'button', id: 'info-toggle', 'aria-haspopup': 'dialog', 'aria-expanded': 'false',
+        'aria-label': 'Informations sur \u00ab ' + opts.title + ' \u00bb', title: 'Informations'
+      }, [el('span', { class: 'info-glyph', 'aria-hidden': 'true' }, ['i'])]);
+      infoBtn.addEventListener('click', function () {
+        R.ui.components.bubble.toggle({ anchor: infoBtn, title: opts.title, lines: opts.info, level: opts.level, label: 'Informations' });
+      });
+      row.push(infoBtn);
+    }
+    var kind = opts.kind ? kindNode(opts.kind, opts.level) : null;
+    if (kind) { row.push(kind); }
+
+    var left = [];
+    if (opts.path.length || opts.currentLabel) {
+      left.push(R.ui.components.breadcrumb.create(opts.path, opts.currentLabel, opts.currentLevel));
+    }
+    left.push(el('div', { class: 'detail-titlerow' + (opts.depleted ? ' detail-head--depleted' : '') }, row));
+
+    var right = [el('div', { class: 'detail-bar-tools-row' }, tools)];
+    if (opts.switcher) { right.push(opts.switcher); }
+
+    var header = el('header', { class: 'detail-bar', 'data-level': opts.level }, [
+      el('div', { class: 'detail-bar-left' }, left),
+      el('div', { class: 'detail-bar-tools' }, right)
+    ]);
+    var head = el('div', { class: 'detail-sticky' }, [header]);
+    if (kind) { kind._refresh(); }
+    return { head: head };
   }
 
   R.ns('ui.components').detailbar = { create: create };

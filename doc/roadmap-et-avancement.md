@@ -1,15 +1,21 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V015a
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : jalon 9 (interface centrée sur les plans), étapes 1 et 2 livrées (V015).
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : jalon 9 (interface centrée sur les plans), étapes 1 à 3 livrées (V016 : ℹ️, Actions déroulant, en-tête figé enrichi).
 -->
 
-# Roadmap et avancement — Rangement `V015a`
+# Roadmap et avancement — Rangement `V016`
 
-> Dernière mise à jour : 05/11/2026 02:30 (Paris) — **V015a**
+> Dernière mise à jour : 06/11/2026 12:00 (Paris) — **V016**
 
 ## État actuel
+
+- **Jalon 9.2 (V015) validé.** **Étape 9.3 livrée (V016)** : pictogramme **ℹ️** juste après le nom de l'élément affiché (aussi sur la fiche d'un objet) avec info-bulle (niveau, nombre d'emplacements et d'objets, note) ; le **texte de rappel sous « Liste / Plan » a disparu** ; menu **« Actions » déroulant** ; **libellé de catégorie** à la suite du nom (tronqué avec chevron rotatif si besoin) ; **Liste / Plan** dans l'en-tête figé, sous les flèches et « Actions », sans allonger le bandeau.
+- Tests Playwright/Chromium : **1020 tests** (62 + 73 + 131 + 73 + 137 + 52 + 133 + 88 jalons 1 à 7, 77 jalon 8, 43 jalon 9.1, 88 jalon 9.2, **63 jalon 9.3**), 0 échec. Les tests des jalons 2, 3, 6 bis, 7, 8, 9 et 9.2 ont été adaptés (commandes passées par le menu « Actions », légende du plan remplacée par l'info-bulle ; 6 vérifications de la barre repliable et des boutons « Ajouter » colorés supprimées en 6 bis).
+- En attente : **validation de la V016 par l'utilisateur** (voir `ToDo_Utilisateur.md`).
+
+### (historique) État à la V015a
 
 - **Jalons 8 et 9.1 (V014) validés.** **Étape 9.2 livrée (V015)** : un appui sur une case d'un plan ouvre un **menu contextuel** près d'elle (« Ouvrir » en tête, plus grand et en gras, puis Placer et dimensionner, Ajouter un objet / un emplacement, Modifier, Déplacer, Dupliquer, Supprimer) ; **bouton « + » flottant** (ajouter une pièce / un objet / un emplacement au niveau affiché, régler la grille) ; **pavés de flèches** intégrés au placement, avec « Grille… » et « Terminer » ; le menu « Ajuster » a disparu (réglages de grille en boîte de dialogue).
 - Tests Playwright/Chromium : **958 tests** (62 + 73 + 131 + 73 + 137 + 52 + 139 + 87 jalons 1 à 7, 77 jalon 8, 43 jalon 9.1, **84 jalon 9.2**), 0 échec.
@@ -80,6 +86,7 @@
 | Jalon 7 (V010 / V011) | **Validé** : vue graphique des meubles uniquement (pas de plan de pièce pour l'instant) ; géométrie dans `geometry` ; commutateur Liste / Vue graphique ; niveau rappelé à chaque affichage ; nombre d'objets sur les cases. **V011 (demandé par l'utilisateur)** : grille de cases remplie automatiquement, nombre de cases modifiable, emplacements déplaçables et redimensionnables en cases (flèches, pas de glisser-déposer), **deux bandes** au-dessus et en dessous du meuble. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix mémorisé ; dessin en HTML/CSS ; places figées dès la première modification ; **V012 (demandé par l'utilisateur)** : échange de deux emplacements en cas de déplacement sur une case occupée, pavés de flèches (déplacer, taille) fixés en bas de l'écran ; *hypothèses de Claude :* l'échange est refusé si plusieurs emplacements sont sur le chemin ou si l'autre ne tient pas à la place libérée ; 6 colonnes, 8 lignes et 3 lignes par bande au maximum ; nombre d'objets de l'arborescence = total sous-niveaux compris, masqué si zéro. |
 | Jalon 8 (V013) | **Validé** : pièces en **tuiles collées** (pas de murs, portes ni fenêtres pour l'instant), réutilisation de la grille des meubles, pièces = rectangles de cases (pas de formes en L), nom + nombre d'objets sur chaque case, grille jusqu'à 20 × 20, places automatiques puis figées, disposition des meubles dans une pièce = jalon 8 bis à part. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix Liste / Plan mémorisé séparément de celui des meubles ; 2 / 3 / 4 colonnes automatiques selon le nombre de pièces ; plan stocké dans l'enveloppe (`plan`), facultatif ; cadre à défilement horizontal si beaucoup de colonnes ; l'icône d'une tuile ouvre les meubles de la pièce sur la même grille (première version du jalon 8 bis). |
 | Jalon 9 (V014 →) | **Validé** : les plans deviennent l'élément principal ; tout tient sur l'écran déplié (plan **et** menus), le plan peut être agrandi ; navigation fluide et intuitive. Dimensions réelles de l'utilisateur : logement en **7 colonnes × 10 lignes**, plus grande pièce en 6 × 8 ; libellés absents ou tronqués sur les très petites pièces : sans gêne. **Geste** : un appui sur un élément ouvre un **menu contextuel près de lui**, dont la première commande, plus grande et en gras, est **« Ouvrir »** (quasi un double appui) ; pas d'appui long. **Création au niveau du plan** (nouvelle pièce, etc.) : bouton **« + » flottant** (pas de menu contextuel possible hors d'un élément). **Flèches** déplacer / taille : intégrées au menu contextuel, toujours visibles pendant l'édition, masquables à la fin, sans trop cacher le plan. **Pictogrammes ℹ️** : ouvrent des infobulles pour alléger l'interface (contenu à définir à l'usage : mode d'emploi contextuel, précisions sur un élément). Le menu « Ajuster » disparaîtra de lui-même. Découpage validé : 9.1 plan ajusté à l'écran ; 9.2 menu contextuel (+ bouton « + », flèches intégrées) ; 9.3 infobulles ℹ️ ; 9.4 plan en vue d'accueil ; les tests de chaque étape affineront les suivantes. *(Hypothèses de Claude, à valider :)* 9.1 : cases jamais sous 28 px (le cadre défile alors), la hauteur ne les réduit pas sous 48 px (la page défile alors), « compactes » sous 60 px, 72 px minimum en taille réelle ; le choix Liste / Plan est commun au logement et aux pièces ; liste par défaut jusqu'à l'étape 9.4. |
+| Jalon 9.3 (V016) | **Demandé / validé par l'utilisateur** : ℹ️ juste après le nom (y compris fiche d'objet) avec info-bulle reprenant niveau, nombre d'emplacements et d'objets ; menu « Actions » conservé mais déroulant ; libellé de catégorie dans l'en-tête figé à la suite du nom (tronqué + chevron rotatif → bulle) ; Liste / Plan sous les flèches et « Actions » sans augmenter la hauteur du bandeau. *(Hypothèses de Claude, à valider à l'usage :)* le texte de rappel du plan ne reste que dans un niveau inférieur dessiné ; la note d'un emplacement passe dans l'info-bulle ; libellé « Objet » sur une fiche ; boutons du commutateur de 32 px de haut (zone d'appui étendue) ; en-tête en deux colonnes (en écran replié : fil d'Ariane sur toute la largeur, titre un peu plus petit) ; les boutons « Ajouter… » du menu ne sont plus colorés. |
 | Jalon 9.2 (V015) | *(Hypothèses de Claude, à valider à l'usage :)* commandes du menu dans l'ordre Ouvrir, Placer et dimensionner, Ajouter un objet ici, Ajouter un emplacement ici, Modifier, Déplacer, Dupliquer, Supprimer ; la case n'est plus un lien (tout passe par « Ouvrir ») ; **« Placer et dimensionner »** remplace « Ajuster » : il sélectionne la case et affiche les pavés de flèches, avec « Grille… » et « Terminer » ; le « + » est caché pendant le placement ; les réglages de grille (colonnes, lignes ; pour un meuble proportions, dessus, dessous, pieds) sont dans une boîte de dialogue ouverte par « + » › « Régler la grille… » ; le menu est aussi proposé dans la vue graphique d'un meuble et de ses niveaux ; le « + » agit sur le niveau affiché. |
 | PWA (V008) | Pré-cache explicite versionné ; **mise à jour sur accord** (jamais de `skipWaiting` automatique) ; bouton « Vider le cache » (données intactes) ; pas de service worker en `file://`. *(Règles de ARCHITECTURE.md §5, §6.)* |
 
@@ -159,10 +166,10 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
 - ⬜ *(plus tard, si utile)* portes et fenêtres ; formes de pièces non rectangulaires
 
-### Jalon 9 — Interface centrée sur les plans 🟦 (étapes 1 et 2 livrées, V014 et V015)
+### Jalon 9 — Interface centrée sur les plans 🟦 (étapes 1, 2 et 3 livrées, V014, V015 et V016)
 - ✅ 9.1 Plan ajusté à l'écran (largeur et hauteur), bouton « Agrandir », tuiles compactes, plan d'une pièce (commutateur Liste / Plan sur une pièce)
 - ✅ 9.2 Menu contextuel près de l'élément touché (« Ouvrir » en tête, commandes du menu « Actions » de l'élément, pavés de flèches intégrés et masquables) + bouton « + » flottant pour créer au niveau du plan (V015)
-- ⬜ 9.3 Pictogrammes ℹ️ et infobulles (allègement de l'interface)
+- ✅ 9.3 Pictogramme ℹ️ et info-bulle, menu « Actions » déroulant, libellé de catégorie et Liste / Plan dans l'en-tête figé (V016)
 - ⬜ 9.4 Plan comme vue d'accueil ; place de la liste et de l'arborescence ; affichage des objets dans le plan
 - ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
 
@@ -199,3 +206,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V014 | 02/11/2026 22:47 | Jalon 9 : réorientation vers les plans décidée ; étape 1 livrée (plan ajusté à l'écran, plan d'une pièce ; 43 tests dédiés, 875 au total) |
 | V015 | 05/11/2026 02:30 | Jalons 8 et 9.1 validés ; étape 9.2 livrée (menu contextuel, bouton « + », grille en boîte de dialogue ; 84 tests dédiés, 958 au total) |
 | V015a | 05/11/2026 | Correctif : niveau inférieur du plan oublié au changement d'écran (88 tests dédiés au 9.2, 962 au total) |
+| V016 | 06/11/2026 12:00 | Jalon 9.2 validé ; étape 9.3 livrée (ℹ️, Actions déroulant, en-tête figé enrichi ; 63 tests dédiés, 1020 au total) |

@@ -1,7 +1,7 @@
 # tests/test_jalon9.py — Application « Rangement »
-# Version : V015
-# Horodatage : 2026-11-05 02:30 (heure de Paris)
-# Résumé : adaptation V015 : menu contextuel sur les cases, placement par « Placer et dimensionner », réglages de la grille dans une boîte de dialogue.
+# Version : V016
+# Horodatage : 2026-11-06 12:00 (heure de Paris)
+# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -129,6 +129,15 @@ def select_cell(page, name):
         start_edit(page, name)
 
 
+def info(page):
+    """Texte de l'info-bulle ℹ️ de l'en-tête (V016)."""
+    page.locator("#info-toggle").click()
+    page.wait_for_selector(".bubble")
+    txt = page.locator(".bubble").inner_text()
+    page.keyboard.press("Escape")
+    return txt
+
+
 def scenario_fit(browser, base):
     errors = []
     ctx, page = start(browser, base, 884, 1100, errors)
@@ -191,13 +200,8 @@ def scenario_height(browser, base):
     plan(page)
     settle(page)
     w1, _ = cell_size(page)
-    page.locator("#manage-toggle").click()
-    page.wait_for_timeout(500)
-    w2, _ = cell_size(page)
-    check("hauteur | replier « Actions » libère de la place : cases plus grandes", w2 >= w1, (w1, w2))
-    check("hauteur | cases jamais sous 48 px à cause de la hauteur", w1 >= 47 and w2 >= 47, (w1, w2))
-    page.locator("#manage-toggle").click()
-    page.wait_for_timeout(500)
+    check("hauteur | plus de texte de rappel sous Liste / Plan", page.locator(".furn-caption").count() == 0)
+    check("hauteur | cases jamais sous 48 px à cause de la hauteur", w1 >= 47, w1)
     check("hauteur | aucune erreur console", not errors, errors)
     ctx.close()
 
@@ -227,7 +231,7 @@ def scenario_room(browser, base):
     settle(page)
     names = page.locator(".furn-cell .furn-name").all_inner_texts()
     check("pièce | les meubles de la pièce sont dessinés", names == ["Meuble living"], names)
-    cap = page.inner_text(".furn-caption")
+    cap = info(page)
     check("pièce | niveau rappelé", "Niveau 1" in cap and "Pièce" in cap and "Séjour" in cap and "niveau 2" in cap, cap)
     w, h = cell_size(page)
     check("pièce | cases carrées, ajustées à l'écran", abs(w - h) <= 2 and not frame_scrolls(page), (w, h))

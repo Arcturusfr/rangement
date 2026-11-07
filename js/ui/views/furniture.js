@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V015a
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : correctif : le niveau inférieur ouvert (icône de niveau) est oublié à chaque changement d'écran. Jalon 9.2 — un appui sur une case ouvre un menu contextuel (« Ouvrir » en tête, puis les commandes de l'élément) ; bouton « + » flottant (créer, régler la grille) ; réglages de grille dans une boîte de dialogue ; pavés de flèches avec « Grille… » et « Terminer » (le bouton « Ajuster » disparaît).
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : jalon 9.3 — le texte de rappel sous « Liste / Plan » disparaît (il est dans l'info-bulle ℹ️ de l'en-tête) ; il ne reste que lorsqu'un niveau inférieur est dessiné (icône de niveau) ; commutateur compact pour l'en-tête figé.
 */
 (function () {
   'use strict';
@@ -300,11 +300,13 @@
     var sel = editing ? lay.cells.filter(function (c) { return c.id === selected; })[0] : null;
     var kidsCount = lay.cells.length;
 
+    if (shownId !== furnId) {          // niveau inférieur : le texte de rappel reste, l'en-tête ne décrit que l'emplacement ouvert
     wrap.appendChild(el('p', { class: 'furn-caption', 'data-level': level }, [atRoot
       ? 'Plan du logement' + (kidsCount ? ' : ses ' + plural(kidsCount, 'pièce', 'pièces') + ' (niveau 1) sont dessinées ci-dessous.' : ' : aucune pièce.')
       : 'Niveau ' + (depth + 1) + ' \u2014 ' + levelName(depth) + ' \u00ab ' + loc.name + ' \u00bb' + (kidsCount
         ? ' : ses ' + plural(kidsCount, 'sous-emplacement', 'sous-emplacements') + ' (niveau ' + (depth + 2) + ') sont dessinés ci-dessous.'
         : ' : aucun sous-emplacement.')]));
+    }
 
     var bar = [];
     if (shownId !== furnId) {

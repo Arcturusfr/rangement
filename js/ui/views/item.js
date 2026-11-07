@@ -1,18 +1,14 @@
 /*
   js/ui/views/item.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : en-tête figé (detailbar), bouton Dupliquer, niveaux de couleur.
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : jalon 9.3 — ℹ️ et libellé « Objet » dans l'en-tête figé, « Actions » en menu déroulant.
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
   var el = R.ui.dom.el;
-
-  function btn(label, variant, onclick) {
-    return el('button', { class: 'button' + (variant ? ' button--' + variant : ''), type: 'button', onclick: onclick }, [label]);
-  }
 
   function section(title, content) {
     return el('section', { class: 'section' }, [el('h3', { class: 'section-title' }, [title]), content]);
@@ -33,18 +29,23 @@
       title: item.name,
       level: depleted ? 'zero' : 'objet',
       depleted: depleted,
-      toolbar: el('div', { class: 'toolbar', role: 'group', 'aria-label': 'Actions' }, [
-        btn('Modifier', 'secondary', function () { A.openEdit(item.id); }),
-        btn('Déplacer', 'secondary', function () { A.openMove(item.id); }),
-        btn('Dupliquer', 'secondary', function () { A.openDuplicate(item.id); }),
-        btn('Supprimer', 'danger-outline', function () { A.askDelete(item.id); })
-      ])
+      kind: 'Objet',
+      info: [
+        'Niveau ' + (R.store.depthOf(item.locationId) + 2) + ' \u2014 Objet',
+        'Rangé dans \u00ab ' + path[path.length - 1].name + ' \u00bb (niveau ' + (R.store.depthOf(item.locationId) + 1) + ')',
+        'Quantité : ' + R.features.items.formatQuantity(item.quantity) + (depleted ? ' (épuisé)' : '')
+      ],
+      actions: [
+        { label: 'Modifier', run: function () { A.openEdit(item.id); } },
+        { label: 'D\u00e9placer', run: function () { A.openMove(item.id); } },
+        { label: 'Dupliquer', run: function () { A.openDuplicate(item.id); } },
+        { label: 'Supprimer', danger: true, run: function () { A.askDelete(item.id); } }
+      ]
     });
 
     var nodes = [
       bar.head,
       el('p', { class: 'detail-meta' }, ['Quantité : ' + R.features.items.formatQuantity(item.quantity) + (depleted ? ' (épuisé)' : '')]),
-      bar.manage,
       section('Rangé dans', el('p', null, [
         el('a', { class: 'item-where', href: R.ui.router.href(item.locationId) }, [where])
       ]))

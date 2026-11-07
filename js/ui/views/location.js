@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V014
-  Horodatage : 2026-11-02 22:47 (heure de Paris)
-  Résumé : commutateur Liste / Plan aussi sur une pièce (plan de la pièce sans passer par le logement).
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : jalon 9.3 — ℹ️ et libellé de catégorie dans l'en-tête figé, « Actions » en menu déroulant, commutateur Liste / Plan dans l'en-tête ; la ligne « Type — note » disparaît (la note passe dans l'info-bulle).
 */
 (function () {
   'use strict';
@@ -57,19 +57,45 @@
     return el('button', { class: 'button' + (variant ? ' button--' + variant : ''), type: 'button', 'data-level': level || null, onclick: onclick }, [label]);
   }
 
-  function toolbar(loc, depth) {
+  var LEVEL_NAMES = ['Pièce', 'Emplacement', 'Sous-emplacement', 'Sous-sous-emplacement'];
+
+  function levelName(depth) { return LEVEL_NAMES[depth] || ('Niveau ' + (depth + 1)); }
+
+  // Commandes du menu déroulant « Actions ».
+  function actions(loc, depth) {
     var A = R.ui.views.locationActions;
-    var buttons = loc
-      ? [
-          btn('Ajouter un objet ici', '', function () { R.ui.views.itemActions.openCreate(loc.id); }, 'objet'),
-          btn('Ajouter un emplacement ici', '', function () { A.openCreate(loc.id); }, R.models.levelOf(depth + 1)),
-          btn('Modifier', 'secondary', function () { A.openEdit(loc.id); }),
-          btn('Déplacer', 'secondary', function () { A.openMove(loc.id); }),
-          btn('Dupliquer', 'secondary', function () { A.openDuplicate(loc.id); }),
-          btn('Supprimer', 'danger-outline', function () { A.askDelete(loc.id); })
-        ]
-      : [btn('Ajouter une pièce', '', function () { A.openCreate(null); }, 'piece')];
-    return el('div', { class: 'toolbar', role: 'group', 'aria-label': 'Actions' }, buttons);
+    if (!loc) { return [{ label: 'Ajouter une pièce', run: function () { A.openCreate(null); } }]; }
+    return [
+      { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(loc.id); } },
+      { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(loc.id); } },
+      { label: 'Modifier', run: function () { A.openEdit(loc.id); } },
+      { label: 'D\u00e9placer', run: function () { A.openMove(loc.id); } },
+      { label: 'Dupliquer', run: function () { A.openDuplicate(loc.id); } },
+      { label: 'Supprimer', danger: true, run: function () { A.askDelete(loc.id); } }
+    ];
+  }
+
+  // Texte de l'info-bulle ℹ️ : niveau, nombre d'emplacements et d'objets (et note).
+  function infoLines(loc, depth) {
+    var lines = [];
+    if (!loc) {
+      var rooms = R.store.childLocations(null).length;
+      lines.push('Niveau 0 \u2014 le logement');
+      lines.push(rooms ? plural(rooms, 'pièce', 'pièces') + ' (niveau 1)' : 'Aucune pièce');
+      lines.push('Au total : ' + plural(R.store.locations().length, 'emplacement', 'emplacements') + ' et ' + plural(R.store.items().length, 'objet', 'objets'));
+      return lines;
+    }
+    var subs = R.store.childLocations(loc.id).length;
+    var total = R.store.countIn(loc.id);
+    var word = depth === 0 ? ['emplacement', 'emplacements'] : ['sous-emplacement', 'sous-emplacements'];
+    lines.push('Niveau ' + (depth + 1) + ' \u2014 ' + levelName(depth));
+    lines.push(subs ? plural(subs, word[0], word[1]) + ' (niveau ' + (depth + 2) + ')' : 'Aucun ' + word[0]);
+    lines.push('Objets rangés directement ici : ' + R.store.itemsIn(loc.id).length);
+    if (total.locations > subs || total.items > R.store.itemsIn(loc.id).length) {
+      lines.push('Contenu total : ' + plural(total.locations, 'emplacement', 'emplacements') + ' et ' + plural(total.items, 'objet', 'objets') + ' (tous niveaux)');
+    }
+    if (loc.note) { lines.push('Note : ' + loc.note); }
+    return lines;
   }
 
   function renderStart() {
@@ -135,35 +161,28 @@
     }
 
     var depth = loc ? R.store.depthOf(loc.id) : -1;
+    var V = R.ui.views.furniture;
+    var planScope = (!loc || depth === 0);                                      // logement ou pièce : un plan
+    var furnScope = !!loc && R.features.furniture.isFurniture(loc.id);          // meuble : vue graphique
     var bar = R.ui.components.detailbar.create({
       ref: loc ? { type: 'location', id: loc.id } : { type: 'root' },
       path: loc ? R.store.pathOf(id) : [],
       title: loc ? loc.name : R.models.rootLabel(),
       level: loc ? R.models.levelOf(depth) : 'racine',
-      toolbar: toolbar(loc, depth)
+      kind: loc ? R.models.kindLabel(loc.kind) : null,
+      info: infoLines(loc, depth),
+      actions: actions(loc, depth),
+      switcher: planScope ? V.switcher('plan') : (furnScope ? V.switcher() : null)
     });
     container.appendChild(bar.head);
-    if (loc) {
-      container.appendChild(el('p', { class: 'detail-meta' }, [
-        R.models.kindLabel(loc.kind) + (loc.note ? ' \u2014 ' + loc.note : '')
-      ]));
-    }
-    container.appendChild(bar.manage);
 
-    if (!loc || depth === 0) {                    // logement ou pièce : un plan (cases = pièces, ou meubles de la pièce)
-      container.appendChild(R.ui.views.furniture.switcher('plan'));
-      if (R.ui.views.furniture.mode('plan') === 'graphic') {
-        container.appendChild(R.ui.views.furniture.createPlan(loc ? loc.id : null));
-        return;
-      }
+    if (planScope && V.mode('plan') === 'graphic') {
+      container.appendChild(V.createPlan(loc ? loc.id : null));
+      return;
     }
-
-    if (loc && R.features.furniture.isFurniture(loc.id)) {
-      container.appendChild(R.ui.views.furniture.switcher());
-      if (R.ui.views.furniture.mode() === 'graphic') {
-        container.appendChild(R.ui.views.furniture.create(loc.id));
-        return;
-      }
+    if (furnScope && V.mode() === 'graphic') {
+      container.appendChild(V.create(loc.id));
+      return;
     }
 
     var kids = locationRows(loc ? loc.id : null);

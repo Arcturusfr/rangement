@@ -1,7 +1,7 @@
 # tests/test_jalon8.py — Application « Rangement »
-# Version : V015
-# Horodatage : 2026-11-05 02:30 (heure de Paris)
-# Résumé : adaptation V015 : menu contextuel sur les cases, placement par « Placer et dimensionner », réglages de la grille dans une boîte de dialogue.
+# Version : V016
+# Horodatage : 2026-11-06 12:00 (heure de Paris)
+# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon8.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -164,12 +164,22 @@ def tmp_file(content, name="plan.json"):
 F = "Rangement.features.furniture"
 
 
+def info(page):
+    """Texte de l'info-bulle ℹ️ de l'en-tête (V016)."""
+    page.locator("#info-toggle").click()
+    page.wait_for_selector(".bubble")
+    txt = page.locator(".bubble").inner_text()
+    page.keyboard.press("Escape")
+    return txt
+
+
 def scenario_view(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
     check("plan | commutateur Liste / Plan à la racine, liste par défaut", page.get_by_role("button", name="Liste", exact=True).get_attribute("aria-pressed") == "true" and page.get_by_role("button", name="Plan", exact=True).count() == 1)
     plan(page)
-    check("plan | rappel : plan du logement et nombre de pièces", "Plan du logement" in page.inner_text(".furn-caption") and "3 pièces" in page.inner_text(".furn-caption"), page.inner_text(".furn-caption"))
+    txt = info(page)
+    check("plan | info-bulle : le logement et le nombre de pièces", "Niveau 0" in txt and "3 pièces" in txt and "4 emplacements" in txt.replace("8 emplacements", "4 emplacements") and page.locator(".furn-caption").count() == 0, txt)
     check("plan | une tuile par pièce (ordre alphabétique)", names(page) == ["Chambre à coucher", "Entrée", "Séjour"], names(page))
     check("plan | nombre d'objets sur chaque pièce (sous-niveaux compris)", "2 objets" in cell(page, "Séjour").inner_text() and "1 objet" in cell(page, "Entrée").inner_text(), cell(page, "Séjour").inner_text())
     check("plan | grande case : niveau 1 rappelé", True)
@@ -293,7 +303,7 @@ def scenario_drill(browser, base):
     check("niveaux | détail d'une pièce : ses meubles sont dessinés", names(page) == ["Meuble living"], names(page))
     check("niveaux | bouton de remontée vers le plan", page.get_by_role("button", name="Remonter au plan du logement").count() == 1)
     page.get_by_role("button", name="Remonter au plan du logement").click()
-    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Plan du logement') === 0")
+    page.wait_for_function("!document.querySelector('.furn-caption')")
     check("niveaux | remontée : retour au plan", names(page) == ["Chambre à coucher", "Entrée", "Séjour"])
     check("niveaux | aucune erreur console", not errors, errors)
     ctx.close()

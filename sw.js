@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V015a
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : version V015a (correctif) ; contextmenu.js pré-caché.
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : version V016 ; bubble.js pré-caché.
 */
 'use strict';
 
-var VERSION = 'V015a';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V016';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
@@ -39,6 +39,7 @@ var FILES = [
   'js/ui/components/dialog.js',
   'js/ui/components/detailbar.js',
   'js/ui/components/contextmenu.js',
+  'js/ui/components/bubble.js',
   'js/ui/layout.js',
   'js/ui/views/treerail.js',
   'js/ui/views/browse.js',

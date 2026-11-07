@@ -1,7 +1,7 @@
 # tests/test_jalon9_2.py — Application « Rangement »
-# Version : V015a
-# Horodatage : 2026-11-05 02:30 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 9, étape 2 (menu contextuel près d'une case, bouton « + » flottant, réglage de la grille, pavé de flèches avec « Grille… » et « Terminer »).
+# Version : V016
+# Horodatage : 2026-11-06 12:00 (heure de Paris)
+# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_2.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -111,6 +111,15 @@ def valid(page):
 def in_screen(page, sel, w, h):
     b = page.locator(sel).bounding_box()
     return b is not None and b["x"] >= 0 and b["y"] >= 0 and b["x"] + b["width"] <= w + 1 and b["y"] + b["height"] <= h + 1, b
+
+
+def info(page):
+    """Texte de l'info-bulle ℹ️ de l'en-tête (V016)."""
+    page.locator("#info-toggle").click()
+    page.wait_for_selector(".bubble")
+    txt = page.locator(".bubble").inner_text()
+    page.keyboard.press("Escape")
+    return txt
 
 
 def scenario_menu(browser, base):
@@ -420,7 +429,9 @@ def scenario_focus(browser, base):
     page.goto(base + "#/l/" + sej)
     wait_title(page, "Séjour")
     page.wait_for_selector(".furn-body[data-fit]")
-    check("niveau | revenir sur la pièce : on voit la pièce, pas le meuble ouvert avant", page.inner_text(".furn-caption").startswith("Niveau 1"), page.inner_text(".furn-caption"))
+    cnt = page.locator(".furn-caption").count()
+    txt = info(page)
+    check("niveau | revenir sur la pièce : on voit la pièce, pas le meuble ouvert avant", cnt == 0 and "Niveau 1" in txt, (cnt, txt))
     check("niveau | les meubles de la pièce sont dessinés", page.locator(".furn-cell .furn-name").all_inner_texts() == ["Meuble living"])
     cell(page, "Meuble living").locator(".furn-more").click()
     page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 2') === 0")

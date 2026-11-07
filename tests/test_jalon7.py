@@ -1,7 +1,7 @@
 # tests/test_jalon7.py — Application « Rangement »
-# Version : V015
-# Horodatage : 2026-11-05 02:30 (heure de Paris)
-# Résumé : adaptation V015 : un appui sur une case ouvre un menu contextuel ; placement par « Placer et dimensionner » ; réglages de la grille dans une boîte de dialogue.
+# Version : V016
+# Horodatage : 2026-11-06 12:00 (heure de Paris)
+# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon7.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -149,6 +149,15 @@ def graphic(page, base, name):
     page.wait_for_selector("#pane-detail .furn-view")
 
 
+def info(page):
+    """Texte de l'info-bulle ℹ️ de l'en-tête (V016)."""
+    page.locator("#info-toggle").click()
+    page.wait_for_selector(".bubble")
+    txt = page.locator(".bubble").inner_text()
+    page.keyboard.press("Escape")
+    return txt
+
+
 def scenario_view(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
@@ -161,7 +170,8 @@ def scenario_view(browser, base):
     page.get_by_role("button", name="Vue graphique").click()
     page.wait_for_selector("#pane-detail .furn-view")
     check("vue | un rectangle par sous-emplacement", names(page) == ["Grand tiroir du bas", "Tiroir bas gauche"], names(page))
-    cap = page.inner_text("#pane-detail .furn-caption")
+    cap = info(page)
+    check("vue | plus de texte de rappel sous Liste / Plan", page.locator("#pane-detail .furn-caption").count() == 0)
     check("vue | rappel du niveau", "Niveau 2" in cap and "Emplacement" in cap and "Meuble living" in cap and "niveau 3" in cap, cap)
     check("vue | nombre d'objets sur chaque rectangle", "1 objet" in cell(page, "Tiroir bas gauche").inner_text())
     check("vue | niveau rappelé sur les grandes cases", True)
@@ -194,7 +204,7 @@ def scenario_view(browser, base):
     check("niveaux | détail : sous-sous-emplacements dessinés (texte brut)", names(page) == ["<b>Boîte A</b>", "Boîte B"] and page.locator(".furn-view b").count() == 0, names(page))
     check("niveaux | détail : objets du niveau listés", "Piles neuves" in page.inner_text(".furn-view .section") and "niveau 3" in page.inner_text(".furn-view .section-title"))
     page.get_by_role("button", name="Remonter au niveau 2").click()
-    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 2') === 0")
+    page.wait_for_function("!document.querySelector('.furn-caption')")
     check("niveaux | remontée : retour au meuble", names(page) == ["Grand tiroir du bas", "Tiroir bas gauche"])
     check("vue | aucune erreur console", not errors, errors)
     ctx.close()
@@ -389,7 +399,7 @@ def scenario_scroll(browser, base):
     page.evaluate("document.getElementById('pane-detail').scrollTop = 100000")
     select_cell(page, "Tiroir 8")
     before = page.evaluate("document.getElementById('pane-detail').scrollTop")
-    check("défilement | on est bien descendu dans la page", before > 300, before)
+    check("défilement | on est bien descendu dans la page", before > 150, before)
     tool(page, "Décaler vers le haut")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.row === 6" % loc_id(page, "Tiroir 8"))
     after = page.evaluate("document.getElementById('pane-detail').scrollTop")

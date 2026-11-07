@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : jalon 6 bis — arborescence repliable et rail, en-tête de détail figé, code couleur par niveau, loupe, bouton Retour, erreurs de champ, pastille de sauvegarde.
+  Version : V016
+  Horodatage : 2026-11-06 12:00 (heure de Paris)
+  Résumé : jalon 9.3 — en-tête figé en deux colonnes (fil d'Ariane + nom + ℹ️ + libellé à gauche ; flèches, Actions et Liste / Plan à droite), info-bulle, chevron du libellé ; la partie « gestion » repliable disparaît.
 */
 
 /* Barre de recherche (sous l'en-tête) : bouton Retour + champ avec loupe */
@@ -33,7 +33,7 @@
 .breadcrumb li[data-level] a, .breadcrumb li[data-level] [aria-current="page"] { color: var(--level-color); }
 .breadcrumb [aria-current="page"] { font-weight: 600; }
 
-/* En-tête du volet de détail : fil d'Ariane + titre restent visibles au défilement */
+/* En-tête du volet de détail : figé au défilement ; deux colonnes pour ne pas gagner en hauteur */
 .detail-sticky {
   position: sticky;
   top: calc(-1 * var(--pane-pad));   /* le défilement compte le remplissage du volet */
@@ -43,19 +43,65 @@
   background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
-.detail-sticky .breadcrumb ol { margin-bottom: var(--space-1); }
-.detail-sticky .detail-head { margin-bottom: 0; }
-.detail-bar { display: flex; align-items: center; gap: var(--space-2); }
-.detail-bar .detail-title { flex: 1; min-width: 0; font-size: 1.35rem; color: var(--level-color, var(--ink)); }
-.detail-bar-tools { display: flex; align-items: center; gap: var(--space-1); flex: none; }
+.detail-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-2); align-items: stretch; }
+.detail-bar-left { display: flex; flex-direction: column; min-width: 0; }
+.detail-bar-left .breadcrumb ol { margin-bottom: var(--space-1); }
+.detail-titlerow { flex: 1; display: flex; align-items: center; gap: var(--space-1); min-width: 0; min-height: 48px; }
+.detail-bar .detail-title { flex: 0 1 auto; min-width: 0; font-size: 1.35rem; color: var(--level-color, var(--ink)); }
+.detail-bar-tools { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; flex: none; }
+.detail-bar-tools-row { display: flex; align-items: center; gap: var(--space-1); }
 .button--icon { min-width: var(--tap); padding: 0 var(--space-2); }
 .button--toggle { padding: 0 var(--space-3); gap: var(--space-1); }
 
-/* Partie « gestion » repliable (barre d'actions) */
-.manage { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.16s ease; }
-.manage[data-open="true"] { grid-template-rows: 1fr; }
-.manage-inner { min-height: 0; overflow: hidden; visibility: hidden; padding: 3px; margin: -3px; transition: visibility 0s linear 0.16s; }
-.manage[data-open="true"] .manage-inner { visibility: visible; transition-delay: 0s; }
+/* Écran replié : le fil d'Ariane prend toute la largeur, puis le nom (à gauche) et les commandes (à droite) */
+[data-panes="1"] .detail-bar-left { display: contents; }
+[data-panes="1"] .detail-bar-left .breadcrumb { grid-column: 1 / -1; grid-row: 1; }
+[data-panes="1"] .detail-titlerow { grid-column: 1; grid-row: 2; }
+[data-panes="1"] .detail-bar-tools { grid-column: 2; grid-row: 2; }
+[data-panes="1"] .detail-kind { min-width: 22px; }
+[data-panes="1"] .detail-bar .detail-title { font-size: 1.1rem; overflow-wrap: break-word; }
+[data-panes="1"] .detail-bar .button--icon { min-width: 40px; padding: 0 var(--space-1); }
+[data-panes="1"] .detail-bar .button--toggle { padding: 0 var(--space-2); }
+[data-panes="1"] .detail-bar .view-switch--bar .button { padding: 0 var(--space-2); font-size: 0.85rem; }
+
+/* ℹ️ : pictogramme juste après le nom (zone d'appui de 44 px sans agrandir la ligne) */
+.info-btn {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin: -8px -8px -8px -6px; padding: 0;
+  border: 0; border-radius: 50%; background: transparent;
+  color: var(--level-color, var(--ink)); cursor: pointer;
+}
+.info-glyph {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border: 2px solid currentColor; border-radius: 50%;
+  font: italic 700 0.95rem/1 Georgia, "Times New Roman", serif;
+}
+.info-btn[aria-expanded="true"] .info-glyph { background: var(--level-color, var(--ink)); border-color: var(--level-color, var(--ink)); color: #FFFFFF; }
+.info-btn:hover .info-glyph { background: var(--chip-bg); }
+.info-btn[aria-expanded="true"]:hover .info-glyph { background: var(--level-color, var(--ink)); }
+
+/* Libellé de catégorie à la suite du nom : tronqué en premier, avec un chevron qui ouvre une bulle */
+.detail-kind { display: flex; align-items: center; flex: 0 1000 auto; min-width: calc(1.6em + 22px); color: var(--muted); font-size: 0.9rem; }
+.detail-kind-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kind-more {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin: -11px -11px -11px -9px; padding: 0;
+  border: 0; background: transparent; color: var(--muted); font: inherit; cursor: pointer;
+}
+.kind-chev { display: inline-block; transition: transform 0.16s ease; }
+.kind-more[aria-expanded="true"] .kind-chev { transform: rotate(180deg); }
+
+/* Info-bulle */
+.bubble-backdrop { position: fixed; inset: 0; z-index: 40; background: transparent; }
+.bubble {
+  position: fixed; z-index: 41; display: flex; flex-direction: column; gap: var(--space-1);
+  width: min(320px, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+  border-left: 5px solid var(--level-color, var(--ink)); border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface); box-shadow: 0 6px 24px rgba(22, 34, 42, 0.35); outline: none;
+}
+.bubble-title { font-weight: 650; color: var(--level-color, var(--ink)); overflow-wrap: anywhere; }
+.bubble-line { overflow-wrap: anywhere; }
 
 /* Titres du volet de détail */
 .detail-head { margin-bottom: var(--space-4); }
@@ -285,5 +331,5 @@ a.list-row:hover { background: #F3F6F7; }
 .app-link[data-unsaved="true"]::before { content: "\25CF"; margin-right: var(--space-1); color: #FF8A5B; }
 
 @media (prefers-reduced-motion: reduce) {
-  .manage, .tree-children, .tree-toggle::before, .manage-inner, .tree-children > .tree { transition: none; }
+  .tree-children, .tree-toggle::before, .tree-children > .tree, .kind-chev { transition: none; }
 }
