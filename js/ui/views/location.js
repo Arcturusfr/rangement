@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : jalon 9.3 — ℹ️ et libellé de catégorie dans l'en-tête figé, « Actions » en menu déroulant, commutateur Liste / Plan dans l'en-tête ; la ligne « Type — note » disparaît (la note passe dans l'info-bulle).
+  Version : V017
+  Horodatage : 2026-11-08 01:30 (heure de Paris)
+  Résumé : V017 — Vue graphique proposée à tout niveau qui a des sous-emplacements (hasGraphic), plus seulement aux meubles.
 */
 (function () {
   'use strict';
@@ -163,7 +163,7 @@
     var depth = loc ? R.store.depthOf(loc.id) : -1;
     var V = R.ui.views.furniture;
     var planScope = (!loc || depth === 0);                                      // logement ou pièce : un plan
-    var furnScope = !!loc && R.features.furniture.isFurniture(loc.id);          // meuble : vue graphique
+    var furnScope = !!loc && R.features.furniture.hasGraphic(loc.id);          // meuble ou niveau plus bas avec sous-emplacements : vue graphique
     var bar = R.ui.components.detailbar.create({
       ref: loc ? { type: 'location', id: loc.id } : { type: 'root' },
       path: loc ? R.store.pathOf(id) : [],

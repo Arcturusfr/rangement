@@ -1,7 +1,7 @@
 # tests/test_jalon8.py — Application « Rangement »
-# Version : V016
-# Horodatage : 2026-11-06 12:00 (heure de Paris)
-# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
+# Version : V017
+# Horodatage : 2026-11-08 01:30 (heure de Paris)
+# Résumé : V017 : le bandeau de niveau ouvre la pièce (navigation réelle).
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon8.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -299,12 +299,15 @@ def scenario_drill(browser, base):
     check("niveaux | icône sur une pièce qui contient des emplacements", more.count() == 1 and "sous-emplacement" in more.get_attribute("aria-label") and "niveau 2" in more.get_attribute("aria-label"), more.get_attribute("aria-label"))
     check("niveaux | icône aussi sur l'entrée (elle contient une commode)", cell(page, "Entrée").locator(".furn-more").count() == 1)
     more.click()
-    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 1') === 0")
-    check("niveaux | détail d'une pièce : ses meubles sont dessinés", names(page) == ["Meuble living"], names(page))
-    check("niveaux | bouton de remontée vers le plan", page.get_by_role("button", name="Remonter au plan du logement").count() == 1)
-    page.get_by_role("button", name="Remonter au plan du logement").click()
-    page.wait_for_function("!document.querySelector('.furn-caption')")
-    check("niveaux | remontée : retour au plan", names(page) == ["Chambre à coucher", "Entrée", "Séjour"])
+    page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Séjour'")
+    page.wait_for_selector("#pane-detail .furn-view")
+    check("niveaux | le bandeau ouvre la pièce (même situation que « Ouvrir »)", js(page, "location.hash") == "#/l/" + loc_id(page, "Séjour") and page.locator(".furn-caption").count() == 0)
+    check("niveaux | la pièce affiche ses meubles", names(page) == ["Meuble living"], names(page))
+    check("niveaux | plus de bouton « Remonter au plan du logement »", page.get_by_role("button", name="Remonter au plan du logement").count() == 0)
+    page.locator("[aria-label='Niveau supérieur']").click()
+    page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Logement'")
+    page.wait_for_selector("#pane-detail .furn-view")
+    check("niveaux | niveau supérieur : retour au plan du logement", names(page) == ["Chambre à coucher", "Entrée", "Séjour"])
     check("niveaux | aucune erreur console", not errors, errors)
     ctx.close()
 

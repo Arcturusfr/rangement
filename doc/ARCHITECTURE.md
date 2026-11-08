@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : V016 : jalon 9 étape 3, ℹ️ et info-bulle, menu « Actions » déroulant, libellé de catégorie et Liste / Plan dans l'en-tête figé.
+  Version : V017
+  Horodatage : 2026-11-08 01:30 (heure de Paris)
+  Résumé : V017 : navigation unique depuis les plans (bandeau de niveau = « Ouvrir », plus de niveau dessiné dans le parent), bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ayant des sous-emplacements.
 -->
 
-# ARCHITECTURE — Rangement `V016`
+# ARCHITECTURE — Rangement `V017`
 
-> Dernière mise à jour : 06/11/2026 12:00 (Paris) — **V016**
-> Statut : **jalon 9 (interface centrée sur les plans), étapes 1, 2 et 3 livrées** (3 : ℹ️ et info-bulle, menu « Actions » déroulant, en-tête figé enrichi, V016) : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 08/11/2026 01:30 (Paris) — **V017**
+> Statut : **jalon 9 (interface centrée sur les plans), étapes 1, 2 et 3 livrées ; V017 (préalable à l'étape 9.4) : navigation unique depuis les plans et Vue graphique à tous les niveaux** (3 : ℹ️ et info-bulle, menu « Actions » déroulant, en-tête figé enrichi, V016) : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -44,6 +44,7 @@
 │   ├── test_jalon9.py         Tests Playwright/Chromium : plan ajusté à l'écran, taille réelle, tuiles compactes, plan d'une pièce
 │   ├── test_jalon9_2.py       Tests Playwright/Chromium : menu contextuel d'une case, bouton « + », réglage de la grille, placement (pavés de flèches)
 │   ├── test_jalon9_3.py       Tests Playwright/Chromium : ℹ️ et info-bulle, libellé de catégorie tronqué + chevron, menu déroulant « Actions », Liste / Plan dans l'en-tête figé
+│   ├── test_jalon9_3bis.py    Tests Playwright/Chromium (V017) : bandeau de niveau = « Ouvrir », bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux
 │   ├── test_jalon8.py         Tests Playwright/Chromium : plan du logement (pièces sur la grille, ajustement, sauvegarde, cadre défilant)
 │   └── test_jalon6bis.py      Tests Playwright/Chromium : évolutions ergonomiques (arborescence, rail, en-têtes figés, duplication, Retour, flèches, saisie interdite, pastille, couleurs)
 ├── css/
@@ -64,7 +65,7 @@
     │   ├── locations.js       Créer/modifier/déplacer/supprimer des emplacements, avec garde-fous
     │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (quantité, mots-clés, note)
     │   ├── search.js          Recherche d'objets et d'emplacements (nom, mots-clés, note, chemin), classée par pertinence
-    │   ├── furniture.js       Grille d'un meuble **ou du plan du logement** (colonnes, lignes, bandes dessus / dessous pour un meuble, proportions, pieds) et place de chaque sous-emplacement / pièce en cases (`geometry`) ; identifiant spécial `ROOT` = le logement ; `isPlanLike(id)` = le logement ou une pièce (cases carrées, une seule zone)
+    │   ├── furniture.js       Grille d'un meuble **ou du plan du logement** (colonnes, lignes, bandes dessus / dessous pour un meuble, proportions, pieds) et place de chaque sous-emplacement / pièce en cases (`geometry`) ; identifiant spécial `ROOT` = le logement ; `isPlanLike(id)` = le logement ou une pièce (cases carrées, une seule zone) ; `hasGraphic(id)` = Vue graphique proposée (un meuble, ou tout niveau plus bas qui a des sous-emplacements)
     │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
@@ -85,7 +86,7 @@
     │       ├── item-actions.js  Dialogues d'action : ajouter, modifier, déplacer, supprimer un objet
     │       ├── location.js    Volet principal : contenu d'un emplacement + barre d'actions ; affiche aussi la fiche d'un objet
     │       ├── item.js        Fiche d'un objet (emplacement, quantité, mots-clés, note, actions)
-    │       ├── furniture.js   Vue graphique d'un meuble sur grille (cases, bandes, sélection, détail des niveaux inférieurs) et du plan du logement ou d'une pièce (`createPlan(id)`, ajusté à l'écran par `fit()`) ; commutateurs Liste / Vue graphique (meubles) et Liste / Plan (logement)
+    │       ├── furniture.js   Vue graphique d'un meuble ou d'un niveau plus bas sur grille (cases, bandes, sélection ; le bandeau de niveau d'une case ouvre l'emplacement) et du plan du logement ou d'une pièce (`createPlan(id)`, ajusté à l'écran par `fit()`) ; commutateurs Liste / Vue graphique (meubles) et Liste / Plan (logement)
     │       ├── searchbar.js   Champ de recherche permanent sous l'en-tête (synchronisé avec la route)
     │       ├── search.js      Résultats de recherche : objets puis emplacements, avec chemin complet
     │       └── settings.js    Écran Réglages (`#/r`) : export, import, annulation d'import, application hors ligne (mise à jour, cache, installation), à propos
@@ -208,7 +209,7 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.ui.router.back() / canBack() / closeSettings()` | Bouton Retour de l'application (historique interne, sinon niveau supérieur) ; fermeture des Réglages vers la vue d'origine |
 | `Rangement.ui.router` | Routes : `#/` (logement), `#/l/<id>` (emplacement), `#/o/<id>` (fiche d'un objet), `#/s/<texte>` (recherche), `#/r` (réglages). `current()` renvoie `{ locationId, itemId, query, settings }` (`query` vaut `null` hors recherche) ; `href(id)`, `itemHref(id)`, `searchHref(texte)`, `settingsHref()`, `navigate(id)`, `search(texte)` |
 | `Rangement.ui.components.dialog.form / confirm / alert` | Dialogues modaux (`<dialog>`), retour du focus à la fermeture |
-| `Rangement.features.furniture.layout(id[, essai]) / get(id) / set(id, { ratio, feet }) / setGrid(id, { cols, rows, top, bottom }) / move(id, dc, dr) / resize(id, dw, dh) / isFurniture(id)` | Grille d'un emplacement dessiné : `layout` renvoie `{ C, L, T, B, cells: [{ id, zone, col, row, w, h }] }` (places automatiques calculées si rien n'est enregistré). `move`, `resize` et `setGrid` enregistrent toute la grille et renvoient `{ ok }` ou `{ ok: false, error }` (message en français). |
+| `Rangement.features.furniture.layout(id[, essai]) / get(id) / set(id, { ratio, feet }) / setGrid(id, { cols, rows, top, bottom }) / move(id, dc, dr) / resize(id, dw, dh) / isFurniture(id) / hasGraphic(id)` | Grille d'un emplacement dessiné : `layout` renvoie `{ C, L, T, B, cells: [{ id, zone, col, row, w, h }] }` (places automatiques calculées si rien n'est enregistré). `hasGraphic(id)` dit si la Vue graphique est proposée. `move`, `resize` et `setGrid` enregistrent toute la grille et renvoient `{ ok }` ou `{ ok: false, error }` (message en français). |
 | `Rangement.ui.views.furniture.create(id) / createPlan([id]) / switcher(portée) / mode(portée) / setMode(m, portée)` | Vue graphique d'un meuble ; plan du logement (`createPlan`) ; commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) ou, avec la portée `'plan'`, Liste / Plan (clé annexe `planview`) |
 | `Rangement.features.furniture.ROOT` | Identifiant spécial du logement : `layout(ROOT)`, `setGrid(ROOT, { cols, rows })` ; `move` / `resize` sur une pièce travaillent sur le plan. Une seule zone (`body`), 20 colonnes et 20 lignes au plus proposées |
 | `Rangement.store.plan() / Rangement.models.cleanPlan(p)` | Plan du logement `{ cols, rows }` ou `null` ; nettoyage d'un plan lu (import, stockage) |
@@ -280,13 +281,13 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 
 ### Règles du jalon 7 (V010, grille en V011)
 
-- **Vue graphique** : uniquement pour les **meubles** (emplacements de premier niveau). Un commutateur « Liste / Vue graphique » apparaît sous l'en-tête du détail ; la liste reste le mode par défaut ; le choix est mémorisé (clé annexe `view`).
+- **Vue graphique** : pour les **meubles** (emplacements de premier niveau) ; *depuis la V017, aussi pour tout niveau plus bas qui a des sous-emplacements*. Un commutateur « Liste / Vue graphique » apparaît sous l'en-tête du détail ; la liste reste le mode par défaut ; le choix est mémorisé (clé annexe `view`).
 - **Grille** : le meuble a `C` colonnes et `L` lignes (réglables : 1 à 6 colonnes, 1 à 8 lignes), plus une bande de `T` lignes **au-dessus** et une de `B` lignes **en dessous** (0 à 3). Chaque sous-emplacement occupe un rectangle de cases (`zone` : `top`, `body`, `bottom` ; `col`, `row`, `w`, `h`), sans chevauchement ni sortie de la grille. Un sous-emplacement ne peut pas chevaucher deux zones.
 - **Remplissage automatique** : un sous-emplacement sans place enregistrée prend la première case libre du meuble (1 × 1). Dès qu'on modifie la disposition, toutes les places sont **enregistrées** et ne bougent plus ; la grille s'agrandit si besoin (rien n'est jamais caché). Les réglages de la V010 (ordre `pos`, largeur `span`) sont convertis automatiquement.
 - **Réglages** (« Ajuster la disposition ») : proportions, colonnes, lignes, dessus, dessous, pieds. Un emplacement se sélectionne en le touchant ; deux **pavés de quatre flèches** sans libellé (déplacer d'une case ; taille : + / − en largeur et en hauteur) restent **fixés en bas de l'écran** pendant le défilement ; toucher une case libre y place l'emplacement. **Déplacer sur une case occupée par un seul emplacement échange les deux** (l'autre doit tenir à la place libérée). Les refus (plusieurs emplacements sur le chemin, sortie de grille, cases occupées à supprimer, chevauchement de zones) s'affichent en clair et ne changent rien.
 - **Défilement** : un réglage ou un déplacement ne remonte pas la page (la position de défilement du volet est conservée quand l'affichage est redessiné ; seul un changement d'écran remonte en haut).
 - **Dessin** : HTML/CSS (texte toujours échappé). Le cadre du meuble a la proportion choisie mais **grandit** si les lignes sont nombreuses (64 px minimum par ligne) ; les libellés sont tronqués dans leur case (nom complet au toucher / en infobulle), jamais débordants. Chaque case indique son nombre d'objets (sous-niveaux compris) et, si elle fait au moins deux cases, son niveau.
-- **Niveaux** : une légende rappelle toujours le niveau affiché (« Niveau 2 — Emplacement « Meuble living » : ses sous-emplacements (niveau 3)… »). Une icône (carrés emboîtés + nombre) signale un sous-emplacement qui en contient d'autres ; l'appui dessine ce niveau (même grille, mêmes réglages), avec « Remonter au niveau N » et la liste de ses objets.
+- **Niveaux** : une légende rappelle toujours le niveau affiché (« Niveau 2 — Emplacement « Meuble living » : ses sous-emplacements (niveau 3)… »). Une icône (carrés emboîtés + nombre) signale un sous-emplacement qui en contient d'autres. *(Depuis la V017, son appui ouvre réellement cet emplacement — voir « jalon 9, étape 3 bis » — au lieu de le dessiner dans le meuble ; plus de « Remonter au niveau N », on remonte par ▲ ou Retour.)*
 - **Stockage** : dans `geometry` (`ratio`, `feet`, `cols`, `rows`, `top`, `bottom` pour l'emplacement dessiné ; `zone`, `col`, `row`, `w`, `h` pour la place d'un sous-emplacement) ; `schemaVersion` inchangé (1) ; repris par l'export / import.
 - **Arborescence** : le nombre d'objets (total, sous-emplacements compris) s'affiche à droite de chaque libellé (rien s'il est nul), hors du lien.
 
@@ -296,7 +297,7 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Grille** : `cols` × `rows` enregistrés dans `plan` (enveloppe de stockage), réglables de 1 à 20 ; une seule zone (pas de bandes, pas de pieds, pas de proportions) ; le cadre est à peu près carré par case, il **défile horizontalement dans son cadre** (jamais la page) quand les colonnes sont nombreuses (72 px minimum par colonne). Disposition automatique : 2 colonnes jusqu'à 4 pièces, 3 jusqu'à 9, 4 au-delà ; les places sont **figées** dès la première modification, une pièce créée ensuite prend la première case libre.
 - **Ajustement** (« Ajuster le plan ») : mêmes commandes que pour un meuble (sélection, deux pavés de flèches fixés en bas, échange de deux pièces, cases libres, refus en clair) ; un changement d'écran referme l'ajustement.
 - **Place d'une pièce** : dans sa `geometry` (`zone: 'body'`, `col`, `row`, `w`, `h`) ; `schemaVersion` inchangé ; reprise par l'export / import (le `plan` aussi ; une sauvegarde sans `plan` rétablit la disposition automatique ; un `plan` illisible est ignoré).
-- **Niveaux** : l'icône sur une tuile ouvre les emplacements de la pièce sur la même grille (bouton « Remonter au plan du logement ») ; c'est une première version de la disposition des meubles dans une pièce (jalon 8 bis).
+- **Niveaux** : *(V013 : l'icône sur une tuile dessinait les emplacements de la pièce dans le plan du logement ; depuis la V017 elle ouvre la pièce, qui a son propre plan.)*
 
 ### Règles du jalon 9, étape 1 (V014)
 
@@ -307,7 +308,7 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 
 ### Règles du jalon 9, étape 2 (V015)
 
-- **Menu contextuel** : dans un plan (logement, pièce) ou la vue graphique d'un meuble, une case n'est plus un lien mais un bouton ; un appui ouvre près d'elle un menu : **« Ouvrir »** (plus grand, en gras, a le focus), puis **Placer et dimensionner**, **Ajouter un objet ici**, **Ajouter un emplacement ici**, **Modifier**, **Déplacer**, **Dupliquer**, **Supprimer** (mêmes boîtes de dialogue et mêmes garde-fous que le menu « Actions »). En-tête du menu : chemin du parent et nom (colorés par niveau). Pas d'appui long. L'icône de niveau inférieur d'une case reste un bouton à part.
+- **Menu contextuel** : dans un plan (logement, pièce) ou la vue graphique d'un meuble, une case n'est plus un lien mais un bouton ; un appui ouvre près d'elle un menu : **« Ouvrir »** (plus grand, en gras, a le focus), puis **Placer et dimensionner**, **Ajouter un objet ici**, **Ajouter un emplacement ici**, **Modifier**, **Déplacer**, **Dupliquer**, **Supprimer** (mêmes boîtes de dialogue et mêmes garde-fous que le menu « Actions »). En-tête du menu : chemin du parent et nom (colorés par niveau). Pas d'appui long. Le bandeau de niveau inférieur d'une case reste un bouton à part (V017 : il ouvre l'emplacement, comme « Ouvrir »).
 - **Placement** : « Placer et dimensionner » sélectionne la case et affiche les deux pavés de flèches (déplacer / taille, échange, cases libres) fixés en bas, avec deux boutons : **Grille…** (réglages de la grille) et **Terminer** (masque le pavé). Pendant le placement, un appui sur une case la sélectionne (pas de menu) ; un changement d'écran referme le placement. Le bouton « Ajuster le plan / la disposition » et les listes de réglages en ligne **disparaissent**.
 - **Bouton « + » flottant** (rond, en bas à droite de l'écran, caché pendant le placement) : menu pour agir **au niveau affiché** : à la racine « Ajouter une pièce » ; dans une pièce, un meuble ou un niveau inférieur « Ajouter un objet ici », « Ajouter un emplacement ici » ; toujours « Régler la grille… ».
 - **Réglage de la grille** (boîte de dialogue, valeurs actuelles préremplies) : colonnes et lignes (1 à 20 pour un plan, 1 à 6 × 1 à 8 pour un meuble) ; pour un meuble aussi proportions, dessus, dessous (0 à 3) et pieds. Un refus (cases occupées) s'affiche dans la boîte, qui reste ouverte, rien ne change ; « Appliquer » sans changement ne fige aucune place.
@@ -316,10 +317,16 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 ### Règles du jalon 9, étape 3 (V016)
 
 - **ℹ️** : pictogramme juste après le nom de l'élément affiché (logement, pièce, meuble, niveaux inférieurs, fiche d'un objet ; pas sur la recherche ni les Réglages). Un appui ouvre une **info-bulle** : niveau, nombre de sous-emplacements, objets rangés directement, contenu total (tous niveaux) et note ; pour un objet : niveau, emplacement, quantité. Texte toujours affiché comme du texte.
-- **Texte de rappel supprimé** sous « Liste / Plan » ; il n'apparaît plus que lorsqu'un niveau inférieur est dessiné dans le plan (icône de niveau), car l'en-tête ne décrit alors que l'emplacement ouvert. La ligne « Type — note » sous le titre disparaît (le type monte dans l'en-tête, la note dans l'info-bulle).
+- **Texte de rappel supprimé** sous « Liste / Plan » ; il a disparu en V017 (plus de niveau dessiné dans le plan du parent : l'en-tête décrit toujours l'emplacement affiché). La ligne « Type — note » sous le titre disparaît (le type monte dans l'en-tête, la note dans l'info-bulle).
 - **Libellé de catégorie** (Pièce, Meuble, Tiroir…, « Objet » sur une fiche) à la suite du nom, sur la même ligne ; il est tronqué en premier si la place manque, et un **petit chevron rotatif** apparaît alors (seulement s'il y a troncature) pour ouvrir une bulle avec le libellé complet.
 - **Menu « Actions »** : le bouton garde sa place dans l'en-tête mais ouvre un **menu déroulant** (même composant que le menu contextuel) ; la barre de boutons sous l'en-tête et la mémorisation « replié / déplié » disparaissent. Commandes : emplacement → Ajouter un objet ici, Ajouter un emplacement ici, Modifier, Déplacer, Dupliquer, Supprimer ; logement → Ajouter une pièce ; objet → Modifier, Déplacer, Dupliquer, Supprimer. Les boutons « Ajouter… » ne sont plus colorés par niveau.
 - **Liste / Plan** (logement, pièces) et **Liste / Vue graphique** (meubles) sont dans l'en-tête figé, **sous les flèches de niveau et « Actions »** ; l'en-tête est en deux colonnes (fil d'Ariane + nom à gauche, commandes à droite) pour que le bandeau ne grandisse pas (à peu près la même hauteur qu'un sous-emplacement sans commutateur). Boutons du commutateur de 32 px de haut, zone d'appui étendue à ~44 px. Écran replié : le fil d'Ariane prend toute la largeur, nom et commandes dessous.
+
+### Règles du jalon 9, étape 3 bis (V017)
+
+- **Navigation unique** : un seul moyen d'entrer dans un niveau, la vraie navigation (`#/l/<id>`). Le **bandeau de niveau** d'une case (carrés emboîtés + nombre de sous-emplacements) fait la même chose que « Ouvrir » du menu contextuel : en-tête, fil d'Ariane, ℹ️, « Actions » et Liste / Plan sont ceux de l'emplacement ouvert. Le mode « niveau dessiné dans le plan du parent » (`focus`, texte de rappel `.furn-caption`, bouton « Remonter… ») est **supprimé** ; on remonte par ▲, le bouton Retour ou le fil d'Ariane.
+- **Cases étroites** : le bandeau est **masqué quand la case fait moins de 85 px de large** (requête de conteneur CSS `@container (max-width: 84px)` sur `.furn-cell`, et classe `.furn-compact` du plan ajusté) ; toute la case ouvre alors le menu contextuel (« Ouvrir » en tête). Le nombre de sous-emplacements reste lisible dans ℹ️. Le bandeau est aussi absent pendant le placement (un appui sélectionne seulement la case).
+- **Vue graphique à tous les niveaux** : `Rangement.features.furniture.hasGraphic(id)` — un meuble (toujours) ou tout emplacement plus profond qui contient des sous-emplacements. Le commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) est alors proposé ; un niveau sans sous-emplacement n'a que la liste. Un niveau plus bas se dessine comme un meuble (proportions, dessus, dessous, pieds, grille 6 × 8 au plus) ; sa grille et les places de ses sous-emplacements sont dans les `geometry` habituelles ; un placement, un menu contextuel et le « + » y fonctionnent comme sur un meuble.
 
 ### 5.1 Diagnostic de démarrage
 
@@ -378,3 +385,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V015 | 05/11/2026 02:30 | Jalon 9 étape 2 : menu contextuel sur les cases (« Ouvrir » en tête), bouton « + » flottant, réglages de grille en boîte de dialogue, pavé de flèches avec « Grille… » et « Terminer » |
 | V015a | 05/11/2026 | Correctif : le niveau inférieur ouvert dans un plan (icône de niveau) est oublié à chaque changement d'écran |
 | V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️ et info-bulle, menu « Actions » déroulant, libellé de catégorie (chevron si tronqué) et Liste / Plan dans l'en-tête figé, texte de rappel du plan supprimé |
+| V017 | 08/11/2026 01:30 | Préalable au 9.4 : navigation unique (le bandeau de niveau ouvre l'emplacement comme « Ouvrir »), bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ayant des sous-emplacements, texte de rappel du plan et « Remonter… » supprimés |

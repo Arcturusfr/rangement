@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : version V016 ; bubble.js pré-caché.
+  Version : V017
+  Horodatage : 2026-11-08 01:30 (heure de Paris)
+  Résumé : version V017.
 */
 'use strict';
 
-var VERSION = 'V016';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V017';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 

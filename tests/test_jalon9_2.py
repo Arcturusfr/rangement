@@ -1,7 +1,7 @@
 # tests/test_jalon9_2.py — Application « Rangement »
-# Version : V016
-# Horodatage : 2026-11-06 12:00 (heure de Paris)
-# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
+# Version : V017
+# Horodatage : 2026-11-08 01:30 (heure de Paris)
+# Résumé : V017 : le bandeau de niveau navigue réellement ; scénario « focus » réécrit.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_2.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -405,37 +405,33 @@ def scenario_plus(browser, base):
     # niveau inférieur : le « + » travaille sur le niveau affiché
     js(page, "Rangement.features.locations.create({name:'Boîte', kind:'boite', parentId:'%s'})" % loc_id(page, "Tiroir bas gauche"))
     cell(page, "Tiroir bas gauche").locator(".furn-more").click()
-    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 3') === 0")
+    wait_title(page, "Tiroir bas gauche")
+    page.wait_for_selector(".furn-view")
     page.locator("#plan-add").click()
     page.wait_for_selector(".ctx-menu")
-    check("plus | niveau inférieur : le menu concerne l'emplacement affiché", "Tiroir bas gauche" in menu(page).inner_text(), menu(page).inner_text())
+    check("plus | niveau inférieur ouvert (Vue graphique) : le menu concerne l'emplacement affiché", "Tiroir bas gauche" in menu(page).inner_text(), menu(page).inner_text())
     page.keyboard.press("Escape")
     check("plus | aucune erreur console", not errors, errors)
     ctx.close()
 
 
 def scenario_focus(browser, base):
-    """Régression V015 : le niveau inférieur ouvert (icône de niveau) ne doit pas suivre d'un écran à l'autre."""
+    """V017 : le bandeau de niveau navigue réellement ; rien n'est « dessiné dans le parent »."""
     errors = []
     ctx, page = start(browser, base, errors=errors)
-    sej = loc_id(page, "Séjour")
-    page.goto(base + "#/l/" + sej)
-    wait_title(page, "Séjour")
     plan(page)
-    cell(page, "Meuble living").locator(".furn-more").click()
-    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 2') === 0")
-    page.goto(base + "#/")
-    page.wait_for_selector(".furn-body[data-fit]")
-    page.goto(base + "#/l/" + sej)
+    cell(page, "Séjour").locator(".furn-more").click()
     wait_title(page, "Séjour")
     page.wait_for_selector(".furn-body[data-fit]")
-    cnt = page.locator(".furn-caption").count()
     txt = info(page)
-    check("niveau | revenir sur la pièce : on voit la pièce, pas le meuble ouvert avant", cnt == 0 and "Niveau 1" in txt, (cnt, txt))
+    check("niveau | le bandeau ouvre la pièce : adresse, en-tête, ℹ️", js(page, "location.hash") == "#/l/" + loc_id(page, "Séjour") and "Niveau 1" in txt and page.locator(".furn-caption").count() == 0, txt)
     check("niveau | les meubles de la pièce sont dessinés", page.locator(".furn-cell .furn-name").all_inner_texts() == ["Meuble living"])
     cell(page, "Meuble living").locator(".furn-more").click()
-    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 2') === 0")
-    check("niveau | l'icône de niveau fonctionne toujours", True)
+    wait_title(page, "Meuble living")
+    check("niveau | le bandeau du meuble ouvre le meuble", "Niveau 2" in info(page))
+    page.goto(base + "#/")
+    page.wait_for_selector(".furn-body[data-fit]")
+    check("niveau | retour au logement : plan complet, rien d'ouvert avant", page.locator(".furn-cell .furn-name").all_inner_texts() == ["Chambre à coucher", "Entrée", "Séjour"])
     check("niveau | aucune erreur console", not errors, errors)
     ctx.close()
 

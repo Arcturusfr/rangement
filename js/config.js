@@ -1,8 +1,8 @@
 /*
   js/config.js — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : version V016 (jalon 9.3 : ℹ️, Actions déroulant, Liste / Plan dans l'en-tête).
+  Version : V017
+  Horodatage : 2026-11-08 01:30 (heure de Paris)
+  Résumé : version V017 (navigation unique depuis les plans, Vue graphique à tous les niveaux).
 */
 (function () {
   'use strict';
@@ -21,7 +21,7 @@
 
   R.config = Object.freeze({
     appName: 'Rangement',
-    version: 'V016',
+    version: 'V017',
     dwellingName: '',          // précision affichée après « Logement » (plusieurs logements, plus tard)
     schemaVersion: 1,
     storageKey: 'rangement.data',

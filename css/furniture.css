@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : jalon 9.3 — commutateur Liste / Plan compact (dans l'en-tête figé) ; le plan gagne la place du texte de rappel. Jalon 9.2 : menu contextuel (.ctx-*), bouton « + » (.furn-add).
+  Version : V017
+  Horodatage : 2026-11-08 01:30 (heure de Paris)
+  Résumé : V017 — le bandeau de niveau (.furn-more) disparaît des cases étroites (requête de conteneur) ; texte de rappel (.furn-caption) supprimé.
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -18,7 +18,6 @@
 
 /* Vue graphique d'un meuble */
 .furn-view { margin-top: var(--space-2); max-width: 40rem; padding-bottom: 80px; }   /* la place du bouton « + » */
-.furn-caption { margin-bottom: var(--space-3); padding-left: var(--space-3); border-left: 5px solid var(--level-color, var(--ink)); color: var(--level-color, var(--ink)); font-weight: 600; }
 .furn-bar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
 .furn-bar .button[aria-pressed="true"] { background: var(--chip-bg); }
 .furn-msg { margin-bottom: var(--space-3); }
@@ -44,15 +43,14 @@
 .furn-compact .furn-name { font-size: 0.8rem; }
 .furn-compact .furn-count { font-size: 0.75rem; }
 .furn-compact .furn-count-word, .furn-compact .furn-kind { display: none; }
-.furn-compact .furn-more { width: 30px; font-size: 0.8rem; }
-.furn-compact .furn-nest { width: 14px; height: 11px; }
+.furn-compact .furn-more { display: none; }
 .furn-body { display: flex; padding: var(--space-2); border: 4px solid var(--level-color, var(--ink)); border-radius: 8px; background: var(--surface); }
 .furn-grid { display: grid; flex: 1; min-width: 0; min-height: 0; gap: var(--space-2); }
 .furn-band { margin: var(--space-2) 0; }
 .furn-band-label { margin-bottom: var(--space-1); color: var(--muted); font-size: 0.85rem; }
 .furn-band .furn-grid { padding: var(--space-2); border: 2px dashed var(--line); border-radius: var(--radius); }
 
-.furn-cell { position: relative; display: flex; min-width: 0; min-height: 0; overflow: hidden; border: 2px solid var(--level-color, var(--ink)); border-radius: var(--radius); background: #FFFFFF; }
+.furn-cell { container-type: inline-size; position: relative; display: flex; min-width: 0; min-height: 0; overflow: hidden; border: 2px solid var(--level-color, var(--ink)); border-radius: var(--radius); background: #FFFFFF; }
 .furn-cell.is-selected { box-shadow: 0 0 0 3px var(--accent); background: #E3F1EF; }
 .furn-open { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 0; padding: var(--space-1) var(--space-2); overflow: hidden; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
 .furn-open:hover { background: #F3F6F7; }
@@ -73,6 +71,9 @@
 
 .furn-feet { display: flex; justify-content: space-between; padding: 0 10%; }
 .furn-foot { width: 16px; height: 24px; border-radius: 0 0 4px 4px; background: var(--level-color, var(--ink)); }
+
+/* Case étroite (< 85 px) : le bandeau de niveau disparaît, toute la case ouvre le menu (« Ouvrir » en tête) */
+@container (max-width: 84px) { .furn-more { display: none; } }
 
 /* Bouton « + » flottant : créer au niveau du plan affiché, régler la grille */
 .furn-add {

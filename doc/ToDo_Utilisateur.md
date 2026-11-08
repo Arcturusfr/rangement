@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : V016 livrée (jalon 9.3) — fichiers à enregistrer et tests.
+  Version : V017
+  Horodatage : 2026-11-08 01:30 (heure de Paris)
+  Résumé : V017 livrée (préalable au 9.4) — fichiers à enregistrer et tests.
 -->
 
-# ToDo Utilisateur — Rangement `V016`
+# ToDo Utilisateur — Rangement `V017`
 
-> Dernière mise à jour : 06/11/2026 12:00 (Paris) — **V016**
+> Dernière mise à jour : 08/11/2026 01:30 (Paris) — **V017**
 
 ## Fait
 
+- [x] Tester la V016 : info-bulle, boutons Liste / Plan et écran replié convenables ; valider le jalon 9.3 ; signaler l'ambiguïté « Ouvrir » / bandeau de niveau et demander la V017 avant l'étape 9.4
 - [x] Valider le jalon 9.2 (V015) ; lancer l'étape 9.3 (ℹ️ aussi sur la fiche d'un objet)
 - [x] Valider les jalons 8 et 9.1 (V014) ; lancer l'étape 9.2
 - [x] Tester la V013 (plan du logement) : très satisfait de la grille et du rendu ; décider la réorientation vers les plans (jalon 9) et valider le découpage en étapes
@@ -39,14 +40,25 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V016** (archive `V016.zip` : `gestion_fichiers.py` les range).
+- [ ] **Enregistrer les fichiers de la V017** (archive `V017.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V017.txt`).
+  - **Nouveau** : `tests/test_jalon9_3bis.py`.
+  - **Remplacés** : `sw.js` (**à la racine**), `js/config.js`, `js/features/furniture.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `css/furniture.css`, `tests/test_jalon7.py`, `tests/test_jalon8.py`, `tests/test_jalon9_2.py` et les trois `.md`.
+  - **Inchangés** : tout le reste (`index.html` aussi : aucun nouveau script).
+- [ ] **Vérifier que la version affichée est `V017`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V017 (supprimer les versions remplacées).
+- [ ] **Tester la V017** : dans le plan du logement, le bandeau à droite d'une pièce et « Ouvrir » du menu mènent à la même situation (en-tête de la pièce, ▲ pour remonter, Retour) ; sur une petite pièce (par ex. grille 7 × 10) le bandeau a disparu et toute la case ouvre le menu ; même chose dans une pièce (meubles) et dans un meuble ; Vue graphique sur un tiroir ou une boîte qui contient des sous-emplacements (commutateur Liste / Vue graphique, placement, « + ») ; pendant « Placer et dimensionner » le bandeau est masqué ; écran déplié et replié.
+- [ ] **Répondre** : le seuil de masquage du bandeau (case de moins de 85 px) vous convient-il ? Faut-il élargir ou garder le bandeau à 44 px ? Remarques pour l'étape 9.4 (plan en vue d'accueil) ?
+
+### (historique) À faire à la V016
+
+- [x] **Enregistrer les fichiers de la V016** (archive `V016.zip` : `gestion_fichiers.py` les range).
   - **Nouveaux** : `js/ui/components/bubble.js`, `tests/test_jalon9_3.py`.
   - **Remplacés** : `index.html`, `sw.js` (**à la racine**), `js/config.js`, `js/main.js`, `css/components.css`, `css/furniture.css`, `js/ui/components/detailbar.js`, `js/ui/views/location.js`, `js/ui/views/item.js`, `js/ui/views/furniture.js`, `tests/test_jalon2.py`, `test_jalon3.py`, `test_jalon6bis.py`, `test_jalon7.py`, `test_jalon8.py`, `test_jalon9.py`, `test_jalon9_2.py` et les trois `.md`.
   - **Inchangés** : tout le reste.
-- [ ] **Vérifier que la version affichée est `V016`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
-- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V016 (supprimer les versions remplacées ; en profiter pour supprimer les doublons `js/ui/views/furniture.js`, `location.js` V012, `events.js`, `test_jalon6bis.py`).
-- [ ] **Tester la V016** : sur un meuble, une pièce, le logement et une fiche d'objet : ℹ️ juste après le nom (info-bulle) ; libellé de catégorie à la suite du nom (tester un nom très long pour voir le chevron) ; menu « Actions » déroulant ; Liste / Plan sous les flèches ; hauteur du bandeau ; écran déplié et replié.
-- [ ] **Répondre** : le contenu de l'info-bulle vous convient-il ? Les boutons Liste / Plan (32 px) sont-ils assez faciles à toucher ? L'écran replié (titre plus petit) est-il lisible ? Remarques pour l'étape 9.4 (plan en vue d'accueil) ?
+- [x] **Vérifier que la version affichée est `V016`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [x] **Mettre à jour la base `Contexte`** avec les fichiers V016 (supprimer les versions remplacées ; en profiter pour supprimer les doublons `js/ui/views/furniture.js`, `location.js` V012, `events.js`, `test_jalon6bis.py`).
+- [x] **Tester la V016** : sur un meuble, une pièce, le logement et une fiche d'objet : ℹ️ juste après le nom (info-bulle) ; libellé de catégorie à la suite du nom (tester un nom très long pour voir le chevron) ; menu « Actions » déroulant ; Liste / Plan sous les flèches ; hauteur du bandeau ; écran déplié et replié.
+- [x] **Répondre** : le contenu de l'info-bulle vous convient-il ? Les boutons Liste / Plan (32 px) sont-ils assez faciles à toucher ? L'écran replié (titre plus petit) est-il lisible ? Remarques pour l'étape 9.4 (plan en vue d'accueil) ?
 
 ### (historique) À faire à la V015a
 - [ ] **Enregistrer les fichiers de la V015a** (archive `V015a.zip`) : `js/ui/views/furniture.js`, `js/config.js`, `sw.js` (racine), `tests/test_jalon9_2.py` et les trois `.md` (le reste est inchangé). Corrige l'ouverture d'une pièce qui affichait un meuble en bas. Puis vérifier la version `V015a`.
@@ -125,3 +137,4 @@
 | V015 | 05/11/2026 02:30 | Jalon 9 étape 2 : menu contextuel, bouton « + », grille en boîte de dialogue ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V015a | 05/11/2026 | Correctif du niveau inférieur du plan ; fichiers à enregistrer (voir liste) |
 | V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️, Actions déroulant, en-tête figé enrichi ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V017 | 08/11/2026 01:30 | Préalable au 9.4 : navigation unique, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

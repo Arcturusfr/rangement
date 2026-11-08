@@ -1,7 +1,7 @@
 # tests/test_jalon7.py — Application « Rangement »
-# Version : V016
-# Horodatage : 2026-11-06 12:00 (heure de Paris)
-# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
+# Version : V017
+# Horodatage : 2026-11-08 01:30 (heure de Paris)
+# Résumé : V017 : le bandeau de niveau ouvre l'emplacement (navigation réelle) au lieu de le dessiner dans le meuble.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon7.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -198,14 +198,17 @@ def scenario_view(browser, base):
     more = cell(page, "Tiroir bas gauche").locator(".furn-more")
     check("niveaux | icône de détail sur le rectangle qui a des sous-niveaux", more.count() == 1 and "2 sous-emplacements" in more.get_attribute("aria-label") and "niveau 4" in more.get_attribute("aria-label") and more.inner_text().strip() == "2", more.get_attribute("aria-label"))
     more.click()
-    page.wait_for_function("document.querySelector('.furn-caption').textContent.indexOf('Niveau 3') === 0")
-    cap = page.inner_text(".furn-caption")
-    check("niveaux | détail : niveau rappelé", "Sous-emplacement" in cap and "Tiroir bas gauche" in cap and "niveau 4" in cap, cap)
-    check("niveaux | détail : sous-sous-emplacements dessinés (texte brut)", names(page) == ["<b>Boîte A</b>", "Boîte B"] and page.locator(".furn-view b").count() == 0, names(page))
-    check("niveaux | détail : objets du niveau listés", "Piles neuves" in page.inner_text(".furn-view .section") and "niveau 3" in page.inner_text(".furn-view .section-title"))
-    page.get_by_role("button", name="Remonter au niveau 2").click()
-    page.wait_for_function("!document.querySelector('.furn-caption')")
-    check("niveaux | remontée : retour au meuble", names(page) == ["Grand tiroir du bas", "Tiroir bas gauche"])
+    wait_title(page, "Tiroir bas gauche")
+    page.wait_for_selector("#pane-detail .furn-view")
+    check("niveaux | le bandeau ouvre vraiment l'emplacement (adresse et en-tête)", js(page, "location.hash") == "#/l/" + tg and page.locator(".furn-caption").count() == 0 and page.get_by_role("button", name="Remonter au niveau 2").count() == 0)
+    cap = info(page)
+    check("niveaux | niveau rappelé dans l'info-bulle", "Sous-emplacement" in cap and "Tiroir bas gauche" in cap and "niveau 4" in cap, cap)
+    check("niveaux | sous-sous-emplacements dessinés (texte brut), Vue graphique conservée", names(page) == ["<b>Boîte A</b>", "Boîte B"] and page.locator(".furn-view b").count() == 0 and page.locator(".detail-sticky .view-switch").count() == 1, names(page))
+    check("niveaux | objets du niveau listés", "Piles neuves" in page.inner_text(".furn-view .section") and "niveau 3" in page.inner_text(".furn-view .section-title"))
+    page.locator("[aria-label='Niveau supérieur']").click()
+    wait_title(page, "Meuble living")
+    page.wait_for_selector("#pane-detail .furn-view")
+    check("niveaux | niveau supérieur : retour au meuble", names(page) == ["Grand tiroir du bas", "Tiroir bas gauche"])
     check("vue | aucune erreur console", not errors, errors)
     ctx.close()
 
