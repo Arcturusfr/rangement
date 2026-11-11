@@ -13,7 +13,7 @@
 
 - **V017 validée** (aucun bug ; seuil de masquage du bandeau à 85 px et bandeau à 44 px conservés). **Étape 9.4 livrée (V018)** : l'application s'ouvre sur le **plan** (vue graphique par défaut à tous les niveaux, plan ajusté à l'écran) ; **bouton flottant unique Liste / Plan** dont le libellé indique l'action (`➔ Liste`, `➔ Plan`, `➔ Vue graphique`) ; **bouton flottant Agrandir / Ajuster à l'écran** à icône SVG, en haut à droite du plan ; **arborescence à trois états** (large, rail par défaut, masquée) avec un bouton « Arborescence » dans l'en-tête.
 - Tests Playwright/Chromium : **1103 tests** (jalons 1 à 9.3 : 1071 ; **32 pour la V018, `test_jalon9_4.py`**), 0 échec. Les anciens tests partent de la vue Liste et de l'arborescence large (nouveaux défauts) et ont été adaptés au bouton flottant.
-- Attention : les copies de `js/features/furniture.js` (V014) et `js/ui/views/furniture.js` (V016) de la base `Contexte` étaient **antérieures à la V017** ; la V018 les reconstitue (`hasGraphic`, bandeau de niveau = « Ouvrir », plus de niveau dessiné dans le parent) en s'appuyant sur les règles et les tests de la V017.
+- Les deux `furniture.js` de la V017 (fonction et vue) ont été fournis par l'utilisateur : la V018 repose sur ses vraies versions ; `js/features/furniture.js` n'a **pas** changé.
 - En attente : **validation de la V018 par l'utilisateur** (voir `ToDo_Utilisateur.md`). Ensuite : pictogrammes SVG dans les boutons, « respiration » des cases libres en placement.
 
 ### (historique) État à la V017

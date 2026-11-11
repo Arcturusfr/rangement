@@ -44,11 +44,11 @@
 
 - [ ] **Enregistrer les fichiers de la V018** (archive `V018.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018.txt`).
   - **Nouveau** : `tests/test_jalon9_4.py`.
-  - **Remplacés** : `sw.js` (**à la racine**), `index.html`, `js/config.js`, `css/layout.css`, `css/components.css`, `js/ui/components/detailbar.js`, `js/ui/views/browse.js`, `js/ui/views/location.js`, `js/ui/views/furniture.js`, `js/features/furniture.js`, tous les tests `tests/test_jalon*.py` et les trois `.md`.
-  - **Important** : les copies de `js/features/furniture.js` et `js/ui/views/furniture.js` de la base `Contexte` étaient **plus anciennes que la V017**. La V018 les reconstitue (comportements V017 repris). **Remplacez-les sur GitHub par les versions V018** et vérifiez que le bandeau à droite des cases ouvre bien l'emplacement.
+  - **Remplacés** : `sw.js` (**à la racine**), `index.html`, `js/config.js`, `css/layout.css`, `css/components.css`, `js/ui/components/detailbar.js`, `js/ui/views/browse.js`, `js/ui/views/location.js`, `js/ui/views/furniture.js`, tous les tests `tests/test_jalon*.py` et les trois `.md`.
+  - **Important** : `js/features/furniture.js` **n'est pas dans l'archive** (inchangé depuis la V017 : gardez celui de GitHub). `js/ui/views/furniture.js` est la V017 que vous m'avez fournie, modifiée pour la V018.
   - **Inchangés** : tout le reste (`css/furniture.css`, `js/ui/components/bubble.js`, `contextmenu.js`…).
 - [ ] **Vérifier que la version affichée est `V018`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
-- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V018 (supprimer les versions remplacées ; dont les anciennes copies des deux `furniture.js`, `search.js` en double…).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V018 (supprimer les versions remplacées ; remplacer aussi les anciennes copies de `js/features/furniture.js` par la V017 et supprimer les doublons).
 - [ ] **Tester la V018** : l'application s'ouvre sur le plan du logement (tient dans l'écran ?) ; bouton « ➔ Liste » en haut à gauche du plan et bascule en liste (« ➔ Plan ») ; bouton Agrandir / Ajuster (icône) en haut à droite ; même chose dans une pièce et dans un meuble ; bouton « Arborescence » de l'en-tête : rail › masquée › large ; écran replié ; le recouvrement du coin du plan par les boutons vous gêne-t-il ?
 - [ ] **Répondre** : position des boutons flottants à votre goût ? rail par défaut OK ? Faut-il mémoriser les 3 états seulement ou aussi les remettre au rail à chaque démarrage ?
 

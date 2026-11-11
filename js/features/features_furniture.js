@@ -33,6 +33,13 @@
   function exists(id) { return isRoot(id) || !!R.store.getLocation(id); }
   function parentKey(l) { return l.parentId || ROOT; }
 
+  // Vue graphique proposée : un meuble (toujours) ou tout niveau plus bas qui a des sous-emplacements ; ni le logement ni une pièce (ils ont leur plan).
+  function hasGraphic(id) {
+    if (isRoot(id) || !R.store.getLocation(id)) { return false; }
+    var d = R.store.depthOf(id);
+    return d === 1 || (d > 1 && R.store.childLocations(id).length > 0);
+  }
+
   // Un meuble = emplacement de premier niveau (directement dans une pièce).
   function isFurniture(id) { return !isRoot(id) && !!R.store.getLocation(id) && R.store.depthOf(id) === 1; }
 
@@ -243,7 +250,7 @@
 
   R.ns('features').furniture = {
     ROOT: ROOT, ratios: RATIOS, limits: LIMITS, planLimits: PLAN_LIMITS, limitsFor: limitsFor, isRoot: isRoot, isPlanLike: isPlanLike,
-    isFurniture: isFurniture, get: get, ordered: ordered, layout: layout,
+    isFurniture: isFurniture, hasGraphic: hasGraphic, get: get, ordered: ordered, layout: layout,
     set: set, setGrid: setGrid, move: move, resize: resize
   };
 })();
