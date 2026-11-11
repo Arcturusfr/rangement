@@ -1,8 +1,8 @@
 /*
   js/features/furniture.js — Application « Rangement »
-  Version : V014
-  Horodatage : 2026-11-02 22:47 (heure de Paris)
-  Résumé : isPlanLike : le logement ET les pièces se dessinent comme un plan (cases carrées, une seule zone, 20 × 20 au plus).
+  Version : V017
+  Horodatage : 2026-11-08 01:30 (heure de Paris)
+  Résumé : hasGraphic(id) : la Vue graphique est proposée à tout niveau (meuble ou plus bas) qui a des sous-emplacements.
 */
 (function () {
   'use strict';
@@ -33,15 +33,15 @@
   function exists(id) { return isRoot(id) || !!R.store.getLocation(id); }
   function parentKey(l) { return l.parentId || ROOT; }
 
-  // Vue graphique proposée : un meuble (toujours) ou tout niveau plus bas qui a des sous-emplacements ; ni le logement ni une pièce (ils ont leur plan).
+  // Un meuble = emplacement de premier niveau (directement dans une pièce).
+  function isFurniture(id) { return !isRoot(id) && !!R.store.getLocation(id) && R.store.depthOf(id) === 1; }
+
+  // Vue graphique proposée : un meuble (toujours) ou tout niveau plus bas qui contient des sous-emplacements.
   function hasGraphic(id) {
     if (isRoot(id) || !R.store.getLocation(id)) { return false; }
     var d = R.store.depthOf(id);
     return d === 1 || (d > 1 && R.store.childLocations(id).length > 0);
   }
-
-  // Un meuble = emplacement de premier niveau (directement dans une pièce).
-  function isFurniture(id) { return !isRoot(id) && !!R.store.getLocation(id) && R.store.depthOf(id) === 1; }
 
   function geomOf(l) { return (l && l.geometry && typeof l.geometry === 'object') ? l.geometry : {}; }
   function intIn(v, min, max) { return (typeof v === 'number' && v === Math.floor(v) && v >= min && v <= max) ? v : null; }
