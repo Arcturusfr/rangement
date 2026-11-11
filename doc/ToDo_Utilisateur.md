@@ -1,15 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V017
-  Horodatage : 2026-11-08 01:30 (heure de Paris)
-  Résumé : V017 livrée (préalable au 9.4) — fichiers à enregistrer et tests.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 livrée (étape 9.4) — fichiers à enregistrer et tests.
 -->
 
-# ToDo Utilisateur — Rangement `V017`
+# ToDo Utilisateur — Rangement `V018`
 
-> Dernière mise à jour : 08/11/2026 01:30 (Paris) — **V017**
+> Dernière mise à jour : 10/11/2026 21:05 (Paris) — **V018**
 
 ## Fait
+
+- [x] Tester la V017 : aucun bug ; seuil de masquage du bandeau (85 px) et bandeau à 44 px conservés ; valider la V017 ; demander l'étape 9.4 (plan en accueil, boutons flottants, arborescence à 3 états)
 
 - [x] Tester la V016 : info-bulle, boutons Liste / Plan et écran replié convenables ; valider le jalon 9.3 ; signaler l'ambiguïté « Ouvrir » / bandeau de niveau et demander la V017 avant l'étape 9.4
 - [x] Valider le jalon 9.2 (V015) ; lancer l'étape 9.3 (ℹ️ aussi sur la fiche d'un objet)
@@ -39,6 +41,18 @@
 - [x] Valider le jalon 4 (recherche) : testé longuement sur GitHub, aucun bug ; améliorations ergonomiques notées pour le jalon 6 bis
 
 ## À faire maintenant
+
+- [ ] **Enregistrer les fichiers de la V018** (archive `V018.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018.txt`).
+  - **Nouveau** : `tests/test_jalon9_4.py`.
+  - **Remplacés** : `sw.js` (**à la racine**), `index.html`, `js/config.js`, `css/layout.css`, `css/components.css`, `js/ui/components/detailbar.js`, `js/ui/views/browse.js`, `js/ui/views/location.js`, `js/ui/views/furniture.js`, `js/features/furniture.js`, tous les tests `tests/test_jalon*.py` et les trois `.md`.
+  - **Important** : les copies de `js/features/furniture.js` et `js/ui/views/furniture.js` de la base `Contexte` étaient **plus anciennes que la V017**. La V018 les reconstitue (comportements V017 repris). **Remplacez-les sur GitHub par les versions V018** et vérifiez que le bandeau à droite des cases ouvre bien l'emplacement.
+  - **Inchangés** : tout le reste (`css/furniture.css`, `js/ui/components/bubble.js`, `contextmenu.js`…).
+- [ ] **Vérifier que la version affichée est `V018`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »).
+- [ ] **Mettre à jour la base `Contexte`** avec les fichiers V018 (supprimer les versions remplacées ; dont les anciennes copies des deux `furniture.js`, `search.js` en double…).
+- [ ] **Tester la V018** : l'application s'ouvre sur le plan du logement (tient dans l'écran ?) ; bouton « ➔ Liste » en haut à gauche du plan et bascule en liste (« ➔ Plan ») ; bouton Agrandir / Ajuster (icône) en haut à droite ; même chose dans une pièce et dans un meuble ; bouton « Arborescence » de l'en-tête : rail › masquée › large ; écran replié ; le recouvrement du coin du plan par les boutons vous gêne-t-il ?
+- [ ] **Répondre** : position des boutons flottants à votre goût ? rail par défaut OK ? Faut-il mémoriser les 3 états seulement ou aussi les remettre au rail à chaque démarrage ?
+
+### (historique) À faire à la V017
 
 - [ ] **Enregistrer les fichiers de la V017** (archive `V017.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V017.txt`).
   - **Nouveau** : `tests/test_jalon9_3bis.py`.
@@ -138,3 +152,4 @@
 | V015a | 05/11/2026 | Correctif du niveau inférieur du plan ; fichiers à enregistrer (voir liste) |
 | V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️, Actions déroulant, en-tête figé enrichi ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V017 | 08/11/2026 01:30 | Préalable au 9.4 : navigation unique, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V018 | 10/11/2026 21:05 | Étape 9.4 : plan en accueil, boutons flottants, arborescence à trois états ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

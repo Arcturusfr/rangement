@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V017
-  Horodatage : 2026-11-08 01:30 (heure de Paris)
-  Résumé : V017 — Vue graphique proposée à tout niveau qui a des sous-emplacements (hasGraphic), plus seulement aux meubles.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 : boutons flottants Liste / Plan et Agrandir ; vue graphique par défaut.
 */
 (function () {
   'use strict';
@@ -164,6 +164,12 @@
     var V = R.ui.views.furniture;
     var planScope = (!loc || depth === 0);                                      // logement ou pièce : un plan
     var furnScope = !!loc && R.features.furniture.hasGraphic(loc.id);          // meuble ou niveau plus bas avec sous-emplacements : vue graphique
+    var planGraphic = planScope && V.mode('plan') === 'graphic';
+    var anyGraphic = planGraphic || (furnScope && V.mode() === 'graphic');
+    var floatSwitch = planScope ? V.switcher('plan') : (furnScope ? V.switcher() : null);
+    var floats = [];
+    if (floatSwitch) { floats.push(floatSwitch); }
+    if (planGraphic) { floats.push(V.zoomButton()); }
     var bar = R.ui.components.detailbar.create({
       ref: loc ? { type: 'location', id: loc.id } : { type: 'root' },
       path: loc ? R.store.pathOf(id) : [],
@@ -172,7 +178,8 @@
       kind: loc ? R.models.kindLabel(loc.kind) : null,
       info: infoLines(loc, depth),
       actions: actions(loc, depth),
-      switcher: planScope ? V.switcher('plan') : (furnScope ? V.switcher() : null)
+      floats: floats,
+      floatReserve: !!floatSwitch && !anyGraphic      // en liste, de la place est réservée sous l'en-tête ; sur un plan, les boutons le recouvrent
     });
     container.appendChild(bar.head);
 

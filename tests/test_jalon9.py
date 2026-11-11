@@ -1,7 +1,7 @@
 # tests/test_jalon9.py — Application « Rangement »
-# Version : V016
-# Horodatage : 2026-11-06 12:00 (heure de Paris)
-# Résumé : adaptation V016 : commandes d'action via le menu déroulant « Actions », info-bulle ℹ️ à la place du texte de rappel du plan.
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -16,6 +16,18 @@ from playwright.sync_api import sync_playwright
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
+
 results = []
 F = "Rangement.features.furniture"
 
@@ -41,7 +53,7 @@ def js(page, expr):
 
 
 def start(browser, base, w=884, h=1100, errors=None):
-    ctx = browser.new_context(viewport={"width": w, "height": h})
+    ctx = _nc(browser, viewport={"width": w, "height": h})
     page = ctx.new_page()
     page.on("console", lambda m: errors.append(m.text) if errors is not None and m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)) if errors is not None else None)
@@ -175,7 +187,7 @@ def scenario_fit(browser, base):
     # taille réelle
     page.get_by_role("button", name="Agrandir").click()
     settle(page, "real")
-    check("réel | bouton enfoncé et libellé inversé", page.locator("#plan-zoom").get_attribute("aria-pressed") == "true" and page.locator("#plan-zoom").inner_text() == "Ajuster à l’écran")
+    check("réel | bouton enfoncé et libellé inversé", page.locator("#plan-zoom").get_attribute("aria-pressed") == "true" and page.locator("#plan-zoom").get_attribute("aria-label") == "Ajuster à l’écran")
     wr, hr = cell_size(page)
     check("réel | cases d'au moins 72 px, le cadre défile", wr >= 71 and frame_scrolls(page), (wr, hr))
     check("réel | pas de tuiles compactes", not js(page, "document.querySelector('.furn-body').classList.contains('furn-compact')"))
@@ -224,7 +236,7 @@ def scenario_room(browser, base):
     sej = js(page, "Rangement.store.locations().filter(function(l){return l.name==='Séjour';})[0].id")
     page.goto(base + "#/l/" + sej)
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Séjour'")
-    check("pièce | commutateur Liste / Plan sur une pièce", page.get_by_role("button", name="Plan", exact=True).count() == 1 and page.get_by_role("button", name="Liste", exact=True).get_attribute("aria-pressed") == "true")
+    check("pièce | commutateur Liste / Plan sur une pièce", page.get_by_role("button", name="Plan", exact=True).count() == 1 and page.locator("#view-toggle").get_attribute("data-mode") == "list")
     check("pièce | liste par défaut inchangée", "Meuble living" in page.inner_text("#pane-detail .list"))
     page.get_by_role("button", name="Plan", exact=True).click()
     page.wait_for_selector(".furn-body[data-fit]")
@@ -239,7 +251,7 @@ def scenario_room(browser, base):
     # le choix Liste / Plan est commun au logement et aux pièces
     page.goto(base + "#/")
     page.wait_for_selector(".furn-body[data-fit]")
-    check("pièce | le choix du plan est commun au logement et aux pièces", page.get_by_role("button", name="Plan", exact=True).get_attribute("aria-pressed") == "true")
+    check("pièce | le choix du plan est commun au logement et aux pièces", page.locator("#view-toggle").get_attribute("data-mode") == "graphic")
     page.goto(base + "#/l/" + sej)
     page.wait_for_selector(".furn-body[data-fit]")
     page.locator("#plan-add").click()

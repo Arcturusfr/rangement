@@ -1,8 +1,8 @@
 /*
   js/ui/views/browse.js — Application « Rangement »
-  Version : V010
-  Horodatage : 2026-10-26 15:33 (heure de Paris)
-  Résumé : nombre d'objets (total, sous-emplacements compris) à droite de chaque emplacement de l'arborescence large.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 : arborescence à trois états (large, rail par défaut, masquée) et bouton d'en-tête pour changer d'état.
 */
 (function () {
   'use strict';
@@ -12,7 +12,7 @@
   var container = null;
   var expanded = {};        // id → true : emplacements dépliés (en mémoire, repliés à chaque ouverture)
   var lastHighlight;        // dernier élément surligné (undefined = jamais rendu)
-  var mode = 'wide';        // 'wide' (libellés) | 'mini' (rail sans libellés)
+  var mode = 'mini';        // 'wide' (libellés) | 'mini' (rail sans libellés, défaut) | 'hidden' (volet masqué)
 
   // Emplacement à surligner : celui de la route, ou celui de l'objet affiché.
   function highlightedId() {
@@ -29,7 +29,7 @@
   function loadMode() {
     try {
       var ui = JSON.parse(R.storage.getAux('ui') || '{}');
-      if (ui && ui.tree === 'mini') { mode = 'mini'; }
+      if (ui && (ui.tree === 'mini' || ui.tree === 'wide' || ui.tree === 'hidden')) { mode = ui.tree; }
     } catch (err) { /* préférence illisible : arborescence large */ }
   }
 
@@ -37,8 +37,22 @@
     mode = next;
     R.storage.setAux('ui', JSON.stringify({ tree: mode }));
     document.documentElement.setAttribute('data-tree', mode);
+    updateCycle();
     render();
   }
+
+  var MODE_NAMES = { wide: 'large', mini: 'r\u00e9duite', hidden: 'masqu\u00e9e' };
+
+  function updateCycle() {
+    var c = document.getElementById('tree-cycle');
+    if (!c) { return; }
+    c.setAttribute('data-state', mode);
+    c.setAttribute('aria-label', 'Arborescence : ' + MODE_NAMES[mode] + '. Changer l\u2019affichage.');
+    c.setAttribute('title', 'Arborescence : ' + MODE_NAMES[mode]);
+  }
+
+  // Large \u2192 rail \u2192 masquée \u2192 large.
+  function cycle() { setMode(mode === 'wide' ? 'mini' : (mode === 'mini' ? 'hidden' : 'wide')); }
 
   function hasKids(id) { return R.store.childLocations(id).length > 0; }
 
@@ -171,6 +185,7 @@
     }
     var rootCurrent = !(currentId || searching);
     R.ui.dom.clear(container);
+    if (mode === 'hidden') { return; }
     if (mode === 'mini') { renderMini(currentId, rootCurrent); } else { renderWide(currentId, rootCurrent); }
   }
 
@@ -178,10 +193,13 @@
     container = node;
     loadMode();
     document.documentElement.setAttribute('data-tree', mode);
+    var c = document.getElementById('tree-cycle');
+    if (c) { c.addEventListener('click', cycle); }
+    updateCycle();
     render();
     R.events.on('store:changed', render);
     R.events.on('route:changed', render);
   }
 
-  R.ns('ui.views').browse = { mount: mount, expandAll: expandAll, collapseAll: collapseAll, setMode: setMode, mode: function () { return mode; } };
+  R.ns('ui.views').browse = { mount: mount, expandAll: expandAll, collapseAll: collapseAll, setMode: setMode, cycle: cycle, mode: function () { return mode; } };
 })();

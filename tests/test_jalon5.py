@@ -1,7 +1,7 @@
 # tests/test_jalon5.py — Application « Rangement »
-# Version : V007
-# Horodatage : 2026-10-24 22:30 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 5 (sauvegarde : export / import JSON, écran Réglages).
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon5.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -18,6 +18,18 @@ from playwright.sync_api import sync_playwright
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
+
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
 
 results = []
 
@@ -40,7 +52,7 @@ def start_server():
 
 
 def new_page(browser, width, height, errors, init_script=None, accept_downloads=True):
-    ctx = browser.new_context(viewport={"width": width, "height": height}, accept_downloads=accept_downloads)
+    ctx = _nc(browser, viewport={"width": width, "height": height}, accept_downloads=accept_downloads)
     if init_script:
         ctx.add_init_script(init_script)
     page = ctx.new_page()
@@ -318,6 +330,7 @@ def scenario_no_storage(browser, base):
     import_file(page, tmp_file(d))
     dlg(page).get_by_role("button", name="Importer", exact=True).click()
     closed(page)
+    page.evaluate("Rangement.ui.views.browse.setMode('wide')")
     check("sans stockage | import fonctionnel en mémoire", page.locator("#pane-tree .tree-link").count() == 1)
     name, text = do_export(page)
     check("sans stockage | export fonctionnel", len(json.loads(text)["locations"]) == 1)

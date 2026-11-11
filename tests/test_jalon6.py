@@ -1,7 +1,7 @@
 # tests/test_jalon6.py — Application « Rangement »
-# Version : V012
-# Horodatage : 2026-10-31 14:31 (heure de Paris)
-# Résumé : attentes robustes : la page rechargée peut ne pas avoir encore chargé pwa.js (course entre le test et le chargement).
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon6.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -21,6 +21,18 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
 VERSION = re.search(r"version: '([^']+)'", open(os.path.join(ROOT, "js", "config.js"), encoding="utf-8").read()).group(1)
+
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
 
 results = []
 
@@ -47,7 +59,7 @@ def start_server(root):
 
 
 def new_page(browser, width, height, errors):
-    ctx = browser.new_context(viewport={"width": width, "height": height})
+    ctx = _nc(browser, viewport={"width": width, "height": height})
     page = ctx.new_page()
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)))
@@ -257,7 +269,7 @@ def scenario_file(browser, base):
 def scenario_sw_blocked(browser, base):
     """Service worker refusé par le navigateur : l'application reste utilisable."""
     errors = []
-    ctx = browser.new_context(viewport={"width": 884, "height": 1100})
+    ctx = _nc(browser, viewport={"width": 884, "height": 1100})
     ctx.add_init_script("navigator.serviceWorker.register = function(){ return Promise.reject(new Error('refusé')); };")
     page = ctx.new_page()
     page.on("pageerror", lambda e: errors.append(str(e)))

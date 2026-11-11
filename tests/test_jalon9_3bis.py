@@ -1,7 +1,7 @@
 # tests/test_jalon9_3bis.py — Application « Rangement »
-# Version : V017
-# Horodatage : 2026-11-08 01:30 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium de la V017 (navigation unique depuis les plans, bandeau de niveau masqué sur les cases étroites, Vue graphique à tous les niveaux ayant des sous-emplacements).
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_3bis.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -16,6 +16,18 @@ from playwright.sync_api import sync_playwright
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
+
 results = []
 F = "Rangement.features.furniture"
 
@@ -41,7 +53,7 @@ def js(page, expr):
 
 
 def start(browser, base, w=884, h=1100, errors=None):
-    ctx = browser.new_context(viewport={"width": w, "height": h})
+    ctx = _nc(browser, viewport={"width": w, "height": h})
     page = ctx.new_page()
     page.on("console", lambda m: errors.append(m.text) if errors is not None and m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)) if errors is not None else None)
@@ -97,7 +109,7 @@ def state(page):
         "hash": js(page, "location.hash"),
         "title": page.inner_text("#pane-detail .detail-title"),
         "crumb": page.inner_text("#pane-detail .breadcrumb").replace("\n", " "),
-        "switch": page.locator(".detail-sticky .view-switch button[aria-pressed='true']").inner_text(),
+        "switch": page.locator(".detail-sticky #view-toggle").get_attribute("data-mode"),
         "cells": names(page),
         "caption": page.locator(".furn-caption").count(),
         "info": info(page),
@@ -131,7 +143,7 @@ def scenario_single_navigation(browser, base):
     check("navigation unique | bandeau et « Ouvrir » mènent à la même situation", via_menu == via_band, (via_menu, via_band))
     check("navigation unique | l'en-tête est celui de la pièce (fil d'Ariane, titre)", via_band["title"] == "Séjour" and "Logement" in via_band["crumb"] and "Séjour" in via_band["crumb"])
     check("navigation unique | plus de texte de rappel ni de bouton « Remonter »", via_band["caption"] == 0 and page.get_by_role("button", name="Remonter", exact=False).count() == 0)
-    check("navigation unique | le commutateur Plan reste celui de la pièce", via_band["switch"] == "Plan")
+    check("navigation unique | le commutateur Plan reste celui de la pièce", via_band["switch"] == "graphic")
     src = open(os.path.join(ROOT, "js", "ui", "views", "furniture.js"), encoding="utf-8").read()
     src = src[src.index("*/"):]      # hors commentaire d'en-tête
     check("navigation unique | le mode « niveau dessiné dans le parent » n'existe plus dans le code", "focus[" not in src and "furn-caption" not in src and "Remonter" not in src)
@@ -202,10 +214,10 @@ def scenario_deep_graphic(browser, base):
     check("API | hasGraphic : tiroir avec sous-emplacements oui", js(page, "%s.hasGraphic('%s')" % (F, tg)) is True)
     page.goto(base + "#/l/" + tg)
     wait_title(page, "Tiroir bas gauche")
-    sw = page.locator(".detail-sticky .view-switch")
-    check("niveau 3 | commutateur Liste / Vue graphique proposé", sw.count() == 1 and sw.inner_text().replace("\n", " ") == "Liste Vue graphique")
+    sw = page.locator(".detail-sticky #view-toggle")
+    check("niveau 3 | commutateur Liste / Vue graphique proposé", sw.count() == 1 and sw.inner_text().strip().endswith("Vue graphique"))
     check("niveau 3 | liste par défaut", page.locator("#pane-detail .list").count() >= 1 and page.locator(".furn-view").count() == 0)
-    sw.get_by_role("button", name="Vue graphique").click()
+    sw.click()
     page.wait_for_selector(".furn-view")
     check("niveau 3 | vue graphique : une case par boîte, objets listés dessous", names(page) == ["Boîte A", "Boîte B"] and "Piles neuves" in page.inner_text(".furn-view .section"), names(page))
     check("niveau 3 | cadre de meuble (proportions, pas un plan)", page.locator(".furn-body[data-plan]").count() == 0)
@@ -232,7 +244,7 @@ def scenario_deep_graphic(browser, base):
     page.wait_for_selector(".furn-cell:has-text('Boîte A') .furn-more")
     cell(page, "Boîte A").locator(".furn-more").click()
     wait_title(page, "Boîte A")
-    check("niveau 4 | boîte avec sous-emplacement : commutateur proposé", page.locator(".detail-sticky .view-switch").count() == 1)
+    check("niveau 4 | boîte avec sous-emplacement : commutateur proposé", page.locator(".detail-sticky #view-toggle").count() == 1)
     page.wait_for_selector(".furn-view")
     check("niveau 4 | vue graphique (choix mémorisé) : la pochette est dessinée", names(page) == ["Pochette"], names(page))
     page.locator("[aria-label='Niveau supérieur']").click()
@@ -242,19 +254,19 @@ def scenario_deep_graphic(browser, base):
     # un niveau sans sous-emplacement : liste seule
     page.goto(base + "#/l/" + loc_id(page, "Boîte B"))
     wait_title(page, "Boîte B")
-    check("niveau 4 | sans sous-emplacement : pas de commutateur", page.locator(".view-switch").count() == 0)
+    check("niveau 4 | sans sous-emplacement : pas de commutateur", page.locator("#view-toggle").count() == 0)
     # le meuble affiche toujours son commutateur, même sans sous-emplacement
     js(page, "Rangement.features.locations.create({name:'Étagère vide', kind:'meuble', parentId:'%s'})" % sej)
     page.goto(base + "#/l/" + loc_id(page, "Étagère vide"))
     wait_title(page, "Étagère vide")
-    check("meuble | commutateur conservé même sans sous-emplacement", page.locator(".detail-sticky .view-switch").count() == 1)
+    check("meuble | commutateur conservé même sans sous-emplacement", page.locator(".detail-sticky #view-toggle").count() == 1)
     # tiroir devenu vide : le commutateur disparaît
     js(page, "Rangement.features.locations.remove('%s')" % loc_id(page, "Boîte B"))
     js(page, "Rangement.features.locations.remove('%s')" % loc_id(page, "Pochette"))
     js(page, "Rangement.features.locations.remove('%s')" % loc_id(page, "Boîte A"))
     page.goto(base + "#/l/" + tg)
     wait_title(page, "Tiroir bas gauche")
-    check("niveau 3 | tiroir redevenu sans sous-emplacement : plus de commutateur", page.locator(".view-switch").count() == 0 and page.locator("#pane-detail .list").count() >= 1)
+    check("niveau 3 | tiroir redevenu sans sous-emplacement : plus de commutateur", page.locator("#view-toggle").count() == 0 and page.locator("#pane-detail .list").count() >= 1)
     check("niveau 3 | données valides", valid(page))
     check("niveau 3 | aucune erreur console", not errors, errors)
     ctx.close()

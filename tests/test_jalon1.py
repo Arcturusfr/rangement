@@ -1,7 +1,7 @@
 # tests/test_jalon1.py — Application « Rangement »
-# Version : V004
-# Horodatage : 2026-10-23 11:35 (heure de Paris)
-# Résumé : la version attendue est lue dans js/config.js (plus de valeur codée en dur).
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon1.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -18,6 +18,18 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")  # dossier optionnel pour des captures
 import re
 VERSION = re.search(r"version: '([^']+)'", open(os.path.join(ROOT, "js", "config.js"), encoding="utf-8").read()).group(1)
+
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
 
 results = []
 
@@ -45,7 +57,7 @@ def watch(page, errors):
 
 
 def new_page(browser, width, height, errors, init_script=None):
-    ctx = browser.new_context(viewport={"width": width, "height": height})
+    ctx = _nc(browser, viewport={"width": width, "height": height})
     if init_script:
         ctx.add_init_script(init_script)
     page = ctx.new_page()
@@ -142,6 +154,7 @@ def scenario_no_storage(browser, base):
     page.wait_for_selector("#pane-detail .empty")
     check("sans stockage | avertissement visible", page.is_visible("#status") and "indisponible" in page.inner_text("#status"))
     page.click("button:has-text('Charger les données')")
+    page.evaluate("Rangement.ui.views.browse.setMode('wide')")
     check("sans stockage | l'appli fonctionne en mémoire", page.locator("#pane-tree .tree-link").count() == 8)
     check("sans stockage | aucune erreur console", not errors, errors)
     ctx.close()
@@ -196,7 +209,7 @@ def scenario_models(browser, base):
 
 def scenario_diagnostic(browser, base):
     """Un fichier absent ou une erreur JS doivent être signalés à l'écran, pas silencieux."""
-    ctx = browser.new_context(viewport={"width": 884, "height": 1100})
+    ctx = _nc(browser, viewport={"width": 884, "height": 1100})
     page = ctx.new_page()
     page.route("**/js/core/store.js", lambda route: route.fulfill(status=404, content_type="text/html", body="Not found"))
     page.goto(base)
@@ -206,7 +219,7 @@ def scenario_diagnostic(browser, base):
     check("diagnostic | l'en-tête reste affiché", page.inner_text("#app-version").strip() == VERSION)
     ctx.close()
 
-    ctx = browser.new_context(viewport={"width": 884, "height": 1100})
+    ctx = _nc(browser, viewport={"width": 884, "height": 1100})
     page = ctx.new_page()
     page.route("**/js/ui/views/location.js", lambda route: route.fulfill(status=200, content_type="text/javascript", body="throw new Error('panne simulée');"))
     page.goto(base)

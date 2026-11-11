@@ -1,8 +1,8 @@
 /*
   css/layout.css — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : arborescence réductible en rail (data-tree=mini), variable --pane-pad pour les en-têtes figés.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 : arborescence masquée, bouton de changement d'état.
 */
 html, body { height: 100%; }
 
@@ -87,6 +87,12 @@ body {
 @media (prefers-reduced-motion: reduce) {
   [data-panes="2"] .app-main { transition: none; }
 }
+
+/* Arborescence masquée (écran déplié) : le détail prend toute la largeur */
+[data-panes="2"][data-tree="hidden"] .app-main { grid-template-columns: 1fr; }
+[data-tree="hidden"] .pane-tree { display: none; }
+button.app-link { background: none; border: 0; font: inherit; cursor: pointer; }
+[data-panes="1"] #tree-cycle { display: none; }
 
 /* Écran replié : un seul volet, la navigation se fait par le contenu */
 [data-panes="1"] .pane-tree { display: none; }

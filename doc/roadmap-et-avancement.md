@@ -1,15 +1,22 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V017
-  Horodatage : 2026-11-08 01:30 (heure de Paris)
-  Résumé : V017 (préalable au 9.4) : navigation unique depuis les plans, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 : étape 9.4 livrée (plan en vue d'accueil, boutons flottants, arborescence à trois états).
 -->
 
-# Roadmap et avancement — Rangement `V017`
+# Roadmap et avancement — Rangement `V018`
 
-> Dernière mise à jour : 08/11/2026 01:30 (Paris) — **V017**
+> Dernière mise à jour : 10/11/2026 21:05 (Paris) — **V018**
 
 ## État actuel
+
+- **V017 validée** (aucun bug ; seuil de masquage du bandeau à 85 px et bandeau à 44 px conservés). **Étape 9.4 livrée (V018)** : l'application s'ouvre sur le **plan** (vue graphique par défaut à tous les niveaux, plan ajusté à l'écran) ; **bouton flottant unique Liste / Plan** dont le libellé indique l'action (`➔ Liste`, `➔ Plan`, `➔ Vue graphique`) ; **bouton flottant Agrandir / Ajuster à l'écran** à icône SVG, en haut à droite du plan ; **arborescence à trois états** (large, rail par défaut, masquée) avec un bouton « Arborescence » dans l'en-tête.
+- Tests Playwright/Chromium : **1103 tests** (jalons 1 à 9.3 : 1071 ; **32 pour la V018, `test_jalon9_4.py`**), 0 échec. Les anciens tests partent de la vue Liste et de l'arborescence large (nouveaux défauts) et ont été adaptés au bouton flottant.
+- Attention : les copies de `js/features/furniture.js` (V014) et `js/ui/views/furniture.js` (V016) de la base `Contexte` étaient **antérieures à la V017** ; la V018 les reconstitue (`hasGraphic`, bandeau de niveau = « Ouvrir », plus de niveau dessiné dans le parent) en s'appuyant sur les règles et les tests de la V017.
+- En attente : **validation de la V018 par l'utilisateur** (voir `ToDo_Utilisateur.md`). Ensuite : pictogrammes SVG dans les boutons, « respiration » des cases libres en placement.
+
+### (historique) État à la V017
 
 - **Jalon 9.3 (V016) validé** (info-bulle, boutons Liste / Plan, écran replié : convenables). **V017 livrée, préalable à l'étape 9.4** : l'utilisateur a signalé une ambiguïté (le bandeau à droite d'une case et la commande « Ouvrir » menaient à deux situations différentes ; petites pièces difficiles à toucher). **Navigation unique** : le bandeau de niveau ouvre réellement l'emplacement, comme « Ouvrir » (plus de niveau dessiné dans le plan du parent, plus de texte de rappel ni de « Remonter… ») ; le bandeau est **masqué sur les cases de moins de 85 px** (toute la case ouvre le menu) et pendant le placement ; la **Vue graphique** est proposée à tout niveau qui a des sous-emplacements (plus seulement aux meubles).
 - Tests Playwright/Chromium : **1071 tests** (62 + 73 + 131 + 73 + 137 + 52 + 133 + 89 jalons 1 à 7, 78 jalon 8, 43 jalon 9.1, 89 jalon 9.2, 63 jalon 9.3, **48 V017 (`test_jalon9_3bis.py`)**), 0 échec. Tests des jalons 7, 8 et 9.2 adaptés (le bandeau navigue).
@@ -93,6 +100,7 @@
 | Jalon 8 (V013) | **Validé** : pièces en **tuiles collées** (pas de murs, portes ni fenêtres pour l'instant), réutilisation de la grille des meubles, pièces = rectangles de cases (pas de formes en L), nom + nombre d'objets sur chaque case, grille jusqu'à 20 × 20, places automatiques puis figées, disposition des meubles dans une pièce = jalon 8 bis à part. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix Liste / Plan mémorisé séparément de celui des meubles ; 2 / 3 / 4 colonnes automatiques selon le nombre de pièces ; plan stocké dans l'enveloppe (`plan`), facultatif ; cadre à défilement horizontal si beaucoup de colonnes ; l'icône d'une tuile ouvre les meubles de la pièce sur la même grille (première version du jalon 8 bis). |
 | Jalon 9 (V014 →) | **Validé** : les plans deviennent l'élément principal ; tout tient sur l'écran déplié (plan **et** menus), le plan peut être agrandi ; navigation fluide et intuitive. Dimensions réelles de l'utilisateur : logement en **7 colonnes × 10 lignes**, plus grande pièce en 6 × 8 ; libellés absents ou tronqués sur les très petites pièces : sans gêne. **Geste** : un appui sur un élément ouvre un **menu contextuel près de lui**, dont la première commande, plus grande et en gras, est **« Ouvrir »** (quasi un double appui) ; pas d'appui long. **Création au niveau du plan** (nouvelle pièce, etc.) : bouton **« + » flottant** (pas de menu contextuel possible hors d'un élément). **Flèches** déplacer / taille : intégrées au menu contextuel, toujours visibles pendant l'édition, masquables à la fin, sans trop cacher le plan. **Pictogrammes ℹ️** : ouvrent des infobulles pour alléger l'interface (contenu à définir à l'usage : mode d'emploi contextuel, précisions sur un élément). Le menu « Ajuster » disparaîtra de lui-même. Découpage validé : 9.1 plan ajusté à l'écran ; 9.2 menu contextuel (+ bouton « + », flèches intégrées) ; 9.3 infobulles ℹ️ ; 9.4 plan en vue d'accueil ; les tests de chaque étape affineront les suivantes. *(Hypothèses de Claude, à valider :)* 9.1 : cases jamais sous 28 px (le cadre défile alors), la hauteur ne les réduit pas sous 48 px (la page défile alors), « compactes » sous 60 px, 72 px minimum en taille réelle ; le choix Liste / Plan est commun au logement et aux pièces ; liste par défaut jusqu'à l'étape 9.4. |
 | V017 (préalable au 9.4) | **Validé par l'utilisateur** : une seule façon d'entrer dans un niveau (le bandeau de niveau équivaut à « Ouvrir » ; on supprime le niveau dessiné dans le plan du parent et ses accessoires) ; bandeau masqué sur les petites tuiles ; Vue graphique étendue à tous les niveaux qui ont des sous-emplacements. *(Hypothèses de Claude, à valider à l'usage :)* seuil de masquage du bandeau = case de moins de 85 px de large ; bandeau absent pendant le placement ; un meuble garde toujours son commutateur Liste / Vue graphique, un niveau plus bas ne l'a que s'il a des sous-emplacements ; un niveau plus bas se dessine comme un meuble ; le choix Liste / Vue graphique reste commun à tous ces niveaux. |
+| Jalon 9.4 (V018) | **Demandé / validé par l'utilisateur** : l'application s'ouvre sur le plan du logement (qui tient dans l'écran) ; zones de l'écran déplié : en-tête et recherche figés pleine largeur, navigation figée au-dessus du plan, arborescence figée à gauche ; **Agrandir / Ajuster** = bouton flottant à icône explicite en haut à droite du plan ; **Liste / Plan** = un seul bouton flottant dont le libellé indique l'action (éventuellement précédé de ➔) ; valable pour logement, pièces et meubles ; **arborescence à 3 états** (large, rail, masquée). *(Hypothèses de Claude, à valider à l'usage :)* rail par défaut ; bouton « Arborescence » dans l'en-tête qui fait défiler les trois états ; bouton Liste / Plan en haut à gauche sous l'en-tête figé, Agrandir à droite (sur un plan seulement) ; les boutons recouvrent le coin du plan, en liste de la place leur est réservée ; vue graphique par défaut aussi pour meubles et niveaux plus bas ; boutons de 44 px à fond sombre semi-opaque. |
 | Jalon 9.3 (V016) | **Demandé / validé par l'utilisateur** : ℹ️ juste après le nom (y compris fiche d'objet) avec info-bulle reprenant niveau, nombre d'emplacements et d'objets ; menu « Actions » conservé mais déroulant ; libellé de catégorie dans l'en-tête figé à la suite du nom (tronqué + chevron rotatif → bulle) ; Liste / Plan sous les flèches et « Actions » sans augmenter la hauteur du bandeau. *(Hypothèses de Claude, à valider à l'usage :)* le texte de rappel du plan ne reste que dans un niveau inférieur dessiné ; la note d'un emplacement passe dans l'info-bulle ; libellé « Objet » sur une fiche ; boutons du commutateur de 32 px de haut (zone d'appui étendue) ; en-tête en deux colonnes (en écran replié : fil d'Ariane sur toute la largeur, titre un peu plus petit) ; les boutons « Ajouter… » du menu ne sont plus colorés. |
 | Jalon 9.2 (V015) | *(Hypothèses de Claude, à valider à l'usage :)* commandes du menu dans l'ordre Ouvrir, Placer et dimensionner, Ajouter un objet ici, Ajouter un emplacement ici, Modifier, Déplacer, Dupliquer, Supprimer ; la case n'est plus un lien (tout passe par « Ouvrir ») ; **« Placer et dimensionner »** remplace « Ajuster » : il sélectionne la case et affiche les pavés de flèches, avec « Grille… » et « Terminer » ; le « + » est caché pendant le placement ; les réglages de grille (colonnes, lignes ; pour un meuble proportions, dessus, dessous, pieds) sont dans une boîte de dialogue ouverte par « + » › « Régler la grille… » ; le menu est aussi proposé dans la vue graphique d'un meuble et de ses niveaux ; le « + » agit sur le niveau affiché. |
 | PWA (V008) | Pré-cache explicite versionné ; **mise à jour sur accord** (jamais de `skipWaiting` automatique) ; bouton « Vider le cache » (données intactes) ; pas de service worker en `file://`. *(Règles de ARCHITECTURE.md §5, §6.)* |
@@ -186,6 +194,13 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ✅ Vue graphique proposée à tout niveau ayant des sous-emplacements (`hasGraphic`)
 - ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
 
+### Jalon 9.4 — Plan en vue d'accueil ✅ (livré en V018, validation utilisateur en attente)
+- ✅ Vue graphique par défaut (logement, pièces, meubles) ; plan ajusté à l'écran
+- ✅ Bouton flottant unique Liste / Plan (libellé = action, avec ➔) ; bouton flottant Agrandir / Ajuster (icône SVG) en haut à droite du plan
+- ✅ Arborescence : large, rail (défaut), masquée ; bouton d'en-tête
+- ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
+- ⬜ *(plus tard)* pictogrammes SVG dans les boutons ; « respiration » du contour des cases libres en placement
+
 ### Jalon 8 bis — Disposition des meubles dans une pièce *(en grande partie couvert par le jalon 9)*
 - ⬜ Vue d'une pièce avec ses meubles posés sur la grille (première version déjà accessible par l'icône d'une tuile du plan)
 - ⬜ Mise en évidence d'un emplacement depuis une recherche
@@ -221,3 +236,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V015a | 05/11/2026 | Correctif : niveau inférieur du plan oublié au changement d'écran (88 tests dédiés au 9.2, 962 au total) |
 | V016 | 06/11/2026 12:00 | Jalon 9.2 validé ; étape 9.3 livrée (ℹ️, Actions déroulant, en-tête figé enrichi ; 63 tests dédiés, 1020 au total) |
 | V017 | 08/11/2026 01:30 | Jalon 9.3 validé ; préalable au 9.4 : navigation unique depuis les plans, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux (48 tests dédiés, 1071 au total) |
+| V018 | 10/11/2026 21:05 | V017 validée ; étape 9.4 livrée : plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états (32 tests dédiés, 1103 au total) |

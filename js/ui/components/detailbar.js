@@ -1,8 +1,8 @@
 /*
   js/ui/components/detailbar.js — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : jalon 9.3 — en-tête figé : nom + ℹ️ (info-bulle) + libellé de catégorie (chevron si tronqué) ; flèches de niveau et « Actions » (menu déroulant) ; commutateur Liste / Plan dessous, sans bande supplémentaire.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 : boutons flottants (opts.floats) sous l'en-tête figé à la place du commutateur intégré.
 */
 (function () {
   'use strict';
@@ -128,13 +128,13 @@
     left.push(el('div', { class: 'detail-titlerow' + (opts.depleted ? ' detail-head--depleted' : '') }, row));
 
     var right = [el('div', { class: 'detail-bar-tools-row' }, tools)];
-    if (opts.switcher) { right.push(opts.switcher); }
 
     var header = el('header', { class: 'detail-bar', 'data-level': opts.level }, [
       el('div', { class: 'detail-bar-left' }, left),
       el('div', { class: 'detail-bar-tools' }, right)
     ]);
-    var head = el('div', { class: 'detail-sticky' }, [header]);
+    var head = el('div', { class: 'detail-sticky' + (opts.floatReserve ? ' detail-sticky--reserve' : '') }, [header]);
+    if (opts.floats && opts.floats.length) { head.appendChild(el('div', { class: 'float-zone' }, opts.floats)); }   // boutons flottants sous l'en-tête, figés avec lui
     if (kind) { kind._refresh(); }
     return { head: head };
   }

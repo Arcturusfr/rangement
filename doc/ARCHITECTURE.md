@@ -1,13 +1,13 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V017
-  Horodatage : 2026-11-08 01:30 (heure de Paris)
-  Résumé : V017 : navigation unique depuis les plans (bandeau de niveau = « Ouvrir », plus de niveau dessiné dans le parent), bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ayant des sous-emplacements.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 : étape 9.4 — plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états.
 -->
 
-# ARCHITECTURE — Rangement `V017`
+# ARCHITECTURE — Rangement `V018`
 
-> Dernière mise à jour : 08/11/2026 01:30 (Paris) — **V017**
+> Dernière mise à jour : 10/11/2026 21:05 (Paris) — **V018** (jalon 9, étape 4 : plan en vue d'accueil, boutons flottants, arborescence à trois états)
 > Statut : **jalon 9 (interface centrée sur les plans), étapes 1, 2 et 3 livrées ; V017 (préalable à l'étape 9.4) : navigation unique depuis les plans et Vue graphique à tous les niveaux** (3 : ℹ️ et info-bulle, menu « Actions » déroulant, en-tête figé enrichi, V016) : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
@@ -45,6 +45,7 @@
 │   ├── test_jalon9_2.py       Tests Playwright/Chromium : menu contextuel d'une case, bouton « + », réglage de la grille, placement (pavés de flèches)
 │   ├── test_jalon9_3.py       Tests Playwright/Chromium : ℹ️ et info-bulle, libellé de catégorie tronqué + chevron, menu déroulant « Actions », Liste / Plan dans l'en-tête figé
 │   ├── test_jalon9_3bis.py    Tests Playwright/Chromium (V017) : bandeau de niveau = « Ouvrir », bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux
+│   ├── test_jalon9_4.py       Tests Playwright/Chromium (V018) : plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états
 │   ├── test_jalon8.py         Tests Playwright/Chromium : plan du logement (pièces sur la grille, ajustement, sauvegarde, cadre défilant)
 │   └── test_jalon6bis.py      Tests Playwright/Chromium : évolutions ergonomiques (arborescence, rail, en-têtes figés, duplication, Retour, flèches, saisie interdite, pastille, couleurs)
 ├── css/
@@ -328,6 +329,14 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Cases étroites** : le bandeau est **masqué quand la case fait moins de 85 px de large** (requête de conteneur CSS `@container (max-width: 84px)` sur `.furn-cell`, et classe `.furn-compact` du plan ajusté) ; toute la case ouvre alors le menu contextuel (« Ouvrir » en tête). Le nombre de sous-emplacements reste lisible dans ℹ️. Le bandeau est aussi absent pendant le placement (un appui sélectionne seulement la case).
 - **Vue graphique à tous les niveaux** : `Rangement.features.furniture.hasGraphic(id)` — un meuble (toujours) ou tout emplacement plus profond qui contient des sous-emplacements. Le commutateur Liste / Vue graphique (choix mémorisé, clé annexe `view`) est alors proposé ; un niveau sans sous-emplacement n'a que la liste. Un niveau plus bas se dessine comme un meuble (proportions, dessus, dessous, pieds, grille 6 × 8 au plus) ; sa grille et les places de ses sous-emplacements sont dans les `geometry` habituelles ; un placement, un menu contextuel et le « + » y fonctionnent comme sur un meuble.
 
+### Règles du jalon 9, étape 4 (V018)
+
+- **Plan en vue d'accueil** : la vue graphique est la vue **par défaut** à tous les niveaux (logement, pièces : « Plan » ; meubles et niveaux plus bas avec sous-emplacements : « Vue graphique »). `Rangement.ui.views.furniture.mode(portée)` renvoie `graphic` sauf si l'utilisateur a choisi la liste (clés annexes `planview` et `view`, valeur `list`). Le plan s'ajuste à l'écran (`fit()`).
+- **Zones de l'écran déplié** : en-tête (nom, Arborescence, Réglages) et bandeau de recherche pleine largeur, figés ; volet d'arborescence figé à gauche ; à droite, en-tête figé du détail (fil d'Ariane, nom, ℹ️, libellé, flèches, Actions) puis zone du plan, seule à défiler.
+- **Boutons flottants** (`.float-zone` dans `.detail-sticky`, sous l'en-tête figé ; `detailbar.create({ floats, floatReserve })`) : **un seul bouton Liste / Plan** à gauche, dont le libellé indique **l'action** (`➔ Liste` quand on est sur le plan, `➔ Plan` ou `➔ Vue graphique` quand on est en liste ; id `view-toggle`, `data-mode` = mode courant) ; **Agrandir / Ajuster à l'écran** à droite (`#plan-zoom`, icône SVG seule, nom accessible = l'action, `aria-pressed` = taille réelle), uniquement sur un plan (logement, pièce). Boutons de 44 px, fond sombre semi-opaque ; sur un plan ils recouvrent le coin du plan, en liste de la place est réservée (`.detail-sticky--reserve`). `furniture.switcher(portée)` et `furniture.zoomButton()` les construisent ; un appui émet `view:changed`.
+- **Arborescence à trois états** : `large`, `rail` (**défaut**), `masquée` (écran déplié seulement) ; choix mémorisé (clé annexe `ui`) ; bouton « Arborescence » dans l'en-tête (`#tree-cycle`, large › rail › masquée › large) en plus des boutons « » du volet ; `browse.cycle()`, `setMode('wide' | 'mini' | 'hidden')`. Masquée : le détail prend toute la largeur.
+- **Reporté** (versions suivantes) : pictogrammes SVG dans les autres boutons, « respiration » des cases libres en placement.
+
 ### 5.1 Diagnostic de démarrage
 
 Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`, `treerail.js` et `furniture.js` (fonction et vue)).
@@ -386,3 +395,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V015a | 05/11/2026 | Correctif : le niveau inférieur ouvert dans un plan (icône de niveau) est oublié à chaque changement d'écran |
 | V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️ et info-bulle, menu « Actions » déroulant, libellé de catégorie (chevron si tronqué) et Liste / Plan dans l'en-tête figé, texte de rappel du plan supprimé |
 | V017 | 08/11/2026 01:30 | Préalable au 9.4 : navigation unique (le bandeau de niveau ouvre l'emplacement comme « Ouvrir »), bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ayant des sous-emplacements, texte de rappel du plan et « Remonter… » supprimés |
+| V018 | 10/11/2026 21:05 | Jalon 9 étape 4 : plan en vue d'accueil (vue graphique par défaut), boutons flottants Liste / Plan (libellé = action) et Agrandir / Ajuster (icône SVG), arborescence à trois états (large, rail par défaut, masquée) |

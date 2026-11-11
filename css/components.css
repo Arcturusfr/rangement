@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : jalon 9.3 — en-tête figé en deux colonnes (fil d'Ariane + nom + ℹ️ + libellé à gauche ; flèches, Actions et Liste / Plan à droite), info-bulle, chevron du libellé ; la partie « gestion » repliable disparaît.
+  Version : V018
+  Horodatage : 2026-11-10 21:05 (heure de Paris)
+  Résumé : V018 : boutons flottants (.float-zone, .float-btn).
 */
 
 /* Barre de recherche (sous l'en-tête) : bouton Retour + champ avec loupe */
@@ -333,3 +333,12 @@ a.list-row:hover { background: #F3F6F7; }
 @media (prefers-reduced-motion: reduce) {
   .tree-children, .tree-toggle::before, .tree-children > .tree, .kind-chev { transition: none; }
 }
+
+/* V018 : boutons flottants sous l'en-tête figé (Liste / Plan à gauche, Agrandir à droite) */
+.float-zone { position: absolute; left: 0; right: 0; top: 100%; z-index: 4; display: flex; justify-content: space-between; align-items: flex-start; padding: var(--space-2) var(--pane-pad) 0; pointer-events: none; }
+.float-zone > * { pointer-events: auto; }
+.float-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: var(--tap); min-height: var(--tap); padding: 0 var(--space-3); border: 0; border-radius: 999px; background: rgba(22, 34, 42, 0.88); color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(22, 34, 42, 0.35); }
+.float-btn:hover { background: var(--ink); }
+.float-btn--zoom { margin-left: auto; padding: 0 var(--space-2); }
+.float-btn--zoom[aria-pressed="true"] { background: var(--accent); }
+.detail-sticky--reserve { margin-bottom: 60px; }

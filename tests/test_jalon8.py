@@ -1,7 +1,7 @@
 # tests/test_jalon8.py — Application « Rangement »
-# Version : V017
-# Horodatage : 2026-11-08 01:30 (heure de Paris)
-# Résumé : V017 : le bandeau de niveau ouvre la pièce (navigation réelle).
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon8.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -18,6 +18,18 @@ from playwright.sync_api import sync_playwright
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
+
 results = []
 
 
@@ -38,7 +50,7 @@ def start_server():
 
 
 def new_ctx(browser, w, h, errors):
-    ctx = browser.new_context(viewport={"width": w, "height": h}, accept_downloads=True)
+    ctx = _nc(browser, viewport={"width": w, "height": h}, accept_downloads=True)
     page = ctx.new_page()
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)))
@@ -176,7 +188,7 @@ def info(page):
 def scenario_view(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
-    check("plan | commutateur Liste / Plan à la racine, liste par défaut", page.get_by_role("button", name="Liste", exact=True).get_attribute("aria-pressed") == "true" and page.get_by_role("button", name="Plan", exact=True).count() == 1)
+    check("plan | commutateur Liste / Plan à la racine, liste par défaut", page.locator("#view-toggle").get_attribute("data-mode") == "list" and page.get_by_role("button", name="Plan", exact=True).count() == 1)
     plan(page)
     txt = info(page)
     check("plan | info-bulle : le logement et le nombre de pièces", "Niveau 0" in txt and "3 pièces" in txt and "4 emplacements" in txt.replace("8 emplacements", "4 emplacements") and page.locator(".furn-caption").count() == 0, txt)
@@ -191,14 +203,14 @@ def scenario_view(browser, base):
     check("plan | tout dans le cadre", inside(page) == [], inside(page))
     page.reload()
     page.wait_for_selector("#pane-detail .furn-view")
-    check("plan | choix conservé après rechargement", page.get_by_role("button", name="Plan", exact=True).get_attribute("aria-pressed") == "true")
+    check("plan | choix conservé après rechargement", page.locator("#view-toggle").get_attribute("data-mode") == "graphic")
     open_cell(page, "Séjour")
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Séjour'")
     check("plan | toucher une pièce, puis « Ouvrir », l'ouvre", True)
     check("plan | le choix du plan ne change pas celui des meubles", js(page, "Rangement.ui.views.furniture.mode()") == "list")
     page.goto(base + "#/l/" + loc_id(page, "Meuble living"))
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Meuble living'")
-    check("plan | un meuble reste en liste (choix séparés)", page.get_by_role("button", name="Liste", exact=True).get_attribute("aria-pressed") == "true" and page.locator(".furn-view").count() == 0)
+    check("plan | un meuble reste en liste (choix séparés)", page.locator("#view-toggle").get_attribute("data-mode") == "list" and page.locator(".furn-view").count() == 0)
     page.goto(base + "#/")
     page.wait_for_selector("#pane-detail .furn-view")
     page.get_by_role("button", name="Liste", exact=True).click()
@@ -440,7 +452,7 @@ def scenario_misc(browser, base):
 def scenario_narrow(browser, base):
     errors = []
     ctx, page = start(browser, base, 390, 844, errors)
-    check("replié | commutateur ≥ 44 px et dans l'écran", all(b["height"] >= 44 and b["x"] >= 0 and b["x"] + b["width"] <= 390 for b in [page.get_by_role("button", name=n, exact=True).bounding_box() for n in ("Liste", "Plan")]))
+    check("replié | commutateur ≥ 44 px et dans l'écran", all(b["height"] >= 44 and b["x"] >= 0 and b["x"] + b["width"] <= 390 for b in [page.locator("#view-toggle").bounding_box()]))
     plan(page)
     select_cell(page, "Séjour")
     check("replié | pas de défilement horizontal", js(page, "document.documentElement.scrollWidth - window.innerWidth") <= 0)

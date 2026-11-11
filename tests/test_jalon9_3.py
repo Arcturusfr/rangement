@@ -1,7 +1,7 @@
 # tests/test_jalon9_3.py — Application « Rangement »
-# Version : V016
-# Horodatage : 2026-11-06 12:00 (heure de Paris)
-# Résumé : création — tests Playwright/Chromium du jalon 9, étape 3 (ℹ️ et info-bulle, libellé de catégorie tronqué + chevron, menu déroulant « Actions », Liste / Plan dans l'en-tête figé).
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_3.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -16,6 +16,18 @@ from playwright.sync_api import sync_playwright
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
+
 results = []
 
 
@@ -40,7 +52,7 @@ def js(page, expr):
 
 
 def start(browser, base, w=884, h=1100, errors=None):
-    ctx = browser.new_context(viewport={"width": w, "height": h})
+    ctx = _nc(browser, viewport={"width": w, "height": h})
     page = ctx.new_page()
     page.on("console", lambda m: errors.append(m.text) if errors is not None and m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)) if errors is not None else None)
@@ -219,24 +231,24 @@ def scenario_bar(browser, base):
     h_without = sticky_h(page)
     check("bandeau | Liste / Vue graphique n'ajoute (presque) pas de hauteur", h_with <= h_without + 6, (h_with, h_without))
     goto_loc(page, base, "Meuble living")
-    sw = page.locator(".detail-sticky .view-switch")
-    check("bandeau | commutateur dans l'en-tête figé", sw.count() == 1 and page.locator("#pane-detail > .view-switch").count() == 0)
+    sw = page.locator(".detail-sticky #view-toggle")
+    check("bandeau | commutateur dans l'en-tête figé", sw.count() == 1 and page.locator("#pane-detail > #view-toggle").count() == 0)
     tools = page.locator(".detail-bar-tools-row").bounding_box()
     swb = sw.bounding_box()
-    check("bandeau | commutateur sous les flèches et « Actions »", swb["y"] >= tools["y"] + tools["height"] - 1 and swb["x"] + swb["width"] <= tools["x"] + tools["width"] + 2, (tools, swb))
-    check("bandeau | boutons du commutateur ≥ 30 px (zone d'appui étendue)", all(sw.locator("button").nth(i).bounding_box()["height"] >= 30 for i in range(2)))
-    check("bandeau | libellés « Liste » et « Vue graphique »", sw.inner_text().replace("\n", " ") == "Liste Vue graphique")
-    sw.get_by_role("button", name="Vue graphique").click()
+    check("bandeau | commutateur sous les flèches et « Actions »", swb["y"] >= tools["y"] + tools["height"] - 1 and swb["x"] >= 0, (tools, swb))
+    check("bandeau | boutons du commutateur ≥ 30 px (zone d'appui étendue)", swb["height"] >= 43)
+    check("bandeau | libellés « Liste » et « Vue graphique »", sw.inner_text().strip().endswith("Vue graphique"))
+    sw.click()
     page.wait_for_selector(".furn-view")
-    check("bandeau | le commutateur fonctionne et reste dans l'en-tête", page.locator(".detail-sticky .view-switch button[aria-pressed='true']").inner_text() == "Vue graphique")
+    check("bandeau | le commutateur fonctionne et reste dans l'en-tête", page.locator(".detail-sticky #view-toggle").get_attribute("data-mode") == "graphic")
     check("bandeau | hauteur inchangée en vue graphique", abs(sticky_h(page) - h_with) <= 1, (sticky_h(page), h_with))
     goto_loc(page, base, "Séjour")
-    check("bandeau | pièce : Liste / Plan dans l'en-tête", page.locator(".detail-sticky .view-switch").inner_text().replace("\n", " ") == "Liste Plan")
+    check("bandeau | pièce : Liste / Plan dans l'en-tête", page.locator(".detail-sticky #view-toggle").inner_text().strip().endswith("Plan"))
     page.goto(base + "#/")
     page.wait_for_selector("#pane-detail .list, #pane-detail .furn-view")
-    check("bandeau | logement : Liste / Plan dans l'en-tête", page.locator(".detail-sticky .view-switch").count() == 1)
+    check("bandeau | logement : Liste / Plan dans l'en-tête", page.locator(".detail-sticky #view-toggle").count() == 1)
     goto_loc(page, base, "Tiroir bas gauche")
-    check("bandeau | sous-emplacement : pas de commutateur", page.locator(".view-switch").count() == 0)
+    check("bandeau | sous-emplacement : pas de commutateur", page.locator("#view-toggle").count() == 0)
     # figé au défilement
     for i in range(40):
         js(page, "Rangement.features.items.create({name:'Objet %02d', locationId:'%s'})" % (i, loc_id(page, "Tiroir bas gauche")))
@@ -254,8 +266,8 @@ def scenario_narrow(browser, base):
     for sel in ("[aria-label='Niveau supérieur']", "[aria-label='Niveau inférieur']", "#manage-toggle", "#info-toggle"):
         ok, b = in_screen(page, sel, 390, 844)
         check("replié | %s dans l'écran, ≥ 44 px" % sel, ok and b["height"] >= 43, b)
-    sw = page.locator(".detail-sticky .view-switch")
-    ok, b = in_screen(page, ".detail-sticky .view-switch", 390, 844)
+    sw = page.locator(".detail-sticky #view-toggle")
+    ok, b = in_screen(page, ".detail-sticky #view-toggle", 390, 844)
     check("replié | commutateur dans l'écran", ok, b)
     check("replié | pas de défilement horizontal", js(page, "document.documentElement.scrollWidth - window.innerWidth") <= 0)
     page.locator("#info-toggle").click()

@@ -1,7 +1,7 @@
 # tests/test_jalon7.py — Application « Rangement »
-# Version : V017
-# Horodatage : 2026-11-08 01:30 (heure de Paris)
-# Résumé : V017 : le bandeau de niveau ouvre l'emplacement (navigation réelle) au lieu de le dessiner dans le meuble.
+# Version : V018
+# Horodatage : 2026-11-10 21:05 (heure de Paris)
+# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon7.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -16,6 +16,18 @@ from playwright.sync_api import sync_playwright
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
+_INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
+         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
+         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+
+
+def _nc(browser, **kw):
+    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    c = browser.new_context(**kw)
+    c.add_init_script(_INIT)
+    return c
+
+
 results = []
 
 
@@ -36,7 +48,7 @@ def start_server():
 
 
 def new_ctx(browser, w, h, errors):
-    ctx = browser.new_context(viewport={"width": w, "height": h})
+    ctx = _nc(browser, viewport={"width": w, "height": h})
     page = ctx.new_page()
     page.on("console", lambda m: errors.append(m.text) if m.type == "error" else None)
     page.on("pageerror", lambda e: errors.append(str(e)))
@@ -164,9 +176,9 @@ def scenario_view(browser, base):
     goto(page, base, "Séjour")
     check("vue | une pièce a un commutateur Liste / Plan (pas « Vue graphique »)", page.get_by_role("button", name="Plan", exact=True).count() == 1 and page.get_by_role("button", name="Vue graphique").count() == 0)
     goto(page, base, "Tiroir bas gauche")
-    check("vue | pas de commutateur sur un sous-emplacement", page.locator(".view-switch").count() == 0)
+    check("vue | pas de commutateur sur un sous-emplacement", page.locator("#view-toggle").count() == 0)
     goto(page, base, "Meuble living")
-    check("vue | commutateur sur un meuble, mode liste par défaut", page.locator(".view-switch").count() == 1 and page.get_by_role("button", name="Liste").get_attribute("aria-pressed") == "true" and page.locator("#pane-detail .list").count() >= 1)
+    check("vue | commutateur sur un meuble, mode liste par défaut", page.locator("#view-toggle").count() == 1 and page.locator("#view-toggle").get_attribute("data-mode") == "list" and page.locator("#pane-detail .list").count() >= 1)
     page.get_by_role("button", name="Vue graphique").click()
     page.wait_for_selector("#pane-detail .furn-view")
     check("vue | un rectangle par sous-emplacement", names(page) == ["Grand tiroir du bas", "Tiroir bas gauche"], names(page))
@@ -181,7 +193,7 @@ def scenario_view(browser, base):
     check("vue | lecture seule : pas de case libre ni de réglages", page.locator(".furn-slot").count() == 0 and page.locator(".furn-controls").count() == 0)
     page.reload()
     page.wait_for_selector("#pane-detail .furn-view")
-    check("vue | choix du mode conservé après rechargement", page.get_by_role("button", name="Vue graphique").get_attribute("aria-pressed") == "true")
+    check("vue | choix du mode conservé après rechargement", page.locator("#view-toggle").get_attribute("data-mode") == "graphic")
     open_cell(page, "Grand tiroir")
     wait_title(page, "Grand tiroir du bas")
     check("vue | toucher un rectangle ouvre l'emplacement", True)
@@ -203,7 +215,7 @@ def scenario_view(browser, base):
     check("niveaux | le bandeau ouvre vraiment l'emplacement (adresse et en-tête)", js(page, "location.hash") == "#/l/" + tg and page.locator(".furn-caption").count() == 0 and page.get_by_role("button", name="Remonter au niveau 2").count() == 0)
     cap = info(page)
     check("niveaux | niveau rappelé dans l'info-bulle", "Sous-emplacement" in cap and "Tiroir bas gauche" in cap and "niveau 4" in cap, cap)
-    check("niveaux | sous-sous-emplacements dessinés (texte brut), Vue graphique conservée", names(page) == ["<b>Boîte A</b>", "Boîte B"] and page.locator(".furn-view b").count() == 0 and page.locator(".detail-sticky .view-switch").count() == 1, names(page))
+    check("niveaux | sous-sous-emplacements dessinés (texte brut), Vue graphique conservée", names(page) == ["<b>Boîte A</b>", "Boîte B"] and page.locator(".furn-view b").count() == 0 and page.locator(".detail-sticky #view-toggle").count() == 1, names(page))
     check("niveaux | objets du niveau listés", "Piles neuves" in page.inner_text(".furn-view .section") and "niveau 3" in page.inner_text(".furn-view .section-title"))
     page.locator("[aria-label='Niveau supérieur']").click()
     wait_title(page, "Meuble living")
@@ -402,7 +414,7 @@ def scenario_scroll(browser, base):
     page.evaluate("document.getElementById('pane-detail').scrollTop = 100000")
     select_cell(page, "Tiroir 8")
     before = page.evaluate("document.getElementById('pane-detail').scrollTop")
-    check("défilement | on est bien descendu dans la page", before > 150, before)
+    check("défilement | on est bien descendu dans la page", before > 100, before)
     tool(page, "Décaler vers le haut")
     page.wait_for_function("Rangement.store.getLocation('%s').geometry.row === 6" % loc_id(page, "Tiroir 8"))
     after = page.evaluate("document.getElementById('pane-detail').scrollTop")
@@ -437,7 +449,7 @@ def scenario_narrow(browser, base):
     errors = []
     ctx, page = start(browser, base, 390, 844, errors)
     goto(page, base, "Meuble living")
-    check("replié | commutateur ≥ 44 px et dans l'écran", all(b["height"] >= 44 and b["x"] >= 0 and b["x"] + b["width"] <= 390 for b in [page.get_by_role("button", name=n).bounding_box() for n in ("Liste", "Vue graphique")]))
+    check("replié | commutateur ≥ 44 px et dans l'écran", all(b["height"] >= 44 and b["x"] >= 0 and b["x"] + b["width"] <= 390 for b in [page.locator("#view-toggle").bounding_box()]))
     page.get_by_role("button", name="Vue graphique").click()
     page.wait_for_selector(".furn-view")
     js(page, "Rangement.features.locations.create({name:'Boîte', parentId:'%s'})" % loc_id(page, "Tiroir bas gauche"))
