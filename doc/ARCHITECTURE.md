@@ -1,13 +1,13 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : étape 9.4 — plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états.
+  Version : V018a
+  Horodatage : 2026-11-12 21:50 (heure de Paris)
+  Résumé : V018a : correctif des tests sous Windows (aucun changement de code) ; règle de compatibilité des tests ajoutée aux conventions.
 -->
 
-# ARCHITECTURE — Rangement `V018`
+# ARCHITECTURE — Rangement `V018a`
 
-> Dernière mise à jour : 10/11/2026 21:05 (Paris) — **V018** (jalon 9, étape 4 : plan en vue d'accueil, boutons flottants, arborescence à trois états)
+> Dernière mise à jour : 12/11/2026 21:50 (Paris) — **V018a** (correctif des tests sous Windows ; contenu de la V018 : jalon 9, étape 4) (jalon 9, étape 4 : plan en vue d'accueil, boutons flottants, arborescence à trois états)
 > Statut : **jalon 9 (interface centrée sur les plans), étapes 1, 2 et 3 livrées ; V017 (préalable à l'étape 9.4) : navigation unique depuis les plans et Vue graphique à tous les niveaux** (3 : ℹ️ et info-bulle, menu « Actions » déroulant, en-tête figé enrichi, V016) : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
@@ -361,6 +361,7 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 - **CSS** : variables CSS dans `base.css`, classes préfixées par composant, pas de style en ligne.
 - **Langue** : interface et commentaires en français ; identifiants de code en anglais.
 - **Livraison** : fichiers complets uniquement, testés sous Chromium (Playwright) avant livraison. Les tests (`tests/`) vérifient aussi le chargement en `file://` (cas de l'aperçu QEdit). La version attendue par les tests est lue dans `js/config.js`.
+- **Tests compatibles Windows** *(V018a)* : l'utilisateur lance aussi les tests sur un PC Windows. Un test ne crée jamais sur le disque un fichier dont le nom contient `< > : " | ? *` (pour un nom hostile, passer le fichier en mémoire : `set_input_files(..., files=[{"name", "mimeType", "buffer"}])`). Les libellés de test peuvent contenir des caractères hors cp1252 (`≥`, `ℹ️`…) : lancer avec `PYTHONUTF8=1` (ou `setx PYTHONUTF8 1` une fois pour toutes) ; `test_jalon5.py` force déjà la sortie en UTF-8.
 
 ## 8. Points d'attention techniques
 
@@ -396,3 +397,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️ et info-bulle, menu « Actions » déroulant, libellé de catégorie (chevron si tronqué) et Liste / Plan dans l'en-tête figé, texte de rappel du plan supprimé |
 | V017 | 08/11/2026 01:30 | Préalable au 9.4 : navigation unique (le bandeau de niveau ouvre l'emplacement comme « Ouvrir »), bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ayant des sous-emplacements, texte de rappel du plan et « Remonter… » supprimés |
 | V018 | 10/11/2026 21:05 | Jalon 9 étape 4 : plan en vue d'accueil (vue graphique par défaut), boutons flottants Liste / Plan (libellé = action) et Agrandir / Ajuster (icône SVG), arborescence à trois états (large, rail par défaut, masquée) |
+| V018a | 12/11/2026 21:50 | Correctif des tests sous Windows (`test_jalon5.py` : fichier d'import au nom hostile passé en mémoire, sortie UTF-8) ; aucun changement de code de l'application |

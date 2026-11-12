@@ -1,7 +1,7 @@
 # tests/test_jalon5.py — Application « Rangement »
-# Version : V018
-# Horodatage : 2026-11-10 21:05 (heure de Paris)
-# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
+# Version : V018a
+# Horodatage : 2026-11-12 21:50 (heure de Paris)
+# Résumé : V018a : compatible Windows — le fichier d'import au nom hostile (« < > ») est passé en mémoire (plus de fichier temporaire) ; sortie console forcée en UTF-8.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon5.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -15,6 +15,12 @@ import tempfile
 import threading
 
 from playwright.sync_api import sync_playwright
+
+# Console Windows (cp1252) : les libellés contiennent des caractères comme « ≥ » ou « ≤ ».
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
@@ -109,6 +115,12 @@ def do_export(page):
 
 def import_file(page, path):
     page.set_input_files("#import-file", path)
+
+
+def import_buffer(page, content, name):
+    """Fichier passé en mémoire : aucun fichier n'est créé sur le disque, donc le nom peut contenir
+    des caractères que Windows refuse (< > : \" | ? *)."""
+    page.set_input_files("#import-file", files=[{"name": name, "mimeType": "application/json", "buffer": content.encode("utf-8")}])
 
 
 # ---------- scénarios ----------
@@ -271,7 +283,7 @@ def scenario_invalid(browser, base):
 
     # Texte hostile : jamais interprété comme du HTML
     hostile = json.dumps({"schemaVersion": 1, "locations": [{"id": "a", "name": "<img src=x onerror=window.__xss=1>"}], "items": [{"id": "i", "locationId": "a", "name": "<b>gras</b>", "quantity": 1, "tags": []}]})
-    import_file(page, tmp_file(hostile, "<img src=x onerror=window.__xss=2>.json"))
+    import_buffer(page, hostile, "<img src=x onerror=window.__xss=2>.json")
     d = dlg(page)
     check("sécurité | nom de fichier affiché comme texte", d.locator("img").count() == 0 and "<img src=x" in d.inner_text())
     d.get_by_role("button", name="Remplacer mes données").click()

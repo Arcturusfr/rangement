@@ -1,16 +1,17 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : étape 9.4 livrée (plan en vue d'accueil, boutons flottants, arborescence à trois états).
+  Version : V018a
+  Horodatage : 2026-11-12 21:50 (heure de Paris)
+  Résumé : V018a : correctif des tests sous Windows (test_jalon5.py) ; V018 toujours en attente de validation.
 -->
 
-# Roadmap et avancement — Rangement `V018`
+# Roadmap et avancement — Rangement `V018a`
 
-> Dernière mise à jour : 10/11/2026 21:05 (Paris) — **V018**
+> Dernière mise à jour : 12/11/2026 21:50 (Paris) — **V018a**
 
 ## État actuel
 
+- **V018a (correctif des tests, aucun changement de code de l'application)** : l'utilisateur a lancé les tests sur son PC Windows. `test_jalon5.py` plantait à la création d'un fichier temporaire nommé `<img …>.json` (caractères interdits sous Windows) : le fichier est désormais passé en mémoire à Playwright (même vérification de sécurité sur tous les systèmes) et la sortie console est forcée en UTF-8. Les caractères `≥`, `≤`, `ℹ️` des libellés de test ne s'affichent correctement dans une console Windows que si Python est lancé en UTF-8 (`PYTHONUTF8=1`) ; les autres jalons n'ont pas été modifiés. Tests : toujours **1103**, 0 échec sous Chromium/Linux (`test_jalon5.py` : 137, `test_jalon6.py` : 52 relancés en V018a). **V018 reste en attente de validation par l'utilisateur.**
 - **V017 validée** (aucun bug ; seuil de masquage du bandeau à 85 px et bandeau à 44 px conservés). **Étape 9.4 livrée (V018)** : l'application s'ouvre sur le **plan** (vue graphique par défaut à tous les niveaux, plan ajusté à l'écran) ; **bouton flottant unique Liste / Plan** dont le libellé indique l'action (`➔ Liste`, `➔ Plan`, `➔ Vue graphique`) ; **bouton flottant Agrandir / Ajuster à l'écran** à icône SVG, en haut à droite du plan ; **arborescence à trois états** (large, rail par défaut, masquée) avec un bouton « Arborescence » dans l'en-tête.
 - Tests Playwright/Chromium : **1103 tests** (jalons 1 à 9.3 : 1071 ; **32 pour la V018, `test_jalon9_4.py`**), 0 échec. Les anciens tests partent de la vue Liste et de l'arborescence large (nouveaux défauts) et ont été adaptés au bouton flottant.
 - Les deux `furniture.js` de la V017 (fonction et vue) ont été fournis par l'utilisateur : la V018 repose sur ses vraies versions ; `js/features/furniture.js` n'a **pas** changé.
@@ -237,3 +238,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V016 | 06/11/2026 12:00 | Jalon 9.2 validé ; étape 9.3 livrée (ℹ️, Actions déroulant, en-tête figé enrichi ; 63 tests dédiés, 1020 au total) |
 | V017 | 08/11/2026 01:30 | Jalon 9.3 validé ; préalable au 9.4 : navigation unique depuis les plans, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux (48 tests dédiés, 1071 au total) |
 | V018 | 10/11/2026 21:05 | V017 validée ; étape 9.4 livrée : plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états (32 tests dédiés, 1103 au total) |
+| V018a | 12/11/2026 21:50 | Correctif des tests sous Windows (`test_jalon5.py`, sortie UTF-8) ; aucun changement de code de l'application (1103 tests au total) |

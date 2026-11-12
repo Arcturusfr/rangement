@@ -1,13 +1,13 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 livrée (étape 9.4) — fichiers à enregistrer et tests.
+  Version : V018a
+  Horodatage : 2026-11-12 21:50 (heure de Paris)
+  Résumé : V018a livrée (correctif des tests sous Windows) — fichiers à enregistrer ; V018 toujours à tester.
 -->
 
-# ToDo Utilisateur — Rangement `V018`
+# ToDo Utilisateur — Rangement `V018a`
 
-> Dernière mise à jour : 10/11/2026 21:05 (Paris) — **V018**
+> Dernière mise à jour : 12/11/2026 21:50 (Paris) — **V018a**
 
 ## Fait
 
@@ -42,6 +42,11 @@
 
 ## À faire maintenant
 
+- [ ] **Enregistrer les fichiers de la V018a** (archive `V018a.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018a.txt`).
+  - **Remplacés** : `tests/test_jalon5.py`, `sw.js` (**à la racine**), `js/config.js` et les trois `.md`. **Inchangés** : tout le reste (le code de l'application ne change pas).
+  - **Vérifier que la version affichée est `V018a`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (`sw.js`, `config.js`, `test_jalon5.py`, les trois `.md`).
+- [ ] **Console Windows** : lancer les tests avec `PYTHONUTF8=1` (PowerShell : `$env:PYTHONUTF8=1` ; une fois pour toutes : `setx PYTHONUTF8 1`, puis rouvrir le terminal) pour afficher correctement `≥`, `≤`, `ℹ️`. Relancer `test_jalon5.py` et, si `test_jalon6bis.py` plante encore, me coller **la dernière ligne de l'erreur** (`UnicodeEncodeError` ou `OSError` ?).
+- **(la V018 ci-dessous reste à tester et à valider)**
 - [ ] **Enregistrer les fichiers de la V018** (archive `V018.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018.txt`).
   - **Nouveau** : `tests/test_jalon9_4.py`.
   - **Remplacés** : `sw.js` (**à la racine**), `index.html`, `js/config.js`, `css/layout.css`, `css/components.css`, `js/ui/components/detailbar.js`, `js/ui/views/browse.js`, `js/ui/views/location.js`, `js/ui/views/furniture.js`, tous les tests `tests/test_jalon*.py` et les trois `.md`.
@@ -153,3 +158,4 @@
 | V016 | 06/11/2026 12:00 | Jalon 9 étape 3 : ℹ️, Actions déroulant, en-tête figé enrichi ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V017 | 08/11/2026 01:30 | Préalable au 9.4 : navigation unique, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V018 | 10/11/2026 21:05 | Étape 9.4 : plan en accueil, boutons flottants, arborescence à trois états ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V018a | 12/11/2026 21:50 | Correctif des tests sous Windows ; fichiers à enregistrer (voir liste) |
