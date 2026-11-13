@@ -1,13 +1,13 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V018a
-  Horodatage : 2026-11-12 21:50 (heure de Paris)
-  Résumé : V018a livrée (correctif des tests sous Windows) — fichiers à enregistrer ; V018 toujours à tester.
+  Version : V018b
+  Horodatage : 2026-11-13 02:25 (heure de Paris)
+  Résumé : V018b livrée (tests : serveur de test silencieux) — fichiers à enregistrer ; V018 toujours à tester.
 -->
 
-# ToDo Utilisateur — Rangement `V018a`
+# ToDo Utilisateur — Rangement `V018b`
 
-> Dernière mise à jour : 12/11/2026 21:50 (Paris) — **V018a**
+> Dernière mise à jour : 13/11/2026 02:25 (Paris) — **V018b**
 
 ## Fait
 
@@ -42,7 +42,11 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V018a** (archive `V018a.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018a.txt`).
+- [ ] **Enregistrer les fichiers de la V018b** (archive `V018b.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018b.txt`).
+  - **Remplacés** : les **14** `tests/test_jalon*.py`, `sw.js` (**à la racine**), `js/config.js` et les trois `.md`. **Inchangés** : tout le reste (le code de l'application ne change pas).
+  - **Vérifier que la version affichée est `V018b`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (`sw.js`, `config.js`, les tests, les trois `.md`).
+  - Relancer un test sous Windows (par ex. `test_jalon6bis.py`) : les traces `WinError 10053` ne doivent plus apparaître. Si un timeout revient, regarder si un bandeau rouge « L'application n'a pas pu démarrer correctement » s'affiche (`launch(headless=False)`) et me le décrire.
+- [x] **Enregistrer les fichiers de la V018a** (fait : `test_jalon5.py` passe sur le PC Windows ; archive `V018a.zip`).
   - **Remplacés** : `tests/test_jalon5.py`, `sw.js` (**à la racine**), `js/config.js` et les trois `.md`. **Inchangés** : tout le reste (le code de l'application ne change pas).
   - **Vérifier que la version affichée est `V018a`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (`sw.js`, `config.js`, `test_jalon5.py`, les trois `.md`).
 - [ ] **Console Windows** : lancer les tests avec `PYTHONUTF8=1` (PowerShell : `$env:PYTHONUTF8=1` ; une fois pour toutes : `setx PYTHONUTF8 1`, puis rouvrir le terminal) pour afficher correctement `≥`, `≤`, `ℹ️`. Relancer `test_jalon5.py` et, si `test_jalon6bis.py` plante encore, me coller **la dernière ligne de l'erreur** (`UnicodeEncodeError` ou `OSError` ?).
@@ -159,3 +163,4 @@
 | V017 | 08/11/2026 01:30 | Préalable au 9.4 : navigation unique, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V018 | 10/11/2026 21:05 | Étape 9.4 : plan en accueil, boutons flottants, arborescence à trois états ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V018a | 12/11/2026 21:50 | Correctif des tests sous Windows ; fichiers à enregistrer (voir liste) |
+| V018b | 13/11/2026 02:25 | Tests : serveur de test silencieux sur les connexions coupées ; fichiers à enregistrer (voir liste) |

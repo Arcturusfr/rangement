@@ -1,7 +1,7 @@
 # tests/test_jalon5.py — Application « Rangement »
-# Version : V018a
-# Horodatage : 2026-11-12 21:50 (heure de Paris)
-# Résumé : V018a : compatible Windows — le fichier d'import au nom hostile (« < > ») est passé en mémoire (plus de fichier temporaire) ; sortie console forcée en UTF-8.
+# Version : V018b
+# Horodatage : 2026-11-13 02:25 (heure de Paris)
+# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; V018a : compatible Windows (nom de fichier hostile passé en mémoire, sortie UTF-8).
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon5.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -45,6 +45,16 @@ def check(name, cond, detail=""):
     print(("PASS  " if cond else "FAIL  ") + name + (("  -> " + str(detail)) if (detail and not cond) else ""))
 
 
+class QuietServer(http.server.ThreadingHTTPServer):
+    """Serveur de test : une connexion coupée par le navigateur en cours d'envoi (WinError 10053 sous Windows,
+    changement de page, fermeture du contexte) n'est pas une erreur ; on n'affiche plus sa trace."""
+
+    def handle_error(self, request, client_address):
+        if isinstance(sys.exc_info()[1], ConnectionError):
+            return
+        super().handle_error(request, client_address)
+
+
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -52,7 +62,7 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 def start_server():
     handler = functools.partial(QuietHandler, directory=ROOT)
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    server = QuietServer(("127.0.0.1", 0), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server
 

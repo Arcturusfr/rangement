@@ -1,7 +1,7 @@
 # tests/test_jalon6.py — Application « Rangement »
-# Version : V018
-# Horodatage : 2026-11-10 21:05 (heure de Paris)
-# Résumé : V018 : parcours lancés en vue Liste et arborescence large (nouveaux défauts : plan et rail) ; adaptation au bouton flottant Liste / Plan.
+# Version : V018b
+# Horodatage : 2026-11-13 02:25 (heure de Paris)
+# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon6.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -42,6 +42,16 @@ def check(name, cond, detail=""):
     print(("PASS  " if cond else "FAIL  ") + name + (("  -> " + str(detail)) if (detail and not cond) else ""))
 
 
+class QuietServer(http.server.ThreadingHTTPServer):
+    """Serveur de test : une connexion coupée par le navigateur en cours d'envoi (WinError 10053 sous Windows,
+    changement de page, fermeture du contexte) n'est pas une erreur ; on n'affiche plus sa trace."""
+
+    def handle_error(self, request, client_address):
+        if isinstance(sys.exc_info()[1], ConnectionError):
+            return
+        super().handle_error(request, client_address)
+
+
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -53,7 +63,7 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 def start_server(root):
     handler = functools.partial(QuietHandler, directory=root)
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    server = QuietServer(("127.0.0.1", 0), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server
 

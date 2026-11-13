@@ -1,16 +1,17 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V018a
-  Horodatage : 2026-11-12 21:50 (heure de Paris)
-  Résumé : V018a : correctif des tests sous Windows (test_jalon5.py) ; V018 toujours en attente de validation.
+  Version : V018b
+  Horodatage : 2026-11-13 02:25 (heure de Paris)
+  Résumé : V018b : serveur de test silencieux sur les connexions coupées (tests uniquement) ; V018 toujours en attente de validation.
 -->
 
-# Roadmap et avancement — Rangement `V018a`
+# Roadmap et avancement — Rangement `V018b`
 
-> Dernière mise à jour : 12/11/2026 21:50 (Paris) — **V018a**
+> Dernière mise à jour : 13/11/2026 02:25 (Paris) — **V018b**
 
 ## État actuel
 
+- **V018b (correctif des tests, aucun changement de code de l'application)** : sur le PC Windows, les tests affichaient des traces `ConnectionAbortedError: [WinError 10053]` (le navigateur coupe une connexion pendant que le petit serveur de test envoie un fichier) alors que tous les tests passaient (`test_jalon6bis.py` : 133 tests, 0 échec). Le serveur de test de chacun des 14 `test_jalon*.py` ignore désormais ces coupures (classe `QuietServer`). Un timeout isolé a été observé hier sur le même PC (`test_jalon6bis.py`, sous-test `dwellingName`, V018) ; il ne s'est pas reproduit en V018a. À surveiller : s'il revient, regarder si le bandeau d'erreur de démarrage s'affiche. Tests : toujours **1103**, 0 échec sous Chromium/Linux (tous les jalons relancés en V018b). **V018 reste en attente de validation par l'utilisateur.**
 - **V018a (correctif des tests, aucun changement de code de l'application)** : l'utilisateur a lancé les tests sur son PC Windows. `test_jalon5.py` plantait à la création d'un fichier temporaire nommé `<img …>.json` (caractères interdits sous Windows) : le fichier est désormais passé en mémoire à Playwright (même vérification de sécurité sur tous les systèmes) et la sortie console est forcée en UTF-8. Les caractères `≥`, `≤`, `ℹ️` des libellés de test ne s'affichent correctement dans une console Windows que si Python est lancé en UTF-8 (`PYTHONUTF8=1`) ; les autres jalons n'ont pas été modifiés. Tests : toujours **1103**, 0 échec sous Chromium/Linux (`test_jalon5.py` : 137, `test_jalon6.py` : 52 relancés en V018a). **V018 reste en attente de validation par l'utilisateur.**
 - **V017 validée** (aucun bug ; seuil de masquage du bandeau à 85 px et bandeau à 44 px conservés). **Étape 9.4 livrée (V018)** : l'application s'ouvre sur le **plan** (vue graphique par défaut à tous les niveaux, plan ajusté à l'écran) ; **bouton flottant unique Liste / Plan** dont le libellé indique l'action (`➔ Liste`, `➔ Plan`, `➔ Vue graphique`) ; **bouton flottant Agrandir / Ajuster à l'écran** à icône SVG, en haut à droite du plan ; **arborescence à trois états** (large, rail par défaut, masquée) avec un bouton « Arborescence » dans l'en-tête.
 - Tests Playwright/Chromium : **1103 tests** (jalons 1 à 9.3 : 1071 ; **32 pour la V018, `test_jalon9_4.py`**), 0 échec. Les anciens tests partent de la vue Liste et de l'arborescence large (nouveaux défauts) et ont été adaptés au bouton flottant.
@@ -239,3 +240,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V017 | 08/11/2026 01:30 | Jalon 9.3 validé ; préalable au 9.4 : navigation unique depuis les plans, bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux (48 tests dédiés, 1071 au total) |
 | V018 | 10/11/2026 21:05 | V017 validée ; étape 9.4 livrée : plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états (32 tests dédiés, 1103 au total) |
 | V018a | 12/11/2026 21:50 | Correctif des tests sous Windows (`test_jalon5.py`, sortie UTF-8) ; aucun changement de code de l'application (1103 tests au total) |
+| V018b | 13/11/2026 02:25 | Serveur de test silencieux sur les connexions coupées (14 fichiers de tests) ; aucun changement de code de l'application (1103 tests au total) |
