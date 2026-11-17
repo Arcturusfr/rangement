@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : boutons flottants Liste / Plan et Agrandir ; vue graphique par défaut.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : boutons-pictogrammes Liste / Plan, Agrandir et Modifier le plan dans l'en-tête ; « Régler la grille… » dans le menu « Actions ».
 */
 (function () {
   'use strict';
@@ -62,17 +62,24 @@
   function levelName(depth) { return LEVEL_NAMES[depth] || ('Niveau ' + (depth + 1)); }
 
   // Commandes du menu déroulant « Actions ».
-  function actions(loc, depth) {
+  function actions(loc, depth, graphic) {
     var A = R.ui.views.locationActions;
-    if (!loc) { return [{ label: 'Ajouter une pièce', run: function () { A.openCreate(null); } }]; }
+    var V = R.ui.views.furniture;
+    if (!loc) {
+      var root = [{ label: 'Ajouter une pièce', run: function () { A.openCreate(null); } }];
+      if (graphic) { root.push({ label: 'R\u00e9gler la grille\u2026', run: function () { V.openGrid(R.features.furniture.ROOT); } }); }
+      return root;
+    }
+    var grid = graphic ? [{ label: 'R\u00e9gler la grille\u2026', run: function () { V.openGrid(loc.id); } }] : [];
     return [
       { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(loc.id); } },
-      { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(loc.id); } },
-      { label: 'Modifier', run: function () { A.openEdit(loc.id); } },
+      { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(loc.id); } }
+    ].concat(grid, [
+      { label: 'Modifier', icon: 'edit-text', run: function () { A.openEdit(loc.id); } },
       { label: 'D\u00e9placer', run: function () { A.openMove(loc.id); } },
       { label: 'Dupliquer', run: function () { A.openDuplicate(loc.id); } },
       { label: 'Supprimer', danger: true, run: function () { A.askDelete(loc.id); } }
-    ];
+    ]);
   }
 
   // Texte de l'info-bulle ℹ️ : niveau, nombre d'emplacements et d'objets (et note).
@@ -166,10 +173,11 @@
     var furnScope = !!loc && R.features.furniture.hasGraphic(loc.id);          // meuble ou niveau plus bas avec sous-emplacements : vue graphique
     var planGraphic = planScope && V.mode('plan') === 'graphic';
     var anyGraphic = planGraphic || (furnScope && V.mode() === 'graphic');
-    var floatSwitch = planScope ? V.switcher('plan') : (furnScope ? V.switcher() : null);
-    var floats = [];
-    if (floatSwitch) { floats.push(floatSwitch); }
-    if (planGraphic) { floats.push(V.zoomButton()); }
+    var viewSwitch = planScope ? V.switcher('plan') : (furnScope ? V.switcher() : null);
+    var views = [];
+    if (viewSwitch) { views.push(viewSwitch); }
+    if (planGraphic) { views.push(V.zoomButton()); }
+    if (anyGraphic) { views.push(V.editButton(planScope ? 'plan' : 'furniture')); }
     var bar = R.ui.components.detailbar.create({
       ref: loc ? { type: 'location', id: loc.id } : { type: 'root' },
       path: loc ? R.store.pathOf(id) : [],
@@ -177,9 +185,8 @@
       level: loc ? R.models.levelOf(depth) : 'racine',
       kind: loc ? R.models.kindLabel(loc.kind) : null,
       info: infoLines(loc, depth),
-      actions: actions(loc, depth),
-      floats: floats,
-      floatReserve: !!floatSwitch && !anyGraphic      // en liste, de la place est réservée sous l'en-tête ; sur un plan, les boutons le recouvrent
+      actions: actions(loc, depth, anyGraphic),
+      views: views
     });
     container.appendChild(bar.head);
 

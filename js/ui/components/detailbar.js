@@ -1,8 +1,8 @@
 /*
   js/ui/components/detailbar.js — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : boutons flottants (opts.floats) sous l'en-tête figé à la place du commutateur intégré.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : boutons-pictogrammes (opts.views) dans l'en-tête, sous les flèches et « Actions » ; plus de zone flottante.
 */
 (function () {
   'use strict';
@@ -86,7 +86,8 @@
     return node;
   }
 
-  // opts : { ref, path, currentLabel?, currentLevel?, title, level, depleted?, kind?, info?: string[], actions?: [{ label, run, danger? }], switcher?: Node }
+  // opts : { ref, path, currentLabel?, currentLevel?, title, level, depleted?, kind?, info?: string[], actions?: [{ label, run, danger? }], views?: Node[] }
+  // views : boutons-pictogrammes alignés à droite sous les flèches et « Actions » (Liste / Plan, Agrandir, Modifier le plan).
   // Renvoie { head } : l'en-tête, figé en haut du volet.
   function create(opts) {
     remember(opts.ref);
@@ -129,12 +130,14 @@
 
     var right = [el('div', { class: 'detail-bar-tools-row' }, tools)];
 
-    var header = el('header', { class: 'detail-bar', 'data-level': opts.level }, [
+    var hasViews = !!(opts.views && opts.views.length);
+    var parts = [
       el('div', { class: 'detail-bar-left' }, left),
       el('div', { class: 'detail-bar-tools' }, right)
-    ]);
-    var head = el('div', { class: 'detail-sticky' + (opts.floatReserve ? ' detail-sticky--reserve' : '') }, [header]);
-    if (opts.floats && opts.floats.length) { head.appendChild(el('div', { class: 'float-zone' }, opts.floats)); }   // boutons flottants sous l'en-tête, figés avec lui
+    ];
+    if (hasViews) { parts.push(el('div', { class: 'detail-bar-views', role: 'group', 'aria-label': 'Affichage' }, opts.views)); }
+    var header = el('header', { class: 'detail-bar' + (hasViews ? '' : ' detail-bar--noviews'), 'data-level': opts.level }, parts);
+    var head = el('div', { class: 'detail-sticky' }, [header]);
     if (kind) { kind._refresh(); }
     return { head: head };
   }

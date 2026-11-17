@@ -1,7 +1,7 @@
 # tests/test_jalon6bis.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon6bis.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -20,12 +20,12 @@ SHOTS = os.environ.get("RANGEMENT_SHOTS")
 TEAL, BROWN, ORANGE, BLUE, GREY, WHITE = ("rgb(11, 107, 99)", "rgb(122, 74, 30)", "rgb(168, 99, 26)",
                                             "rgb(47, 95, 158)", "rgb(95, 110, 118)", "rgb(255, 255, 255)")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c
@@ -250,8 +250,10 @@ def scenario_rail(browser, base):
     wait_title(page, "Grand tiroir du bas")
 
     page.reload()
+    page.wait_for_selector("#pane-tree .tree-link")      # le crochet de test remet « large » à chaque chargement
+    check("rail | V019 : le choix n'est plus mémorisé (rail remis au démarrage)", js(page, "localStorage.getItem('rangement.data.ui')") is None)
+    page.evaluate("Rangement.ui.views.browse.setMode('mini')")
     page.wait_for_selector("#pane-tree .tree-mini-item")
-    check("rail | choix conservé après rechargement", page.get_attribute("html", "data-tree") == "mini")
     page.click("#tree-grow")
     page.wait_for_function("document.getElementById('pane-tree').getBoundingClientRect().width >= 240")
     check("rail | retour à l'arborescence large", page.get_attribute("html", "data-tree") == "wide" and page.locator("#pane-tree .tree-link").count() == 8)

@@ -1,7 +1,7 @@
 # tests/test_jalon8.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon8.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -19,12 +19,12 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c
@@ -108,8 +108,17 @@ def cell(page, name):
 
 
 
+def longpress(page, locator, ms=650):
+    """V019 : appui long (souris maintenue) au centre d'un élément."""
+    b = locator.bounding_box()
+    page.mouse.move(b["x"] + b["width"] / 2, b["y"] + b["height"] / 2)
+    page.mouse.down()
+    page.wait_for_timeout(ms)
+    page.mouse.up()
+
+
 def open_menu(page, name):
-    page.locator(".furn-cell", has_text=name).locator(".furn-open").click()
+    longpress(page, page.locator(".furn-cell", has_text=name))
     page.wait_for_selector(".ctx-menu")
 
 
@@ -125,12 +134,12 @@ def start_edit(page, name):
 
 
 def set_grid(page, **kw):
-    """Réglages de la grille (pavé « Grille… » en placement, sinon bouton « + »). Renvoie le message de refus, ou None."""
+    """Réglages de la grille (pavé « Grille… » en placement, sinon menu « Actions » de l'en-tête). Renvoie le message de refus, ou None."""
     sel = page.locator(".furn-sel")
     if sel.count():
         sel.get_by_role("button", name="Grille…").click()
     else:
-        page.locator("#plan-add").click()
+        page.locator("#manage-toggle").click()
         page.locator(".ctx-menu").get_by_role("button", name="Régler la grille…", exact=True).click()
     d = page.locator("dialog.dialog[open]")
     labels = {"cols": "Colonnes", "rows": "Lignes", "top": "Dessus", "bottom": "Dessous", "ratio": "Proportions", "feet": "Pieds"}
@@ -208,7 +217,7 @@ def scenario_view(browser, base):
     lay = js(page, "%s.layout(%s.ROOT)" % (F, F))
     check("plan | placement automatique : 2 colonnes, 2 lignes, une seule zone", lay["C"] == 2 and lay["L"] == 2 and lay["T"] == 0 and lay["B"] == 0 and all(c["zone"] == "body" for c in lay["cells"]), lay)
     check("plan | pas de pieds ni de bandes", page.locator(".furn-feet, .furn-band").count() == 0)
-    check("plan | lecture seule : pas de réglages ni de cases libres", page.locator(".furn-controls, .furn-slot, .ctx-menu").count() == 0)
+    check("plan | lecture seule : pas de réglages ni de cases libres", page.locator(".furn-controls, .ctx-menu").count() == 0)
     check("plan | couleur des pièces (niveau pièce)", page.locator(".furn-cell").first.get_attribute("data-level") == "piece")
     check("plan | tout dans le cadre", inside(page) == [], inside(page))
     page.reload()
@@ -308,7 +317,7 @@ def scenario_swap(browser, base):
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === %r" % a)
     page.goto(base + "#/")
     page.wait_for_selector("#pane-detail .furn-view")
-    check("route | le placement est refermé après un changement d'écran", page.locator(".furn-sel").count() == 0 and page.locator(".furn-view[data-editing='true']").count() == 0 and page.locator("#plan-add").count() == 1)
+    check("route | le placement est refermé après un changement d'écran", page.locator(".furn-sel").count() == 0 and page.locator(".furn-view[data-editing='true']").count() == 0 and page.locator("#plan-edit").get_attribute("aria-pressed") == "false")
     check("échange | aucune erreur console", not errors, errors)
     ctx.close()
 
@@ -318,7 +327,7 @@ def scenario_drill(browser, base):
     ctx, page = start(browser, base, errors=errors)
     plan(page)
     more = cell(page, "Séjour").locator(".furn-more")
-    check("niveaux | icône sur une pièce qui contient des emplacements", more.count() == 1 and "sous-emplacement" in more.get_attribute("aria-label") and "niveau 2" in more.get_attribute("aria-label"), more.get_attribute("aria-label"))
+    check("niveaux | icône sur une pièce qui contient des emplacements", more.count() == 1 and "sous-emplacement" in more.get_attribute("title") and "niveau 2" in more.get_attribute("title"), more.get_attribute("title"))
     check("niveaux | icône aussi sur l'entrée (elle contient une commode)", cell(page, "Entrée").locator(".furn-more").count() == 1)
     more.click()
     page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Séjour'")

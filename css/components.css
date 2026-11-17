@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : boutons flottants (.float-zone, .float-btn).
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : en-tête figé resserré, boutons-pictogrammes (.view-btn) alignés à droite sous les flèches et « Actions » ; zone flottante supprimée.
 */
 
 /* Barre de recherche (sous l'en-tête) : bouton Retour + champ avec loupe */
@@ -33,36 +33,45 @@
 .breadcrumb li[data-level] a, .breadcrumb li[data-level] [aria-current="page"] { color: var(--level-color); }
 .breadcrumb [aria-current="page"] { font-weight: 600; }
 
-/* En-tête du volet de détail : figé au défilement ; deux colonnes pour ne pas gagner en hauteur */
+/* En-tête du volet de détail : figé au défilement ; fil d'Ariane + nom à gauche, flèches / « Actions » puis boutons-pictogrammes à droite */
 .detail-sticky {
+  --bar-pad: var(--space-2);
   position: sticky;
-  top: calc(-1 * var(--pane-pad));   /* le défilement compte le remplissage du volet */
+  top: calc(-1 * var(--pane-pad));    /* le défilement compte le remplissage du volet : le bandeau se fige au bord haut */
   z-index: 5;
   margin: calc(-1 * var(--pane-pad)) calc(-1 * var(--pane-pad)) var(--space-3);
-  padding: var(--pane-pad) var(--pane-pad) var(--space-2);
+  padding: var(--bar-pad) var(--pane-pad);
   background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
 .detail-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--space-2); align-items: stretch; }
-.detail-bar-left { display: flex; flex-direction: column; min-width: 0; }
+.detail-bar-left { grid-column: 1; grid-row: 1 / span 2; display: flex; flex-direction: column; min-width: 0; }
 .detail-bar-left .breadcrumb ol { margin-bottom: var(--space-1); }
-.detail-titlerow { flex: 1; display: flex; align-items: center; gap: var(--space-1); min-width: 0; min-height: 48px; }
+.detail-titlerow { flex: 1; display: flex; align-items: center; gap: var(--space-1); min-width: 0; min-height: var(--tap); }
 .detail-bar .detail-title { flex: 0 1 auto; min-width: 0; font-size: 1.35rem; color: var(--level-color, var(--ink)); }
-.detail-bar-tools { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2px; flex: none; }
+.detail-bar-tools { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
 .detail-bar-tools-row { display: flex; align-items: center; gap: var(--space-1); }
+.detail-bar--noviews .detail-bar-tools { grid-row: 1 / span 2; align-self: center; }
+.detail-bar-views { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: flex-end; gap: var(--space-1); }
 .button--icon { min-width: var(--tap); padding: 0 var(--space-2); }
 .button--toggle { padding: 0 var(--space-3); gap: var(--space-1); }
 
-/* Écran replié : le fil d'Ariane prend toute la largeur, puis le nom (à gauche) et les commandes (à droite) */
+/* Boutons-pictogrammes d'affichage (Liste / Plan, Agrandir, Modifier le plan) : ronds, 44 px, « enfoncés » = actifs */
+.view-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--tap); height: var(--tap); padding: 0; border: 0; border-radius: 999px; background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
+.view-btn:hover { background: var(--chip-bg); }
+.view-btn[aria-pressed="true"] { background: var(--accent); color: #FFFFFF; box-shadow: none; }
+
+/* Écran replié : le fil d'Ariane prend toute la largeur, puis le nom (à gauche) et les commandes (à droite), puis les boutons d'affichage */
 [data-panes="1"] .detail-bar-left { display: contents; }
 [data-panes="1"] .detail-bar-left .breadcrumb { grid-column: 1 / -1; grid-row: 1; }
 [data-panes="1"] .detail-titlerow { grid-column: 1; grid-row: 2; }
-[data-panes="1"] .detail-bar-tools { grid-column: 2; grid-row: 2; }
+[data-panes="1"] .detail-bar-tools { grid-column: 2; grid-row: 2; align-self: auto; }
+[data-panes="1"] .detail-bar--noviews .detail-bar-tools { grid-row: 2; align-self: auto; }
+[data-panes="1"] .detail-bar-views { grid-column: 1 / -1; grid-row: 3; }
 [data-panes="1"] .detail-kind { min-width: 22px; }
 [data-panes="1"] .detail-bar .detail-title { font-size: 1.1rem; overflow-wrap: break-word; }
 [data-panes="1"] .detail-bar .button--icon { min-width: 40px; padding: 0 var(--space-1); }
 [data-panes="1"] .detail-bar .button--toggle { padding: 0 var(--space-2); }
-[data-panes="1"] .detail-bar .view-switch--bar .button { padding: 0 var(--space-2); font-size: 0.85rem; }
 
 /* ℹ️ : pictogramme juste après le nom (zone d'appui de 44 px sans agrandir la ligne) */
 .info-btn {
@@ -333,12 +342,3 @@ a.list-row:hover { background: #F3F6F7; }
 @media (prefers-reduced-motion: reduce) {
   .tree-children, .tree-toggle::before, .tree-children > .tree, .kind-chev { transition: none; }
 }
-
-/* V018 : boutons flottants sous l'en-tête figé (Liste / Plan à gauche, Agrandir à droite) */
-.float-zone { position: absolute; left: 0; right: 0; top: 100%; z-index: 4; display: flex; justify-content: space-between; align-items: flex-start; padding: var(--space-2) var(--pane-pad) 0; pointer-events: none; }
-.float-zone > * { pointer-events: auto; }
-.float-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: var(--tap); min-height: var(--tap); padding: 0 var(--space-3); border: 0; border-radius: 999px; background: rgba(22, 34, 42, 0.88); color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(22, 34, 42, 0.35); }
-.float-btn:hover { background: var(--ink); }
-.float-btn--zoom { margin-left: auto; padding: 0 var(--space-2); }
-.float-btn--zoom[aria-pressed="true"] { background: var(--accent); }
-.detail-sticky--reserve { margin-bottom: 60px; }

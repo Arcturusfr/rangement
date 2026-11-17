@@ -1,8 +1,8 @@
 /*
   js/features/locations.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : duplicate(id, { name, parentId, content }) : duplication d'un emplacement (seul, avec sous-emplacements, ou avec tout son contenu).
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : create() accepte une place (geometry) pour un emplacement créé sur une case libre du plan.
 */
 (function () {
   'use strict';
@@ -31,7 +31,7 @@
     return fail('Enregistrement refusé : ' + (res.errors || []).join(' '));
   }
 
-  // fields : { name, kind, note, parentId }
+  // fields : { name, kind, note, parentId, geometry? } (geometry : place déjà choisie dans la grille du parent)
   function create(fields) {
     var f = fields || {};
     var name = cleanText(f.name);
@@ -41,6 +41,7 @@
     if (siblingClash(parentId, name, null)) { return fail('Un emplacement portant ce nom existe déjà à cet endroit.'); }
 
     var loc = R.models.newLocation({ name: name, kind: f.kind, note: f.note, parentId: parentId });
+    if (f.geometry && typeof f.geometry === 'object') { loc.geometry = JSON.parse(JSON.stringify(f.geometry)); }
     var res = R.store.update(function (d) { d.locations.push(loc); });
     return res.ok ? { ok: true, location: loc } : storeFailure(res);
   }

@@ -1,7 +1,7 @@
 # tests/test_jalon1.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon1.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -20,12 +20,12 @@ import re
 VERSION = re.search(r"version: '([^']+)'", open(os.path.join(ROOT, "js", "config.js"), encoding="utf-8").read()).group(1)
 
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c

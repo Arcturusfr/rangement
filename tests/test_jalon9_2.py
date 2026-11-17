@@ -1,7 +1,7 @@
 # tests/test_jalon9_2.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_2.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -17,12 +17,12 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c
@@ -30,7 +30,7 @@ def _nc(browser, **kw):
 
 results = []
 F = "Rangement.features.furniture"
-COMMANDS = ["Placer et dimensionner", "Ajouter un objet ici", "Ajouter un emplacement ici", "Modifier", "Déplacer", "Dupliquer", "Supprimer"]
+COMMANDS = ["Ouvrir", "Placer et dimensionner", "Ajouter un objet ici", "Ajouter un emplacement ici", "Modifier", "Déplacer", "Dupliquer", "Supprimer"]
 
 
 def check(name, cond, detail=""):
@@ -105,8 +105,17 @@ def menu(page):
     return page.locator(".ctx-menu")
 
 
+def longpress(page, locator, ms=650):
+    """V019 : appui long (souris maintenue) au centre d'un élément."""
+    b = locator.bounding_box()
+    page.mouse.move(b["x"] + b["width"] / 2, b["y"] + b["height"] / 2)
+    page.mouse.down()
+    page.wait_for_timeout(ms)
+    page.mouse.up()
+
+
 def tap(page, name):
-    cell(page, name).locator(".furn-open").click()
+    longpress(page, cell(page, name))
     page.wait_for_selector(".ctx-menu")
 
 
@@ -151,16 +160,22 @@ def scenario_menu(browser, base):
     check("menu | aucun menu au départ, plus de bouton « Ajuster »", menu(page).count() == 0 and page.get_by_role("button", name="Ajuster le plan").count() == 0)
     check("menu | une case est un bouton (plus un lien)", page.locator("a.furn-open").count() == 0 and page.locator("button.furn-open").count() == 3)
     start_hash = js(page, "location.hash")
+    cell(page, "Séjour").locator(".furn-open").click()
+    wait_title(page, "Séjour")
+    check("appui simple | un appui simple ouvre l'emplacement (sans menu)", menu(page).count() == 0 and js(page, "location.hash") == "#/l/" + loc_id(page, "Séjour"))
+    page.goto(base + "#/")
+    page.wait_for_selector(".furn-body[data-fit]")
+    start_hash = js(page, "location.hash")
+    cell(page, "Séjour").locator(".furn-open").click(button="right")
+    page.wait_for_selector(".ctx-menu")
+    check("appui long | le clic droit (menu contextuel) ouvre le menu de la case", menu(page).is_visible() and js(page, "location.hash") == start_hash)
+    page.keyboard.press("Escape")
     tap(page, "Séjour")
-    check("menu | un appui ouvre un menu près de la case", menu(page).is_visible() and "Séjour" in menu(page).inner_text())
+    check("menu | un appui long ouvre un menu près de la case", menu(page).is_visible() and "Séjour" in menu(page).inner_text())
     check("menu | nom du parent rappelé (le logement)", "Logement" in menu(page).locator(".ctx-path").inner_text())
     check("menu | la navigation n'a pas eu lieu", js(page, "location.hash") == start_hash)
-    primary = menu(page).locator(".ctx-primary")
-    check("menu | « Ouvrir » en premier", primary.inner_text() == "Ouvrir" and menu(page).locator("button").first.inner_text() == "Ouvrir")
+    check("menu | « Ouvrir » en premier, écrit comme les autres commandes", menu(page).locator(".ctx-primary").count() == 0 and menu(page).locator("button").first.inner_text() == "Ouvrir")
     check("menu | « Ouvrir » a le focus", js(page, "document.activeElement.textContent") == "Ouvrir")
-    pb = primary.bounding_box()
-    ib = menu(page).locator(".ctx-item").first.bounding_box()
-    check("menu | « Ouvrir » plus grand et en gras", pb["height"] > ib["height"] and pb["height"] >= 52 and int(primary.evaluate("e => getComputedStyle(e).fontWeight")) >= 700, (pb, ib))
     check("menu | les commandes de l'élément, dans l'ordre", items_of(page) == COMMANDS, items_of(page))
     check("menu | case marquée pendant que le menu est ouvert", cell(page, "Séjour").evaluate("e => e.classList.contains('has-menu')"))
     cb, mb = cell(page, "Séjour").bounding_box(), menu(page).bounding_box()
@@ -173,7 +188,7 @@ def scenario_menu(browser, base):
     check("menu | Échap referme et rend le focus à la case", menu(page).count() == 0 and js(page, "document.activeElement.className") == "furn-open" and not cell(page, "Séjour").evaluate("e => e.classList.contains('has-menu')"))
     tap(page, "Séjour")
     page.mouse.click(5, 5)
-    check("menu | un appui ailleurs referme sans rien déclencher", menu(page).count() == 0 and js(page, "location.hash") == start_hash)
+    check("menu | un appui ailleurs referme sans rien déclencher (pas d'ouverture de la case)", menu(page).count() == 0 and js(page, "location.hash") == start_hash)
     tap(page, "Séjour")
     js(page, "location.hash = '#/r'")
     page.wait_for_selector("#pane-detail .settings")
@@ -273,14 +288,14 @@ def scenario_place(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
     plan(page)
-    check("placement | le bouton « + » est là hors placement", page.locator("#plan-add").is_visible())
+    check("placement | bouton « Modifier le plan » dans l'en-tête, pas enfoncé hors modification", page.locator("#plan-edit").is_visible() and page.locator("#plan-edit").get_attribute("aria-pressed") == "false" and page.locator("#plan-add").count() == 0)
     tap(page, "Entrée")
     choose(page, "Placer et dimensionner")
     page.wait_for_selector(".furn-sel")
     check("placement | la case est sélectionnée, pavés de flèches visibles", "Entrée" in page.inner_text(".furn-sel-text") and page.locator(".furn-pad-btn").count() == 8)
     check("placement | mode placement exposé", page.locator(".furn-view").get_attribute("data-editing") == "true")
     check("placement | « Grille… » et « Terminer » dans le pavé", page.locator(".furn-sel").get_by_role("button", name="Grille…").is_visible() and page.locator(".furn-sel").get_by_role("button", name="Terminer").is_visible())
-    check("placement | « + » masqué pendant le placement", page.locator("#plan-add").count() == 0)
+    check("placement | le bouton « Modifier le plan » est enfoncé pendant la modification", page.locator("#plan-edit").get_attribute("aria-pressed") == "true")
     check("placement | cases libres affichées", page.locator(".furn-slot").count() == 1)
     before = js(page, "%s.layout(%s.ROOT).cells.filter(function(c){return c.id==='%s';})[0]" % (F, F, loc_id(page, "Entrée")))
     page.get_by_role("button", name="Décaler vers le bas", exact=True).click()
@@ -294,7 +309,7 @@ def scenario_place(browser, base):
     check("placement | un appui sur une autre case la sélectionne (pas de menu)", menu(page).count() == 0 and "Séjour" in page.inner_text(".furn-sel-text"))
     page.locator(".furn-sel").get_by_role("button", name="Terminer").click()
     page.wait_for_function("document.querySelectorAll('.furn-sel').length === 0")
-    check("placement | Terminer masque le pavé, les cases rouvrent le menu", page.locator(".furn-slot").count() == 0 and page.locator("#plan-add").is_visible() and page.locator(".furn-view").get_attribute("data-editing") == "false")
+    check("placement | Terminer masque le pavé, le bouton se relâche", page.locator("#plan-edit").get_attribute("aria-pressed") == "false" and page.locator(".furn-view").get_attribute("data-editing") == "false")
     tap(page, "Séjour")
     check("placement | le menu s'ouvre de nouveau", menu(page).is_visible())
     page.keyboard.press("Escape")
@@ -307,7 +322,7 @@ def scenario_place(browser, base):
     wait_title(page, "Séjour")
     page.goto(base + "#/")
     page.wait_for_selector(".furn-body[data-fit]")
-    check("placement | un changement d'écran referme le placement", page.locator(".furn-sel").count() == 0 and page.locator("#plan-add").count() == 1)
+    check("placement | un changement d'écran referme le placement", page.locator(".furn-sel").count() == 0 and page.locator("#plan-edit").get_attribute("aria-pressed") == "false")
 
     # Grille… depuis le pavé
     tap(page, "Séjour")
@@ -323,46 +338,59 @@ def scenario_place(browser, base):
     ctx.close()
 
 
+def grid_menu(page):
+    """Ouvre « Régler la grille… » par le menu « Actions » de l'en-tête."""
+    page.locator("#manage-toggle").click()
+    choose(page, "Régler la grille…")
+
+
 def scenario_plus(browser, base):
     errors = []
     ctx, page = start(browser, base, errors=errors)
-    check("plus | pas de « + » en mode liste", page.locator("#plan-add").count() == 0)
+    check("slots | pas de bouton « + » en mode liste", page.locator("#plan-add").count() == 0)
     plan(page)
-    add = page.locator("#plan-add")
-    b = add.bounding_box()
-    check("plus | bouton rond flottant ≥ 44 px, dans l'écran, en bas à droite", b["width"] >= 44 and b["height"] >= 44 and b["x"] + b["width"] <= 884 and b["y"] + b["height"] <= 1100 and b["x"] > 600 and b["y"] > 800, b)
-    check("plus | nom accessible", add.get_attribute("aria-label") == "Ajouter ou régler ici")
-    add.click()
+    check("slots | plus de bouton « + » flottant", page.locator("#plan-add").count() == 0 and page.locator(".furn-add").count() == 0)
+    check("slots | la case libre du plan est dessinée hors modification", page.locator(".furn-slot").count() == 1)
+    before = {c["id"]: (c["col"], c["row"]) for c in js(page, "%s.layout(%s.ROOT).cells" % (F, F))}
+    slot = page.locator(".furn-slot")
+    slot.click()
+    page.wait_for_timeout(150)
+    check("slots | un appui simple sur une case libre ne fait rien", menu(page).count() == 0 and js(page, "location.hash") in ("#/", ""))
+    longpress(page, slot)
     page.wait_for_selector(".ctx-menu")
-    check("plus | à la racine : ajouter une pièce, régler la grille", items_of(page) == ["Ajouter une pièce", "Régler la grille…"] and menu(page).locator(".ctx-primary").count() == 0, items_of(page))
-    mb = menu(page).bounding_box()
-    check("plus | menu dans l'écran, au-dessus du bouton", mb["y"] >= 0 and mb["y"] + mb["height"] <= b["y"] + 1 and mb["x"] + mb["width"] <= 885, (mb, b))
-    choose(page, "Ajouter une pièce")
+    check("slots | appui long sur une case libre du logement : ajouter une pièce, régler la grille", items_of(page) == ["Ajouter une pièce ici", "Régler la grille…"], items_of(page))
+    check("slots | l'en-tête du menu situe la case", "Case libre" in menu(page).inner_text() and "colonne 2, ligne 2" in menu(page).inner_text(), menu(page).inner_text())
+    check("slots | menu dans l'écran", in_screen(page, ".ctx-menu", 884, 1100)[0])
+    page.keyboard.press("Escape")
+    page.locator(".furn-slot").focus()
+    page.keyboard.press("Enter")
+    page.wait_for_selector(".ctx-menu")
+    check("slots | au clavier, Entrée sur une case libre ouvre le menu", menu(page).is_visible())
+    choose(page, "Ajouter une pièce ici")
     d = dlg(page)
-    check("plus | nouvelle pièce", "Nouvelle pièce" in d.inner_text())
+    check("slots | nouvelle pièce", "Nouvelle pièce" in d.inner_text())
     d.get_by_label("Nom").fill("Garage")
     d.get_by_role("button", name="Ajouter", exact=True).click()
     closed(page)
     page.wait_for_selector(".furn-cell:has-text('Garage')")
-    check("plus | la pièce apparaît dans la première case libre", cell(page, "Garage").count() == 1 and page.locator(".furn-cell").count() == 4)
+    g = geo(page, "Garage")
+    check("slots | la pièce est créée sur la case choisie", cell(page, "Garage").count() == 1 and page.locator(".furn-cell").count() == 4 and g["col"] == 1 and g["row"] == 1 and g["w"] == 1 and g["h"] == 1, g)
+    after = {c["id"]: (c["col"], c["row"]) for c in js(page, "%s.layout(%s.ROOT).cells" % (F, F))}
+    check("slots | les autres pièces n'ont pas bougé", all(after[k] == v for k, v in before.items()))
+    check("slots | plus de case libre", page.locator(".furn-slot").count() == 0)
 
-    # une pièce : objet, emplacement, grille
+    # une pièce : le menu « Actions » propose aussi la grille
     sej = loc_id(page, "Séjour")
     page.goto(base + "#/l/" + sej)
     wait_title(page, "Séjour")
     page.wait_for_selector(".furn-body[data-fit]")
-    page.locator("#plan-add").click()
+    page.locator("#manage-toggle").click()
     page.wait_for_selector(".ctx-menu")
-    check("plus | dans une pièce : objet, emplacement, grille", items_of(page) == ["Ajouter un objet ici", "Ajouter un emplacement ici", "Régler la grille…"] and "Séjour" in menu(page).inner_text(), items_of(page))
-    choose(page, "Ajouter un emplacement ici")
-    d = dlg(page)
-    check("plus | l'emplacement est créé dans la pièce affichée", "Nouvel emplacement dans \u00ab Séjour \u00bb" in d.inner_text())
-    d.get_by_role("button", name="Annuler").click()
-    closed(page)
+    check("actions | pièce en vue graphique : « Régler la grille… » ajouté au menu", items_of(page) == ["Ajouter un objet ici", "Ajouter un emplacement ici", "Régler la grille…", "Modifier", "Déplacer", "Dupliquer", "Supprimer"], items_of(page))
+    page.keyboard.press("Escape")
 
     # grille d'une pièce
-    page.locator("#plan-add").click()
-    choose(page, "Régler la grille…")
+    grid_menu(page)
     d = dlg(page)
     check("grille | pièce : colonnes et lignes seulement", d.get_by_label("Colonnes").count() == 1 and d.get_by_label("Lignes").count() == 1 and d.get_by_label("Dessus").count() == 0 and d.get_by_label("Pieds").count() == 0)
     check("grille | choix de colonnes jusqu'à 20", d.get_by_label("Colonnes").locator("option").count() == 20)
@@ -373,29 +401,48 @@ def scenario_plus(browser, base):
     g = geo(page, "Séjour")
     check("grille | grille de la pièce enregistrée, sa place dans le logement intacte", g["cols"] == 4 and g["rows"] == 3, g)
     check("grille | le plan est redessiné (4 × 3)", js(page, "%s.layout('%s')" % (F, sej))["C"] == 4 and js(page, "%s.layout('%s')" % (F, sej))["L"] == 3)
+    check("slots | 11 cases libres dans la pièce", page.locator(".furn-slot").count() == 11, page.locator(".furn-slot").count())
+    meuble0 = geo(page, "Meuble living")
+    longpress(page, page.locator(".furn-slot").first)
+    page.wait_for_selector(".ctx-menu")
+    check("slots | case libre d'une pièce : emplacement, objet, grille", items_of(page) == ["Ajouter un emplacement ici", "Ajouter un objet ici", "Régler la grille…"], items_of(page))
+    choose(page, "Ajouter un emplacement ici")
+    d = dlg(page)
+    check("slots | l'emplacement est créé dans la pièce affichée", "Nouvel emplacement dans \u00ab Séjour \u00bb" in d.inner_text())
+    d.get_by_label("Nom").fill("Étagère")
+    d.get_by_role("button", name="Ajouter", exact=True).click()
+    closed(page)
+    page.wait_for_selector(".furn-cell:has-text('Étagère')")
+    ge = geo(page, "Étagère")
+    check("slots | placé sur la case choisie (colonne 2, ligne 1), le meuble existant n'a pas bougé", ge["col"] == 1 and ge["row"] == 0 and geo(page, "Meuble living")["col"] == meuble0["col"] and geo(page, "Meuble living")["row"] == meuble0["row"], (ge, meuble0))
+    longpress(page, page.locator(".furn-slot").first)
+    page.wait_for_selector(".ctx-menu")
+    choose(page, "Régler la grille…")
+    d = dlg(page)
+    check("slots | « Régler la grille… » depuis une case libre", d.get_by_label("Colonnes").input_value() == "4")
+    d.get_by_role("button", name="Annuler").click()
+    closed(page)
 
     # grille du logement : refus clair, rien ne change
     page.goto(base + "#/")
     page.wait_for_selector(".furn-body[data-fit]")
-    page.locator("#plan-add").click()
-    choose(page, "Régler la grille…")
+    grid_menu(page)
     d = dlg(page)
+    plan_before = js(page, "Rangement.store.plan()")
     d.get_by_label("Colonnes").select_option("1")
     d.get_by_label("Lignes").select_option("1")
     d.get_by_role("button", name="Appliquer").click()
     check("grille | réduction refusée : message clair, boîte conservée", "déplacez-les" in d.inner_text() and d.is_visible())
     d.get_by_role("button", name="Annuler").click()
     closed(page)
-    check("grille | rien n'a changé après un refus", js(page, "Rangement.store.plan()") is None)
-    page.locator("#plan-add").click()
-    choose(page, "Régler la grille…")
+    check("grille | rien n'a changé après un refus", js(page, "Rangement.store.plan()") == plan_before)
+    grid_menu(page)
     d = dlg(page)
     check("grille | valeurs actuelles préremplies", d.get_by_label("Colonnes").input_value() == "2" and d.get_by_label("Lignes").input_value() == "2")
     d.get_by_role("button", name="Appliquer").click()
     closed(page)
-    check("grille | appliquer sans changement : rien n'est figé", js(page, "Rangement.store.plan()") is None)
-    page.locator("#plan-add").click()
-    choose(page, "Régler la grille…")
+    check("grille | appliquer sans changement : rien ne change", js(page, "Rangement.store.plan()") == plan_before)
+    grid_menu(page)
     dlg(page).get_by_label("Colonnes").select_option("7")
     dlg(page).get_by_label("Lignes").select_option("10")
     dlg(page).get_by_role("button", name="Appliquer").click()
@@ -410,9 +457,8 @@ def scenario_plus(browser, base):
     wait_title(page, "Meuble living")
     page.get_by_role("button", name="Vue graphique").click()
     page.wait_for_selector(".furn-view")
-    check("plus | meuble : « + » aussi", page.locator("#plan-add").is_visible())
-    page.locator("#plan-add").click()
-    choose(page, "Régler la grille…")
+    check("slots | meuble : bouton « Modifier la disposition » dans l'en-tête", page.locator("#plan-edit").is_visible())
+    grid_menu(page)
     d = dlg(page)
     check("grille | meuble : proportions, dessus, dessous et pieds en plus", all(d.get_by_label(n).count() == 1 for n in ("Colonnes", "Lignes", "Proportions", "Dessus", "Dessous", "Pieds")))
     d.get_by_label("Pieds").select_option("1")
@@ -429,11 +475,11 @@ def scenario_plus(browser, base):
     cell(page, "Tiroir bas gauche").locator(".furn-more").click()
     wait_title(page, "Tiroir bas gauche")
     page.wait_for_selector(".furn-view")
-    page.locator("#plan-add").click()
+    page.locator("#manage-toggle").click()
     page.wait_for_selector(".ctx-menu")
-    check("plus | niveau inférieur ouvert (Vue graphique) : le menu concerne l'emplacement affiché", "Tiroir bas gauche" in menu(page).inner_text(), menu(page).inner_text())
+    check("actions | niveau inférieur ouvert (Vue graphique) : le menu concerne l'emplacement affiché", "Tiroir bas gauche" in menu(page).inner_text(), menu(page).inner_text())
     page.keyboard.press("Escape")
-    check("plus | aucune erreur console", not errors, errors)
+    check("slots | aucune erreur console", not errors, errors)
     ctx.close()
 
 
@@ -446,7 +492,7 @@ def scenario_focus(browser, base):
     wait_title(page, "Séjour")
     page.wait_for_selector(".furn-body[data-fit]")
     txt = info(page)
-    check("niveau | le bandeau ouvre la pièce : adresse, en-tête, ℹ️", js(page, "location.hash") == "#/l/" + loc_id(page, "Séjour") and "Niveau 1" in txt and page.locator(".furn-caption").count() == 0, txt)
+    check("niveau | le bandeau (indicateur) ouvre la pièce : adresse, en-tête, ℹ️", js(page, "location.hash") == "#/l/" + loc_id(page, "Séjour") and "Niveau 1" in txt and page.locator(".furn-caption").count() == 0, txt)
     check("niveau | les meubles de la pièce sont dessinés", page.locator(".furn-cell .furn-name").all_inner_texts() == ["Meuble living"])
     cell(page, "Meuble living").locator(".furn-more").click()
     wait_title(page, "Meuble living")
@@ -475,17 +521,22 @@ def scenario_narrow(browser, base):
     # case du bas à droite : le menu reste dans l'écran
     names = page.locator(".furn-cell .furn-name").all_inner_texts()
     last = names[-1]
-    cell(page, last).locator(".furn-open").click()
+    longpress(page, cell(page, last))
     page.wait_for_selector(".ctx-menu")
     ok, b = in_screen(page, ".ctx-menu", 390, 844)
     check("replié | case en bas du plan : menu dans l'écran", ok, b)
     page.keyboard.press("Escape")
-    add_ok, b = in_screen(page, "#plan-add", 390, 844)
-    check("replié | « + » dans l'écran, ≥ 44 px", add_ok and b["width"] >= 44, b)
-    page.locator("#plan-add").click()
+    for sel in ("#view-toggle", "#plan-zoom", "#plan-edit"):
+        ok, b = in_screen(page, sel, 390, 844)
+        check("replié | %s dans l'écran, ≥ 44 px, aligné à droite" % sel, ok and b["width"] >= 43 and b["height"] >= 43, b)
+    eb = page.locator("#plan-edit").bounding_box()
+    check("replié | « Modifier le plan » aligné à droite", eb["x"] + eb["width"] >= 390 - 24, eb)
+    ys = [page.locator(s_).bounding_box()["y"] for s_ in ("#view-toggle", "#plan-zoom", "#plan-edit")]
+    check("replié | les trois boutons sont sur une même ligne", max(ys) - min(ys) <= 1, ys)
+    page.locator("#manage-toggle").click()
     page.wait_for_selector(".ctx-menu")
     ok, b = in_screen(page, ".ctx-menu", 390, 844)
-    check("replié | menu du « + » dans l'écran", ok, b)
+    check("replié | menu « Actions » dans l'écran", ok, b)
     page.keyboard.press("Escape")
 
     # placement : les pavés tiennent dans l'écran et le plan reste visible

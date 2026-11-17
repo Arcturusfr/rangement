@@ -1,8 +1,8 @@
 /*
   js/ui/views/browse.js — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : arborescence à trois états (large, rail par défaut, masquée) et bouton d'en-tête pour changer d'état.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : rail au démarrage (les trois états ne sont plus mémorisés).
 */
 (function () {
   'use strict';
@@ -26,16 +26,11 @@
 
   // ---------- état ----------
 
-  function loadMode() {
-    try {
-      var ui = JSON.parse(R.storage.getAux('ui') || '{}');
-      if (ui && (ui.tree === 'mini' || ui.tree === 'wide' || ui.tree === 'hidden')) { mode = ui.tree; }
-    } catch (err) { /* préférence illisible : arborescence large */ }
-  }
+  // V019 : l'arborescence repart toujours en rail au démarrage ; les trois états ne sont plus mémorisés.
+  function loadMode() { mode = 'mini'; }
 
   function setMode(next) {
     mode = next;
-    R.storage.setAux('ui', JSON.stringify({ tree: mode }));
     document.documentElement.setAttribute('data-tree', mode);
     updateCycle();
     render();

@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : bubble (info-bulle) déclaré dans REQUIRED (jalon 9.3).
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : icons et longpress déclarés dans REQUIRED ; pictogramme d'engrenage devant « Réglages ».
 */
 (function () {
   'use strict';
@@ -23,6 +23,7 @@
     ['features.backup', 'js/features/backup.js'],
     ['features.furniture', 'js/features/furniture.js'],
     ['ui.dom', 'js/ui/dom.js'],
+    ['ui.icons', 'js/ui/icons.js'],
     ['ui.router', 'js/ui/router.js'],
     ['ui.components.breadcrumb', 'js/ui/components/breadcrumb.js'],
     ['ui.components.list', 'js/ui/components/list.js'],
@@ -31,6 +32,7 @@
     ['ui.components.detailbar', 'js/ui/components/detailbar.js'],
     ['ui.components.contextmenu', 'js/ui/components/contextmenu.js'],
     ['ui.components.bubble', 'js/ui/components/bubble.js'],
+    ['ui.components.longpress', 'js/ui/components/longpress.js'],
     ['ui.layout', 'js/ui/layout.js'],
     ['ui.views.treerail', 'js/ui/views/treerail.js'],
     ['ui.views.browse', 'js/ui/views/browse.js'],
@@ -89,6 +91,7 @@
     R.ui.views.location.mount(document.getElementById('pane-detail'));
 
     var settingsLink = document.getElementById('app-settings');
+    settingsLink.insertBefore(R.ui.icons.create('settings', 20), settingsLink.firstChild);
     function markSettingsLink() {
       if (R.ui.router.current().settings) { settingsLink.setAttribute('aria-current', 'page'); }
       else { settingsLink.removeAttribute('aria-current'); }

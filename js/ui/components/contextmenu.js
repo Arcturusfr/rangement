@@ -1,8 +1,8 @@
 /*
   js/ui/components/contextmenu.js — Application « Rangement »
-  Version : V015
-  Horodatage : 2026-11-05 02:30 (heure de Paris)
-  Résumé : création — menu contextuel ouvert près d'un élément (commande principale « Ouvrir » plus grande, puis les autres commandes).
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : pictogramme facultatif devant une commande (items[].icon).
 */
 (function () {
   'use strict';
@@ -35,7 +35,7 @@
     box.style.left = left + 'px';
   }
 
-  // cfg : { anchor (sert au placement), focusTo? (reçoit le focus à la fermeture, sinon l'ancre), title, subtitle?, level?, label?, primary?: { label, run }, items: [{ label, run, danger? }] }
+  // cfg : { anchor (sert au placement), focusTo? (reçoit le focus à la fermeture, sinon l'ancre), title, subtitle?, level?, label?, primary?: { label, run }, items: [{ label, run, danger?, icon? }] }
   // Choisir une commande ferme le menu, puis l'exécute. Échap ou un appui ailleurs ferme sans rien faire.
   function open(cfg) {
     close(false);
@@ -53,7 +53,7 @@
       nodes.push(primary);
     }
     nodes.push(el('div', { class: 'ctx-list' }, cfg.items.map(function (it) {
-      return el('button', { class: 'ctx-item' + (it.danger ? ' ctx-item--danger' : ''), type: 'button', onclick: choose(it.run) }, [it.label]);
+      return el('button', { class: 'ctx-item' + (it.danger ? ' ctx-item--danger' : ''), type: 'button', onclick: choose(it.run) }, [it.icon && R.ui.icons && R.ui.icons.has(it.icon) ? R.ui.icons.create(it.icon, 20) : null, it.label]);
     })));
 
     var box = el('div', { class: 'ctx-menu', role: 'group', 'aria-label': cfg.label || ('Commandes : ' + cfg.title), 'data-level': cfg.level || null }, nodes);

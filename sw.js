@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V018b
-  Horodatage : 2026-11-13 02:25 (heure de Paris)
-  Résumé : version V018b.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : version V019 ; pictogrammes (icons.js) et appui long (longpress.js) pré-cachés.
 */
 'use strict';
 
-var VERSION = 'V018b';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V019';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
@@ -32,6 +32,7 @@ var FILES = [
   'js/features/backup.js',
   'js/features/furniture.js',
   'js/ui/dom.js',
+  'js/ui/icons.js',
   'js/ui/router.js',
   'js/ui/components/breadcrumb.js',
   'js/ui/components/list.js',
@@ -40,6 +41,7 @@ var FILES = [
   'js/ui/components/detailbar.js',
   'js/ui/components/contextmenu.js',
   'js/ui/components/bubble.js',
+  'js/ui/components/longpress.js',
   'js/ui/layout.js',
   'js/ui/views/treerail.js',
   'js/ui/views/browse.js',

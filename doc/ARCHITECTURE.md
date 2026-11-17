@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V018b
-  Horodatage : 2026-11-13 02:25 (heure de Paris)
-  Résumé : V018b : serveur de test silencieux sur les connexions coupées (tests, aucun changement de code de l'application) ; règle de compatibilité Windows complétée.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 (jalon 10) : pictogrammes SVG, appui simple = ouvrir / appui long = menu, mode « Modifier le plan », boutons d'affichage dans l'en-tête, bouton « + » supprimé, en-tête + recherche sur une ligne, rail au démarrage.
 -->
 
-# ARCHITECTURE — Rangement `V018b`
+# ARCHITECTURE — Rangement `V019`
 
-> Dernière mise à jour : 13/11/2026 02:25 (Paris) — **V018b** (correctifs des tests sous Windows ; contenu de la V018 : jalon 9, étape 4)
-> Statut : **jalon 9 (interface centrée sur les plans), étapes 1, 2 et 3 livrées ; V017 (préalable à l'étape 9.4) : navigation unique depuis les plans et Vue graphique à tous les niveaux** (3 : ℹ️ et info-bulle, menu « Actions » déroulant, en-tête figé enrichi, V016) : plan ajusté à l'écran, plan d'une pièce (V014) ; menu contextuel, bouton « + » flottant, réglages de grille en boîte de dialogue (V015). Jalon 8 (plan du logement) livré en V013. Les fichiers marqués *(à venir)* ne sont pas encore créés.
+> Dernière mise à jour : 17/11/2026 07:12 (Paris) — **V019** (jalon 10 : ergonomie des plans ; V018 validée)
+> Statut : **jalon 10 livré (V019)** : l'application s'ouvre sur le plan ; un **appui simple** ouvre une case, un **appui long** ouvre son menu contextuel (aussi sur une **case libre** : créer un emplacement à cette place, régler la grille) ; le **bouton « + » flottant est supprimé** ; trois **boutons-pictogrammes** (Liste / Plan, Agrandir, **Modifier le plan**) sont alignés à droite dans l'en-tête figé ; en-tête et recherche tiennent sur **une seule ligne** sur l'écran déplié ; l'arborescence repart toujours en **rail**. Jalons 1 à 9 livrés (9.4 = V018, validée). Les fichiers marqués *(à venir)* ne sont pas encore créés.
 
 ## 1. Principes directeurs
 
@@ -46,13 +46,14 @@
 │   ├── test_jalon9_3.py       Tests Playwright/Chromium : ℹ️ et info-bulle, libellé de catégorie tronqué + chevron, menu déroulant « Actions », Liste / Plan dans l'en-tête figé
 │   ├── test_jalon9_3bis.py    Tests Playwright/Chromium (V017) : bandeau de niveau = « Ouvrir », bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux
 │   ├── test_jalon9_4.py       Tests Playwright/Chromium (V018) : plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états
+│   ├── test_jalon10.py        Tests Playwright/Chromium (V019) : pictogrammes, appui simple / long, mode « Modifier le plan », en-tête et recherche regroupés, rail au démarrage, cases libres
 │   ├── test_jalon8.py         Tests Playwright/Chromium : plan du logement (pièces sur la grille, ajustement, sauvegarde, cadre défilant)
 │   └── test_jalon6bis.py      Tests Playwright/Chromium : évolutions ergonomiques (arborescence, rail, en-têtes figés, duplication, Retour, flèches, saisie interdite, pastille, couleurs)
 ├── css/
 │   ├── base.css               Variables (couleurs, espacements), reset, typographie
 │   ├── layout.css             Mise en page : 1 volet / 2 volets, en-tête, navigation
 │   ├── components.css         Boutons, listes, formulaires, fil d'Ariane, dialogues
-│   └── furniture.css          Vue graphique d'un meuble, commutateur Liste / Vue graphique, nombre d'objets de l'arborescence ; menu contextuel (`.ctx-*`) et bouton « + » (`.furn-add`)
+│   └── furniture.css          Vue graphique d'un meuble, cases et cases libres, nombre d'objets de l'arborescence ; menu contextuel (`.ctx-*`)
 └── js/
     ├── config.js              Crée `window.Rangement` ; version, constantes, clé de stockage
     ├── core/
@@ -70,6 +71,7 @@
     │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
+    │   ├── icons.js           Pictogrammes SVG filaires (`Rangement.ui.icons.create(nom, taille)`) : list, plan, settings, edit-text, edit-plan, move-cell, enlarge-cell, zoom-in, zoom-out
     │   ├── router.js          Navigation interne (hash `#/...`)
     │   ├── layout.js          Bascule 1 volet / 2 volets selon la largeur
     │   ├── components/
@@ -77,8 +79,9 @@
     │   │   ├── list.js        Liste générique
     │   │   ├── form.js        Champs de formulaire (texte, zone de texte, liste), validation champ par champ et lecture des valeurs
     │   │   ├── dialog.js      Dialogues : formulaire (avec blocage de saisie interdite), confirmation, message
-    │   │   ├── detailbar.js   En-tête figé du volet de détail (deux colonnes) : fil d'Ariane, nom, ℹ️, libellé de catégorie (chevron si tronqué) ; flèches de niveau, menu déroulant « Actions » et commutateur Liste / Plan
+    │   │   ├── detailbar.js   En-tête figé du volet de détail (deux colonnes) : fil d'Ariane, nom, ℹ️, libellé de catégorie (chevron si tronqué) ; flèches de niveau, menu déroulant « Actions » et, sous eux, les boutons-pictogrammes d'affichage (`views` : Liste / Plan, Agrandir, Modifier le plan)
     │   │   ├── bubble.js      Info-bulle ouverte près d'un bouton (ℹ️, chevron du libellé) ; fermée par Échap, un appui ailleurs ou un changement d'écran
+    │   │   ├── longpress.js   Appui simple / appui long (≈ 450 ms) sur un élément ; clic droit et touche Menu = appui long ; le clic qui suit un appui long est ignoré
     │   │   └── contextmenu.js Menu contextuel ouvert près d'un élément : commande principale « Ouvrir » (plus grande), puis les autres commandes ; fermé par Échap, un appui ailleurs ou un changement d'écran
     │   └── views/
     │       ├── browse.js      Volet gauche : arborescence repliable, ligne « Logement » figée, bascule large / rail
@@ -167,7 +170,7 @@ Les dépendances vont toujours du bas vers le haut ; un fichier ne peut utiliser
 1. `js/config.js` (crée `window.Rangement`, l'aide `Rangement.ns('a.b')` et `Rangement.config`)
 2. `js/core/events.js`, `ids.js`, `models.js`, `storage.js`, `store.js`
 3. `js/features/demo.js`, `locations.js`, `items.js`, `search.js`, `backup.js`, `furniture.js`
-4. `js/ui/dom.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`
+4. `js/ui/dom.js`, `js/ui/icons.js`, `js/ui/router.js`, `js/ui/components/breadcrumb.js`, `list.js`, `form.js`, `dialog.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`, `longpress.js`
 5. `js/ui/layout.js`
 6. `js/ui/views/treerail.js`, `browse.js`, `location-actions.js`, `item-actions.js`, `item.js`, `search.js`, `searchbar.js`, `settings.js`, `furniture.js` (vue), `location.js`
 7. `js/pwa.js`
@@ -215,8 +218,14 @@ Chaque fichier suit le même patron : une fonction auto-exécutée (IIFE) qui li
 | `Rangement.features.furniture.ROOT` | Identifiant spécial du logement : `layout(ROOT)`, `setGrid(ROOT, { cols, rows })` ; `move` / `resize` sur une pièce travaillent sur le plan. Une seule zone (`body`), 20 colonnes et 20 lignes au plus proposées |
 | `Rangement.store.plan() / Rangement.models.cleanPlan(p)` | Plan du logement `{ cols, rows }` ou `null` ; nettoyage d'un plan lu (import, stockage) |
 | `Rangement.ui.components.contextmenu.open({ anchor, focusTo?, title, subtitle?, level?, primary?, items })` / `close()` / `isOpen()` | Menu contextuel placé près de `anchor` (sous, sinon au-dessus, toujours dans l'écran) ; `primary` = `{ label, run }` (grand bouton en tête), `items` = `[{ label, run, danger? }]` ; choisir une commande ferme le menu puis l'exécute ; Échap / appui ailleurs rendent le focus à `focusTo` |
-| `Rangement.ui.components.detailbar.create({ ref, path, title, level, kind?, info?, actions?, switcher?, … })` | En-tête figé ; renvoie `{ head }`. `kind` = libellé de catégorie ; `info` = lignes de l'info-bulle ℹ️ ; `actions` = `[{ label, run, danger? }]` du menu déroulant « Actions » ; `switcher` = commutateur Liste / Plan |
+| `Rangement.ui.components.detailbar.create({ ref, path, title, level, kind?, info?, actions?, views?, … })` | En-tête figé ; renvoie `{ head }`. `kind` = libellé de catégorie ; `info` = lignes de l'info-bulle ℹ️ ; `actions` = `[{ label, run, danger?, icon? }]` du menu déroulant « Actions » ; `views` = boutons-pictogrammes d'affichage, alignés à droite sous les flèches |
 | `Rangement.ui.components.bubble.open({ anchor, title?, lines, level? }) / toggle(cfg) / close() / isOpen()` | Info-bulle près de `anchor` (texte toujours échappé) ; Échap, un appui ailleurs, un changement d'écran ou de données la ferment |
+| `Rangement.ui.icons.create(nom, taille?) / has(nom)` | Élément `<svg>` décoratif (`aria-hidden`, trait en `currentColor`) ; nom inconnu = SVG vide |
+| `Rangement.ui.components.longpress.attach(noeud, { onShort(ev), onLong(ev), delay? })` | Appui simple = clic (Entrée au clavier compris) ; appui long = maintien ≈ 450 ms (annulé si le doigt bouge de plus de 10 px), clic droit ou touche Menu (`contextmenu`) ; vibration brève ; menu natif supprimé ; le clic qui suit un appui long est ignoré (sauf clavier, `detail` = 0) |
+| `Rangement.features.furniture.pin(id)` | Enregistre la disposition actuelle (places automatiques comprises) ; appelé avant de créer un emplacement sur une case libre |
+| `Rangement.features.locations.create({ …, geometry })` | `geometry` facultatif : place (zone, col, row, w, h) donnée au nouvel emplacement |
+| `Rangement.ui.views.locationActions.openCreate(parentId, spot?)` | `spot` = `{ zone, col, row }` : crée l'emplacement sur cette case libre |
+| `Rangement.ui.views.furniture.editButton(portée) / openGrid(id) / isEditing()` | Bouton « Modifier le plan » (`#plan-edit`, `aria-pressed`) ; boîte de réglage de la grille ; état du mode modification |
 | `Rangement.events` | `view:changed`, `store:changed`, `store:error`, `route:changed`, `layout:changed`, `backup:changed`, `pwa:changed` |
 
 Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli affiche un avertissement.
@@ -309,7 +318,7 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 
 ### Règles du jalon 9, étape 2 (V015)
 
-- **Menu contextuel** : dans un plan (logement, pièce) ou la vue graphique d'un meuble, une case n'est plus un lien mais un bouton ; un appui ouvre près d'elle un menu : **« Ouvrir »** (plus grand, en gras, a le focus), puis **Placer et dimensionner**, **Ajouter un objet ici**, **Ajouter un emplacement ici**, **Modifier**, **Déplacer**, **Dupliquer**, **Supprimer** (mêmes boîtes de dialogue et mêmes garde-fous que le menu « Actions »). En-tête du menu : chemin du parent et nom (colorés par niveau). Pas d'appui long. Le bandeau de niveau inférieur d'une case reste un bouton à part (V017 : il ouvre l'emplacement, comme « Ouvrir »).
+- *(V019 : le menu s'ouvre à l'appui long ; un appui simple ouvre la case ; « Ouvrir » n'est plus en grand ; le bouton « + » est supprimé — voir « Règles du jalon 10 »)* **Menu contextuel** : dans un plan (logement, pièce) ou la vue graphique d'un meuble, une case n'est plus un lien mais un bouton ; un appui ouvre près d'elle un menu : **« Ouvrir »** (plus grand, en gras, a le focus), puis **Placer et dimensionner**, **Ajouter un objet ici**, **Ajouter un emplacement ici**, **Modifier**, **Déplacer**, **Dupliquer**, **Supprimer** (mêmes boîtes de dialogue et mêmes garde-fous que le menu « Actions »). En-tête du menu : chemin du parent et nom (colorés par niveau). Pas d'appui long. Le bandeau de niveau inférieur d'une case reste un bouton à part (V017 : il ouvre l'emplacement, comme « Ouvrir »).
 - **Placement** : « Placer et dimensionner » sélectionne la case et affiche les deux pavés de flèches (déplacer / taille, échange, cases libres) fixés en bas, avec deux boutons : **Grille…** (réglages de la grille) et **Terminer** (masque le pavé). Pendant le placement, un appui sur une case la sélectionne (pas de menu) ; un changement d'écran referme le placement. Le bouton « Ajuster le plan / la disposition » et les listes de réglages en ligne **disparaissent**.
 - **Bouton « + » flottant** (rond, en bas à droite de l'écran, caché pendant le placement) : menu pour agir **au niveau affiché** : à la racine « Ajouter une pièce » ; dans une pièce, un meuble ou un niveau inférieur « Ajouter un objet ici », « Ajouter un emplacement ici » ; toujours « Régler la grille… ».
 - **Réglage de la grille** (boîte de dialogue, valeurs actuelles préremplies) : colonnes et lignes (1 à 20 pour un plan, 1 à 6 × 1 à 8 pour un meuble) ; pour un meuble aussi proportions, dessus, dessous (0 à 3) et pieds. Un refus (cases occupées) s'affiche dans la boîte, qui reste ouverte, rien ne change ; « Appliquer » sans changement ne fige aucune place.
@@ -333,13 +342,24 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 
 - **Plan en vue d'accueil** : la vue graphique est la vue **par défaut** à tous les niveaux (logement, pièces : « Plan » ; meubles et niveaux plus bas avec sous-emplacements : « Vue graphique »). `Rangement.ui.views.furniture.mode(portée)` renvoie `graphic` sauf si l'utilisateur a choisi la liste (clés annexes `planview` et `view`, valeur `list`). Le plan s'ajuste à l'écran (`fit()`).
 - **Zones de l'écran déplié** : en-tête (nom, Arborescence, Réglages) et bandeau de recherche pleine largeur, figés ; volet d'arborescence figé à gauche ; à droite, en-tête figé du détail (fil d'Ariane, nom, ℹ️, libellé, flèches, Actions) puis zone du plan, seule à défiler.
-- **Boutons flottants** (`.float-zone` dans `.detail-sticky`, sous l'en-tête figé ; `detailbar.create({ floats, floatReserve })`) : **un seul bouton Liste / Plan** à gauche, dont le libellé indique **l'action** (`➔ Liste` quand on est sur le plan, `➔ Plan` ou `➔ Vue graphique` quand on est en liste ; id `view-toggle`, `data-mode` = mode courant) ; **Agrandir / Ajuster à l'écran** à droite (`#plan-zoom`, icône SVG seule, nom accessible = l'action, `aria-pressed` = taille réelle), uniquement sur un plan (logement, pièce). Boutons de 44 px, fond sombre semi-opaque ; sur un plan ils recouvrent le coin du plan, en liste de la place est réservée (`.detail-sticky--reserve`). `furniture.switcher(portée)` et `furniture.zoomButton()` les construisent ; un appui émet `view:changed`.
-- **Arborescence à trois états** : `large`, `rail` (**défaut**), `masquée` (écran déplié seulement) ; choix mémorisé (clé annexe `ui`) ; bouton « Arborescence » dans l'en-tête (`#tree-cycle`, large › rail › masquée › large) en plus des boutons « » du volet ; `browse.cycle()`, `setMode('wide' | 'mini' | 'hidden')`. Masquée : le détail prend toute la largeur.
+- *(V019 : ces boutons ne sont plus flottants mais alignés à droite dans l'en-tête, avec pictogrammes ; voir « Règles du jalon 10 »)* **Boutons flottants** (`.float-zone` dans `.detail-sticky`, sous l'en-tête figé ; `detailbar.create({ floats, floatReserve })`) : **un seul bouton Liste / Plan** à gauche, dont le libellé indique **l'action** (`➔ Liste` quand on est sur le plan, `➔ Plan` ou `➔ Vue graphique` quand on est en liste ; id `view-toggle`, `data-mode` = mode courant) ; **Agrandir / Ajuster à l'écran** à droite (`#plan-zoom`, icône SVG seule, nom accessible = l'action, `aria-pressed` = taille réelle), uniquement sur un plan (logement, pièce). Boutons de 44 px, fond sombre semi-opaque ; sur un plan ils recouvrent le coin du plan, en liste de la place est réservée (`.detail-sticky--reserve`). `furniture.switcher(portée)` et `furniture.zoomButton()` les construisent ; un appui émet `view:changed`.
+- **Arborescence à trois états** : `large`, `rail` (**défaut**), `masquée` (écran déplié seulement) ; choix non mémorisé depuis la V019 (rail à chaque démarrage) ; bouton « Arborescence » dans l'en-tête (`#tree-cycle`, large › rail › masquée › large) en plus des boutons « » du volet ; `browse.cycle()`, `setMode('wide' | 'mini' | 'hidden')`. Masquée : le détail prend toute la largeur.
 - **Reporté** (versions suivantes) : pictogrammes SVG dans les autres boutons, « respiration » des cases libres en placement.
+
+### Règles du jalon 10 (V019)
+
+- **Appui simple / appui long** sur une case d'un plan ou d'une vue graphique : un appui simple **ouvre** l'emplacement ; un **appui long** (≈ 450 ms) ouvre le **menu contextuel** : Ouvrir (écrit comme les autres commandes), Placer et dimensionner, Ajouter un objet ici, Ajouter un emplacement ici, Modifier, Déplacer, Dupliquer, Supprimer. Clic droit et touche Menu / Maj+F10 valent un appui long ; Entrée sur une case l'ouvre. Le bandeau de niveau (carrés emboîtés + nombre) n'est plus qu'un **indicateur** (toute la case ouvre) ; il reste masqué sur les cases de moins de 85 px et pendant la modification.
+- **Cases libres** : toujours dessinées (pointillés fins ; plus épais en modification). Un appui simple n'y fait rien ; un **appui long** (ou Entrée au clavier) ouvre un menu : *logement* → Ajouter une pièce ici, Régler la grille… ; *pièce, meuble, niveau plus bas* → Ajouter un emplacement ici, Ajouter un objet ici, Régler la grille…. « Ajouter un emplacement / une pièce ici » **fige d'abord la disposition** (`furniture.pin`) puis crée l'emplacement **à cette case** (`geometry`, taille 1 × 1) : rien d'autre ne bouge. Un plan sans emplacement affiche ses cases libres et un texte d'aide.
+- **Bouton « + » flottant supprimé.** Création : menu « Actions » de l'en-tête (ajouter un objet / emplacement / pièce au niveau affiché) ou case libre. « Régler la grille… » : menu « Actions » (en vue graphique seulement), « Grille… » du mode modification, menu d'une case libre.
+- **Mode « Modifier le plan »** : bouton-pictogramme `#plan-edit` de l'en-tête (en vue graphique : plan du logement, pièce, meuble ; absent en liste), `aria-pressed` quand il est actif. Actif : le plan est entouré d'un contour en pointillés ; un appui simple **sélectionne** une case (pavés de flèches, « Grille… », « Terminer ») ; un appui sur une case libre y place la case sélectionnée ; un appui long ouvre quand même le menu. Sans sélection : « Grille… » et « Terminer » et un texte d'aide. Il se termine par le même bouton, par « Terminer », par un changement d'écran ou en passant à la liste. « Placer et dimensionner » (menu d'une case) active le mode avec la case sélectionnée.
+- **Boutons d'affichage** : trois boutons ronds de 44 px, **alignés à droite dans l'en-tête figé, sous les flèches ▲ ▼ et « Actions »** (écran replié : sur une troisième ligne, à droite) — Liste / Plan (`#view-toggle`, pictogramme = vue vers laquelle on bascule), Agrandir / Ajuster à l'écran (`#plan-zoom`, plans seulement), Modifier le plan (`#plan-edit`). Le nom accessible dit l'action (texte masqué + `aria-label` + infobulle). Plus de zone flottante : **rien ne recouvre plus le plan**.
+- **Bandeaux resserrés** : sur l'écran déplié, en-tête de l'application et recherche tiennent sur **une seule ligne** (`.app-top` : nom, Retour + champ, Arborescence, Réglages, version) ; écran replié : deux bandeaux superposés comme avant. L'en-tête figé du détail perd son grand remplissage haut (8 px au lieu de 24). Le cadre d'un meuble ne dépasse plus la largeur disponible (`width: 100 %`). Réserve de hauteur sous un plan : 40 px (remplissage du volet compris), pour qu'un plan qui tient dans l'écran ne fasse pas défiler.
+- **Pictogrammes** (`icons.js`, SVG filaires fournis par l'utilisateur) : Liste / Plan / Modifier le plan dans l'en-tête, engrenage devant « Réglages », crayon devant « Modifier » et « Placer et dimensionner » dans les menus, « déplacer » et « agrandir » au centre des pavés de flèches, coins du bouton Agrandir / Ajuster.
+- **Arborescence** : repart **toujours en rail** ; les trois états restent utilisables pendant la session mais ne sont plus mémorisés (la clé annexe `ui` n'est plus lue).
 
 ### 5.1 Diagnostic de démarrage
 
-Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`, `treerail.js` et `furniture.js` (fonction et vue)).
+Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `icons.js`, `longpress.js`, `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`, `treerail.js` et `furniture.js` (fonction et vue)).
 
 ## 6. PWA et service worker (règles strictes, mises en œuvre en V008)
 
@@ -399,3 +419,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V018 | 10/11/2026 21:05 | Jalon 9 étape 4 : plan en vue d'accueil (vue graphique par défaut), boutons flottants Liste / Plan (libellé = action) et Agrandir / Ajuster (icône SVG), arborescence à trois états (large, rail par défaut, masquée) |
 | V018a | 12/11/2026 21:50 | Correctif des tests sous Windows (`test_jalon5.py` : fichier d'import au nom hostile passé en mémoire, sortie UTF-8) ; aucun changement de code de l'application |
 | V018b | 13/11/2026 02:25 | Les 14 tests : le serveur de test ignore les connexions coupées par le navigateur (plus de traces `WinError 10053` sous Windows) ; aucun changement de code de l'application |
+| V019 | 17/11/2026 07:12 | Jalon 10 : V018 validée ; pictogrammes SVG (`icons.js`), appui simple = ouvrir / appui long = menu (`longpress.js`), cases libres avec menu, mode « Modifier le plan », boutons d'affichage alignés à droite dans l'en-tête, bouton « + » supprimé, en-tête + recherche sur une ligne, rail au démarrage |

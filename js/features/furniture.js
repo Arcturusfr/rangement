@@ -1,8 +1,8 @@
 /*
   js/features/furniture.js — Application « Rangement »
-  Version : V017
-  Horodatage : 2026-11-08 01:30 (heure de Paris)
-  Résumé : hasGraphic(id) : la Vue graphique est proposée à tout niveau (meuble ou plus bas) qui a des sous-emplacements.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : pin(id) — fige la disposition actuelle avant de créer un emplacement sur une case libre.
 */
 (function () {
   'use strict';
@@ -234,6 +234,12 @@
     return check(p) ? fail(GRID_REFUSED) : commit(id, p);
   }
 
+  // Enregistre la disposition actuelle (places automatiques comprises) : plus rien ne bouge ensuite quand on ajoute un emplacement à une place choisie.
+  function pin(id) {
+    if (!exists(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
+    return commit(id, layout(id));
+  }
+
   // patch : { ratio?, feet? } (meubles seulement)
   function set(id, patch) {
     if (isRoot(id) || !R.store.getLocation(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
@@ -251,6 +257,6 @@
   R.ns('features').furniture = {
     ROOT: ROOT, ratios: RATIOS, limits: LIMITS, planLimits: PLAN_LIMITS, limitsFor: limitsFor, isRoot: isRoot, isPlanLike: isPlanLike,
     isFurniture: isFurniture, hasGraphic: hasGraphic, get: get, ordered: ordered, layout: layout,
-    set: set, setGrid: setGrid, move: move, resize: resize
+    set: set, setGrid: setGrid, move: move, resize: resize, pin: pin
   };
 })();

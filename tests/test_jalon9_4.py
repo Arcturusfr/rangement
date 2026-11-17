@@ -1,7 +1,7 @@
 # tests/test_jalon9_4.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_4.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -77,11 +77,22 @@ def scenario_home(browser, base):
     check("accueil | le plan tient dans l'écran", page.locator(".furn-body").bounding_box()["y"] + page.locator(".furn-body").bounding_box()["height"] <= 1100 and js(page, "document.documentElement.scrollHeight - window.innerHeight") <= 1)
     check("accueil | arborescence en rail par défaut", page.get_attribute("html", "data-tree") == "mini" and page.locator("#pane-tree .tree-mini-item").count() == 4)
     sw = page.locator("#view-toggle")
-    check("liste/plan | un seul bouton flottant, libellé = action (« ➔ Liste »)", sw.count() == 1 and label(page) == "\u2794 Liste" and page.locator(".view-switch").count() == 0)
-    check("liste/plan | dans la zone flottante sous l'en-tête figé, ≥ 44 px", page.locator(".detail-sticky .float-zone #view-toggle").count() == 1 and sw.bounding_box()["height"] >= 43)
+    check("liste/plan | un seul bouton flottant, libellé = action (« Liste » ; V019 : pictogramme)", sw.count() == 1 and sw.locator("svg").count() == 1 and label(page) == "Liste" and page.locator(".view-switch").count() == 0)
+    check("liste/plan | dans l'en-tête figé (rangée de boutons à droite), ≥ 44 px", page.locator(".detail-sticky .detail-bar-views #view-toggle").count() == 1 and sw.bounding_box()["height"] >= 43)
     z = page.locator("#plan-zoom")
     zb = z.bounding_box()
-    check("agrandir | bouton flottant à icône SVG, sans texte, en haut à droite du plan", z.locator("svg").count() == 1 and z.inner_text().strip() == "" and z.get_attribute("aria-label") == "Agrandir" and zb["x"] + zb["width"] > 884 * 0.9 - 40 and zb["height"] >= 43, zb)
+    check("agrandir | bouton à icône SVG, nom accessible « Agrandir », aligné à droite dans l'en-tête", z.locator("svg").count() == 1 and z.get_attribute("aria-label") == "Agrandir" and zb["x"] + zb["width"] > 884 * 0.9 - 40 and zb["height"] >= 43, zb)
+    ed = page.locator("#plan-edit")
+    ys = [page.locator(i).bounding_box()["y"] for i in ("#view-toggle", "#plan-zoom", "#plan-edit")]
+    xs = [page.locator(i).bounding_box()["x"] for i in ("#view-toggle", "#plan-zoom", "#plan-edit")]
+    check("boutons | les trois boutons sur une même ligne, alignés à droite, dans l'ordre Liste / Agrandir / Modifier", max(ys) - min(ys) <= 1 and xs == sorted(xs) and 884 - 40 < page.locator("#plan-edit").bounding_box()["x"] + 44 <= 884, (ys, xs))
+    check("boutons | « Modifier le plan » : pictogramme, nom accessible, pas enfoncé", ed.locator("svg").count() == 1 and ed.get_attribute("aria-label") == "Modifier le plan" and ed.get_attribute("aria-pressed") == "false")
+    ed.click()
+    page.wait_for_selector(".furn-view[data-editing='true']")
+    check("boutons | « Modifier le plan » enfoncé = mode modification", page.locator("#plan-edit").get_attribute("aria-pressed") == "true" and page.locator("#plan-edit").get_attribute("title") == "Terminer les modifications")
+    page.locator("#plan-edit").click()
+    page.wait_for_selector(".furn-view[data-editing='false']")
+    check("boutons | un second appui termine les modifications", page.locator("#plan-edit").get_attribute("aria-pressed") == "false")
     check("agrandir | plus de bouton dans la barre du plan", page.locator(".furn-bar #plan-zoom").count() == 0)
     z.click()
     page.wait_for_function("document.querySelector('.furn-body') && document.querySelector('.furn-body').dataset.fit === 'real'")
@@ -91,16 +102,16 @@ def scenario_home(browser, base):
     check("agrandir | retour à l'affichage ajusté", page.locator("#plan-zoom").get_attribute("aria-label") == "Agrandir")
     sw.click()
     page.wait_for_selector("#pane-detail .list")
-    check("liste/plan | bouton : passe à la liste, le libellé devient « ➔ Plan »", label(page) == "\u2794 Plan" and page.locator(".furn-view").count() == 0 and page.locator("#plan-zoom").count() == 0)
+    check("liste/plan | bouton : passe à la liste, le libellé devient « Plan »", label(page) == "Plan" and page.locator(".furn-view").count() == 0 and page.locator("#plan-zoom").count() == 0 and page.locator("#plan-edit").count() == 0)
     first = page.locator("#pane-detail .list-item").first.bounding_box()
     sb = page.locator("#view-toggle").bounding_box()
     check("liste/plan | en liste, le bouton ne recouvre pas la première ligne", first["y"] >= sb["y"] + sb["height"] - 1, (first, sb))
     page.reload()
     page.wait_for_selector("#pane-detail .list")
-    check("liste/plan | choix conservé après rechargement", label(page) == "\u2794 Plan")
+    check("liste/plan | choix conservé après rechargement", label(page) == "Plan")
     page.locator("#view-toggle").click()
     page.wait_for_selector(".furn-body[data-fit]")
-    check("liste/plan | retour au plan", label(page) == "\u2794 Liste")
+    check("liste/plan | retour au plan", label(page) == "Liste")
     check("accueil | aucune erreur console", not errors, errors)
     ctx.close()
 
@@ -109,12 +120,12 @@ def scenario_levels(browser, base):
     errors = []
     ctx, page = start(browser, base, 884, 1100, errors)
     goto(page, base, "Séjour")
-    check("pièce | plan par défaut, mêmes boutons flottants", page.locator(".furn-view").count() == 1 and label(page) == "\u2794 Liste" and page.locator("#plan-zoom").count() == 1)
+    check("pièce | plan par défaut, mêmes boutons flottants", page.locator(".furn-view").count() == 1 and label(page) == "Liste" and page.locator("#plan-zoom").count() == 1)
     goto(page, base, "Meuble living")
-    check("meuble | vue graphique par défaut, bouton Liste, pas d'Agrandir", page.locator(".furn-view").count() == 1 and label(page) == "\u2794 Liste" and page.locator("#plan-zoom").count() == 0)
+    check("meuble | vue graphique par défaut, bouton Liste, pas d'Agrandir", page.locator(".furn-view").count() == 1 and label(page) == "Liste" and page.locator("#plan-zoom").count() == 0)
     page.locator("#view-toggle").click()
     page.wait_for_selector("#pane-detail .list")
-    check("meuble | en liste, le bouton propose « ➔ Vue graphique »", label(page) == "\u2794 Vue graphique")
+    check("meuble | en liste, le bouton propose « Vue graphique »", label(page) == "Vue graphique")
     goto(page, base, "Tiroir bas gauche")
     check("niveau sans sous-emplacement | pas de bouton flottant", page.locator("#view-toggle").count() == 0)
     check("niveaux | aucune erreur console", not errors, errors)
@@ -133,7 +144,9 @@ def scenario_tree(browser, base):
     check("arbo | 2e appui : volet masqué, détail sur toute la largeur", not page.is_visible("#pane-tree") and page.locator("#pane-detail").bounding_box()["width"] > w_mini + 60 and "masquée" in c.get_attribute("aria-label"))
     page.reload()
     page.wait_for_selector("#pane-detail .furn-view")
-    check("arbo | état masqué conservé après rechargement", page.get_attribute("html", "data-tree") == "hidden" and not page.is_visible("#pane-tree"))
+    check("arbo | V019 : après rechargement, retour au rail", page.get_attribute("html", "data-tree") == "mini" and page.is_visible("#pane-tree") and page.locator("#pane-tree .tree-mini-item").count() == 4)
+    page.locator("#tree-cycle").click()
+    page.wait_for_function("document.documentElement.dataset.tree === 'hidden'")
     page.locator("#tree-cycle").click()
     page.wait_for_function("document.documentElement.dataset.tree === 'wide'")
     check("arbo | 3e appui : arborescence large avec libellés", page.locator("#pane-tree .tree-link").count() == 3 + 5 and page.is_visible("#pane-tree"))

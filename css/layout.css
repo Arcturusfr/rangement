@@ -1,8 +1,8 @@
 /*
   css/layout.css — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : arborescence masquée, bouton de changement d'état.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : en-tête et recherche sur une seule ligne sur l'écran déplié (.app-top).
 */
 html, body { height: 100%; }
 
@@ -96,3 +96,20 @@ button.app-link { background: none; border: 0; font: inherit; cursor: pointer; }
 
 /* Écran replié : un seul volet, la navigation se fait par le contenu */
 [data-panes="1"] .pane-tree { display: none; }
+
+/* V019 : en-tête et recherche regroupés. Écran replié : deux bandeaux superposés comme avant ;
+   écran déplié : une seule ligne (nom, Retour + recherche, Arborescence, Réglages, version) pour rendre de la hauteur au plan. */
+.app-top { flex: none; display: flex; flex-direction: column; }
+[data-panes="2"] .app-top {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-4);
+  padding: calc(var(--space-2) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-2);
+  background: var(--ink);
+  color: #FFFFFF;
+}
+[data-panes="2"] .app-header { display: contents; }
+[data-panes="2"] .app-name { order: 0; }
+[data-panes="2"] .searchbar { order: 1; flex: 1; min-width: 0; padding: 0; background: none; border: 0; }
+[data-panes="2"] .app-header-end { order: 2; }
+.app-link svg { flex: none; margin-right: 6px; }

@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : vue graphique par défaut ; boutons flottants (Liste / Plan en une seule commande, Agrandir / Ajuster à l'écran avec icône).
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : appui simple = ouvrir, appui long = menu contextuel (cases et cases libres) ; mode « Modifier le plan » (bouton-pictogramme de l'en-tête) ; boutons-pictogrammes ; bouton « + » supprimé.
 */
 (function () {
   'use strict';
@@ -11,6 +11,7 @@
   var el = R.ui.dom.el;
   var plural = R.ui.dom.plural;
 
+  var LEVEL_NAMES = ['Pièce', 'Emplacement', 'Sous-emplacement', 'Sous-sous-emplacement'];
   var ZONE_LABELS = { top: 'Au-dessus du meuble', body: 'Dans le meuble', bottom: 'En dessous du meuble' };
   var MIN_CELL = 28;      // taille minimale d'une case du plan ajusté (px) : en dessous, le cadre défile plutôt que de rétrécir encore
   var FIT_CELL = 48;      // la hauteur de l'écran ne réduit pas les cases en dessous de cette taille (la page défile alors)
@@ -30,6 +31,8 @@
   // Libellé d'une zone ; dans le plan du logement il n'y a qu'une zone : le plan.
   function zoneLabel(zone, atRoot) { return atRoot ? 'Dans le plan' : ZONE_LABELS[zone]; }
 
+  function levelName(depth) { return LEVEL_NAMES[depth] || ('Niveau ' + (depth + 1)); }
+
   // ---------- mode d'affichage (mémorisé sur l'appareil) ----------
 
   // scope 'plan' : choix propre au logement (clé annexe `planview`) ; sinon celui des meubles (clé `view`).
@@ -40,40 +43,57 @@
 
   function setMode(next, scope) {
     if (next === mode(scope)) { return; }
+    editing = false;
+    selected = null;
     R.storage.setAux(viewKey(scope), next);
     R.events.emit('view:changed', {});
   }
 
-  // Bouton flottant unique : son libellé indique l'action (vers la liste, ou vers le plan / la vue graphique).
+  // Bouton-pictogramme de l'en-tête : le nom accessible (aria-label, texte masqué, infobulle) dit l'action.
+  function viewButton(cfg) {
+    var attrs = {
+      class: 'view-btn', type: 'button', id: cfg.id, 'aria-label': cfg.label, title: cfg.title || cfg.label,
+      'aria-pressed': cfg.pressed === undefined ? null : (cfg.pressed ? 'true' : 'false'),
+      'data-mode': cfg.mode || null, onclick: cfg.onclick
+    };
+    return el('button', attrs, [R.ui.icons.create(cfg.icon, 22), el('span', { class: 'visually-hidden' }, [cfg.label])]);
+  }
+
+  // Liste / Plan en une seule commande : le pictogramme et le nom indiquent la vue vers laquelle on bascule.
   function switcher(scope) {
     var graphic = mode(scope) === 'graphic';
     var target = graphic ? 'list' : 'graphic';
     var label = graphic ? 'Liste' : (scope === 'plan' ? 'Plan' : 'Vue graphique');
-    return el('button', {
-      class: 'float-btn float-btn--switch', type: 'button', id: 'view-toggle', 'data-mode': mode(scope),
-      'aria-label': label, title: graphic ? 'Afficher la liste' : 'Afficher le plan', onclick: function () { setMode(target, scope); }
-    }, [el('span', { 'aria-hidden': 'true' }, ['\u2794 ']), label]);
+    return viewButton({
+      id: 'view-toggle', icon: graphic ? 'list' : 'plan', label: label, mode: mode(scope),
+      title: graphic ? 'Afficher la liste' : 'Afficher le plan', onclick: function () { setMode(target, scope); }
+    });
   }
 
-  function svgIcon(d) {
-    var ns = 'http://www.w3.org/2000/svg';
-    var s = document.createElementNS(ns, 'svg');
-    [['viewBox', '0 0 24 24'], ['width', '22'], ['height', '22'], ['aria-hidden', 'true'], ['focusable', 'false']].forEach(function (a) { s.setAttribute(a[0], a[1]); });
-    var p = document.createElementNS(ns, 'path');
-    [['d', d], ['fill', 'none'], ['stroke', 'currentColor'], ['stroke-width', '2.2'], ['stroke-linecap', 'round'], ['stroke-linejoin', 'round']].forEach(function (a) { p.setAttribute(a[0], a[1]); });
-    s.appendChild(p);
-    return s;
-  }
-
-  // Bouton flottant Agrandir / Ajuster à l'écran (icône seule ; le nom accessible indique l'action).
+  // Agrandir / Ajuster à l'écran (plans seulement).
   function zoomButton() {
     var real = zoomReal();
-    var label = real ? 'Ajuster \u00e0 l\u2019\u00e9cran' : 'Agrandir';
-    return el('button', {
-      class: 'float-btn float-btn--zoom', type: 'button', id: 'plan-zoom', 'aria-pressed': real ? 'true' : 'false',
-      'aria-label': label, title: real ? 'Revenir \u00e0 un plan qui tient dans l\u2019\u00e9cran' : 'Afficher le plan en taille r\u00e9elle (d\u00e9filement)',
+    return viewButton({
+      id: 'plan-zoom', icon: real ? 'zoom-out' : 'zoom-in', label: real ? 'Ajuster \u00e0 l\u2019\u00e9cran' : 'Agrandir', pressed: real,
+      title: real ? 'Revenir \u00e0 un plan qui tient dans l\u2019\u00e9cran' : 'Afficher le plan en taille r\u00e9elle (d\u00e9filement)',
       onclick: function () { R.storage.setAux('planzoom', zoomReal() ? 'fit' : 'real'); R.events.emit('view:changed', {}); }
-    }, [svgIcon(real ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5')]);
+    });
+  }
+
+  // Passe en mode « Modifier le plan » (placer, dimensionner, régler la grille) ou en sort.
+  function setEditing(next) {
+    editing = !!next;
+    selected = null;
+    message = null;
+    R.events.emit('view:changed', {});
+  }
+
+  function editButton(scope) {
+    var label = scope === 'plan' ? 'Modifier le plan' : 'Modifier la disposition';
+    return viewButton({
+      id: 'plan-edit', icon: 'edit-plan', label: label, pressed: editing,
+      title: editing ? 'Terminer les modifications' : label, onclick: function () { setEditing(!editing); }
+    });
   }
 
   // ---------- réglages ----------
@@ -131,19 +151,19 @@
     });
   }
 
-  // Menu contextuel d'une case : « Ouvrir » en tête, puis les commandes de l'élément (celles du menu « Actions »).
-  function openCellMenu(anchor, opener, k, redraw) {
+  // Menu contextuel d'une case (appui long) : les commandes de l'élément, « Ouvrir » en tête.
+  function openCellMenu(anchor, opener, k) {
     var A = R.ui.views.locationActions;
     var parents = R.store.pathOf(k.id).slice(0, -1).map(function (p) { return p.name; }).join(' \u203a ');
     R.ui.components.contextmenu.open({
       anchor: anchor, focusTo: opener, title: k.name, subtitle: parents || R.models.rootLabel(),
       level: R.models.levelOf(R.store.depthOf(k.id)),
-      primary: { label: 'Ouvrir', run: function () { R.ui.router.navigate(k.id); } },
       items: [
-        { label: 'Placer et dimensionner', run: function () { editing = true; selected = k.id; message = null; redraw(); } },
+        { label: 'Ouvrir', run: function () { R.ui.router.navigate(k.id); } },
+        { label: 'Placer et dimensionner', icon: 'move-cell', run: function () { editing = true; selected = k.id; message = null; R.events.emit('view:changed', {}); } },
         { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(k.id); } },
         { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(k.id); } },
-        { label: 'Modifier', run: function () { A.openEdit(k.id); } },
+        { label: 'Modifier', icon: 'edit-text', run: function () { A.openEdit(k.id); } },
         { label: 'D\u00e9placer', run: function () { A.openMove(k.id); } },
         { label: 'Dupliquer', run: function () { A.openDuplicate(k.id); } },
         { label: 'Supprimer', danger: true, run: function () { A.askDelete(k.id); } }
@@ -151,22 +171,23 @@
     });
   }
 
-  // Menu du bouton « + » : créer au niveau du plan affiché, ou régler sa grille.
-  function openAddMenu(anchor, shownId) {
+  // Menu contextuel d'une case libre (appui long) : créer un emplacement à cette place, régler la grille.
+  function openSlotMenu(anchor, opener, shownId, spot) {
     var F = R.features.furniture;
     var A = R.ui.views.locationActions;
     var atRoot = F.isRoot(shownId);
     var loc = atRoot ? null : R.store.getLocation(shownId);
     var items = atRoot
-      ? [{ label: 'Ajouter une pi\u00e8ce', run: function () { A.openCreate(null); } }]
+      ? [{ label: 'Ajouter une pi\u00e8ce ici', run: function () { A.openCreate(null, spot); } }]
       : [
-          { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(shownId); } },
-          { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(shownId); } }
+          { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(shownId, spot); } },
+          { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(shownId); } }
         ];
     items.push({ label: 'R\u00e9gler la grille\u2026', run: function () { openGrid(shownId); } });
     R.ui.components.contextmenu.open({
-      anchor: anchor, title: loc ? loc.name : R.models.rootLabel(), subtitle: 'Ajouter ou r\u00e9gler ici',
-      label: 'Ajouter ou r\u00e9gler', level: loc ? R.models.levelOf(R.store.depthOf(shownId)) : 'racine', items: items
+      anchor: anchor, focusTo: opener, title: 'Case libre',
+      subtitle: (loc ? loc.name : R.models.rootLabel()) + ' \u2014 colonne ' + (spot.col + 1) + ', ligne ' + (spot.row + 1),
+      label: 'Case libre', level: loc ? R.models.levelOf(R.store.depthOf(shownId)) : 'racine', items: items
     });
   }
 
@@ -188,16 +209,16 @@
         el('p', { class: 'furn-sel-text' }, ['\u00ab ' + loc.name + ' \u00bb : ' + zoneLabel(c.zone, atRoot).toLowerCase() + ', colonne ' + (c.col + 1) + ', ligne ' + (c.row + 1) + ', taille ' + c.w + ' \u00d7 ' + c.h + '.']),
         el('div', { class: 'furn-sel-btns' }, [
           el('button', { class: 'button button--secondary', type: 'button', onclick: function () { openGrid(shownId); } }, ['Grille\u2026']),
-          el('button', { class: 'button', type: 'button', id: 'plan-done', onclick: function () { endEditing(redraw); } }, ['Terminer'])
+          el('button', { class: 'button', type: 'button', id: 'plan-done', onclick: function () { endEditing(); } }, ['Terminer'])
         ])
       ]),
-      pad('Déplacer', '\u271B', [
+      pad('Déplacer', R.ui.icons.create('move-cell', 22), [
         k('up', '\u25B2', 'Décaler vers le haut', function () { return F.move(c.id, 0, -1); }),
         k('left', '\u25C0', 'Décaler à gauche', function () { return F.move(c.id, -1, 0); }),
         k('right', '\u25B6', 'Décaler à droite', function () { return F.move(c.id, 1, 0); }),
         k('down', '\u25BC', 'Décaler vers le bas', function () { return F.move(c.id, 0, 1); })
       ]),
-      pad('Taille', '\u25AD', [
+      pad('Taille', R.ui.icons.create('enlarge-cell', 22), [
         k('up', '+', 'Hauteur +', function () { return F.resize(c.id, 0, 1); }),
         k('left', '\u2212', 'Largeur \u2212', function () { return F.resize(c.id, -1, 0); }),
         k('right', '+', 'Largeur +', function () { return F.resize(c.id, 1, 0); }),
@@ -206,7 +227,7 @@
     ]);
   }
 
-  function endEditing(redraw) { editing = false; selected = null; message = null; redraw(); }
+  function endEditing() { setEditing(false); }
 
   // ---------- dessin ----------
 
@@ -215,7 +236,7 @@
     node.style.gridRow = (c.row + 1) + ' / span ' + c.h;
   }
 
-  function cell(c, depth, redraw) {
+  function cell(wrap, furnId, c, depth, redraw) {
     var kidDepth = depth + 1;
     var k = R.store.getLocation(c.id);
     var n = R.store.countIn(k.id);
@@ -226,20 +247,17 @@
       el('span', { class: 'furn-count' }, [String(n.items), el('span', { class: 'furn-count-word' }, [n.items > 1 ? ' objets' : ' objet'])]),
       c.w * c.h >= 2 ? el('span', { class: 'furn-kind' }, ['Niveau ' + (kidDepth + 1) + ', ' + R.models.kindLabel(k.kind).toLowerCase()]) : null
     ];
-    var node = null;
-    var open = editing
-      ? el('button', { class: 'furn-open', type: 'button', 'aria-pressed': isSel ? 'true' : 'false', onclick: function () { selected = k.id; redraw(); } }, inner)
-      : el('button', { class: 'furn-open', type: 'button', 'aria-haspopup': 'true', onclick: function () { openCellMenu(node, open, k, redraw); } }, inner);
+    var open = el('button', { class: 'furn-open', type: 'button', 'aria-pressed': editing ? (isSel ? 'true' : 'false') : null }, inner);
     var parts = [open];
-    if (subs && !editing) {       // bandeau de niveau : équivaut à « Ouvrir » (navigation vers l'emplacement) ; masqué par le CSS sur les cases étroites
-      parts.push(el('button', {
-        class: 'furn-more', type: 'button',
-        'aria-label': 'Ouvrir \u00ab ' + k.name + ' \u00bb : ' + plural(subs, 'sous-emplacement', 'sous-emplacements') + ' (niveau ' + (kidDepth + 2) + ')',
-        title: 'Ouvrir',
-        onclick: function () { R.ui.router.navigate(k.id); }
-      }, [el('span', { class: 'furn-nest', 'aria-hidden': 'true' }), String(subs)]));
+    if (subs && !editing) {      // indicateur « contient d'autres niveaux » (plus un bouton : toute la case ouvre) ; absent pendant les modifications
+      parts.push(el('span', { class: 'furn-more', title: plural(subs, 'sous-emplacement', 'sous-emplacements') + ' (niveau ' + (kidDepth + 2) + ')' },
+        [el('span', { class: 'furn-nest', 'aria-hidden': 'true' }), String(subs)]));
     }
-    node = el('div', { class: 'furn-cell' + (isSel ? ' is-selected' : ''), 'data-level': R.models.levelOf(kidDepth), title: k.name + ' \u2014 ' + plural(n.items, 'objet', 'objets') }, parts);
+    var node = el('div', { class: 'furn-cell' + (isSel ? ' is-selected' : ''), 'data-level': R.models.levelOf(kidDepth), title: k.name + ' \u2014 ' + plural(n.items, 'objet', 'objets') }, parts);
+    R.ui.components.longpress.attach(node, {
+      onShort: function () { if (editing) { selected = k.id; redraw(); } else { R.ui.router.navigate(k.id); } },
+      onLong: function () { openCellMenu(node, open, k); }
+    });
     place(node, c);
     return node;
   }
@@ -306,10 +324,10 @@
     var scrollTop = pane ? pane.scrollTop : 0;
     R.ui.dom.clear(wrap);
     wrap.setAttribute('data-editing', editing ? 'true' : 'false');
-    var shownId = furnId;
+    var rootMode = F.isRoot(furnId);          // plan du logement : les pièces sont les cases
+    var shownId = furnId;       // V017 : on n'ouvre plus de niveau « dessiné dans le parent » : la navigation est réelle
     var atRoot = F.isRoot(shownId);
     var loc = atRoot ? null : R.store.getLocation(shownId);
-    if (!atRoot && !loc) { return; }
     var depth = atRoot ? -1 : R.store.depthOf(shownId);
     var level = atRoot ? 'racine' : R.models.levelOf(depth);
     var planLike = atRoot || depth === 0;      // logement ou pièce : dessinés comme un plan
@@ -318,13 +336,15 @@
     var sel = editing ? lay.cells.filter(function (c) { return c.id === selected; })[0] : null;
     var kidsCount = lay.cells.length;
 
+
     var bar = [];
     if (editing && !sel) {
-      bar.push(el('button', { class: 'button', type: 'button', id: 'plan-done', onclick: function () { endEditing(redraw); } }, ['Terminer']));
+      bar.push(el('button', { class: 'button button--secondary', type: 'button', onclick: function () { openGrid(shownId); } }, ['Grille\u2026']));
+      bar.push(el('button', { class: 'button', type: 'button', id: 'plan-done', onclick: function () { endEditing(); } }, ['Terminer']));
     }
     if (bar.length) { wrap.appendChild(el('div', { class: 'furn-bar' }, bar)); }
     if (message) { wrap.appendChild(el('p', { class: 'form-error furn-msg', role: 'status' }, [message])); message = null; }
-    if (!sel && editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, [atRoot ? 'Touchez une pièce pour la sélectionner, puis déplacez-la ou changez sa taille ; une case libre y place la pièce sélectionnée.' : 'Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
+    if (!sel && editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, [atRoot ? 'Touchez une pièce pour la sélectionner, puis déplacez-la ou changez sa taille ; une case libre y place la pièce sélectionnée. Le bouton « Modifier le plan » termine les modifications.' : 'Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
 
     var start = { top: 0, body: lay.T, bottom: lay.T + lay.L };
     function zoneGrid(zone, rows) {
@@ -334,24 +354,30 @@
       var taken = {};
       lay.cells.filter(function (c) { return c.zone === zone; }).forEach(function (c) {
         for (var i = c.row; i < c.row + c.h; i++) { for (var j = c.col; j < c.col + c.w; j++) { taken[i + ',' + j] = true; } }
-        grid.appendChild(cell(c, depth, redraw));
+        grid.appendChild(cell(wrap, furnId, c, depth, redraw));
       });
-      if (editing) {
-        for (var r = 0; r < rows; r++) {
-          for (var c0 = 0; c0 < lay.C; c0++) {
-            if (taken[r + ',' + c0]) { continue; }
-            (function (row, col) {
-              var slot = el('button', {
-                class: 'furn-slot', type: 'button', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + zoneLabel(zone, planLike).toLowerCase() + ')',
-                onclick: function () {
+      for (var r = 0; r < rows; r++) {          // cases libres : toujours dessinées (appui long = menu ; en modification, un appui y place la case sélectionnée)
+        for (var c0 = 0; c0 < lay.C; c0++) {
+          if (taken[r + ',' + c0]) { continue; }
+          (function (row, col) {
+            var slot = el('button', {
+              class: 'furn-slot', type: 'button', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + zoneLabel(zone, planLike).toLowerCase() + ')'
+            });
+            var spot = { zone: zone, col: col, row: row };
+            R.ui.components.longpress.attach(slot, {
+              onShort: function (event) {
+                if (editing) {
                   if (!sel) { message = 'Sélectionnez d\u2019abord un emplacement à déplacer.'; redraw(); return; }
                   run(redraw, F.move(sel.id, col - sel.col, (start[zone] + row) - (start[sel.zone] + sel.row)));
+                } else if (event.detail === 0) {      // activation au clavier : ouvre le menu
+                  openSlotMenu(slot, slot, shownId, spot);
                 }
-              });
-              place(slot, { col: col, row: row, w: 1, h: 1 });
-              grid.appendChild(slot);
-            })(r, c0);
-          }
+              },
+              onLong: function () { openSlotMenu(slot, slot, shownId, spot); }
+            });
+            place(slot, { col: col, row: row, w: 1, h: 1 });
+            grid.appendChild(slot);
+          })(r, c0);
         }
       }
       return grid;
@@ -362,10 +388,7 @@
 
     var frame = [];
     if (lay.T) { frame.push(band('top', lay.T)); }
-    var bodyContent = (!kidsCount && !editing)
-      ? el('p', { class: 'furn-empty' }, [atRoot ? 'Aucune pièce à dessiner.' : 'Aucun sous-emplacement : les objets sont rangés directement ici.'])
-      : zoneGrid('body', lay.L);
-    var body = el('div', { class: 'furn-body', 'data-level': level }, [bodyContent]);
+    var body = el('div', { class: 'furn-body', 'data-level': level }, [zoneGrid('body', lay.L)]);
     if (planLike) {       // plan : cases carrées ; ajusté à l'écran par fit(), ou en taille réelle avec défilement du cadre
       body.setAttribute('data-plan', '');
       body.style.aspectRatio = lay.C + ' / ' + lay.L;
@@ -385,17 +408,12 @@
     if (lay.B) { frame.push(band('bottom', lay.B)); }
     wrap.appendChild(el('div', { class: 'furn-frame' + (planLike ? ' furn-frame--plan' : '') }, frame));
     if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw, planLike, shownId)); }
-    if (!sel) {          // bouton « + » flottant : créer au niveau du plan affiché, régler la grille (caché pendant le placement : le pavé de flèches a « Grille… »)
-      var add = el('button', {
-        class: 'furn-add', id: 'plan-add', type: 'button', 'aria-haspopup': 'true',
-        'aria-label': 'Ajouter ou régler ici', title: 'Ajouter ou régler ici',
-        onclick: function () { openAddMenu(add, shownId); }
-      }, ['+']);
-      wrap.appendChild(add);
+    if (!kidsCount && !editing) {
+      wrap.appendChild(el('p', { class: 'hint furn-empty-hint' }, [atRoot ? 'Aucune pièce : appui long sur une case libre pour en créer une.' : 'Aucun sous-emplacement : appui long sur une case libre pour en créer un ; les objets sont rangés directement ici.']));
     }
 
     var items = atRoot ? [] : R.store.itemsIn(shownId);
-    wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: editing ? 230 : 16 } : null;
+    wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: editing ? 230 : 40 } : null;
     if (items.length) {
       wrap.appendChild(el('section', { class: 'section' }, [
         el('h3', { class: 'section-title' }, ['Objets rangés dans \u00ab ' + loc.name + ' \u00bb (niveau ' + (depth + 1) + ') : ' + items.length]),
@@ -422,8 +440,8 @@
   // Plan du logement : la même grille, où les cases sont les pièces.
   function createPlan(id) { return create(id || R.features.furniture.ROOT); }
 
-  // Un changement d'écran referme le placement (il ne doit pas suivre d'un meuble ou d'un plan à l'autre).
+  // Un changement d'écran referme le placement et oublie le niveau inférieur ouvert (ils ne doivent pas suivre d'un meuble ou d'un plan à l'autre).
   R.events.on('route:changed', function () { editing = false; selected = null; message = null; });
 
-  R.ns('ui.views').furniture = { create: create, createPlan: createPlan, switcher: switcher, zoomButton: zoomButton, mode: mode, setMode: setMode };
+  R.ns('ui.views').furniture = { create: create, createPlan: createPlan, switcher: switcher, zoomButton: zoomButton, editButton: editButton, openGrid: openGrid, isEditing: function () { return editing; }, mode: mode, setMode: setMode };
 })();

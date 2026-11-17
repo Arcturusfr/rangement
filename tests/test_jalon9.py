@@ -1,7 +1,7 @@
 # tests/test_jalon9.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -17,12 +17,12 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c
@@ -105,8 +105,17 @@ def frame_scrolls(page):
     return js(page, "(function(){var f=document.querySelector('.furn-frame--plan'); return f.scrollWidth > f.clientWidth + 1;})()")
 
 
+def longpress(page, locator, ms=650):
+    """V019 : appui long (souris maintenue) au centre d'un élément."""
+    b = locator.bounding_box()
+    page.mouse.move(b["x"] + b["width"] / 2, b["y"] + b["height"] / 2)
+    page.mouse.down()
+    page.wait_for_timeout(ms)
+    page.mouse.up()
+
+
 def open_menu(page, name):
-    page.locator(".furn-cell", has_text=name).locator(".furn-open").click()
+    longpress(page, page.locator(".furn-cell", has_text=name))
     page.wait_for_selector(".ctx-menu")
 
 
@@ -122,12 +131,12 @@ def start_edit(page, name):
 
 
 def set_grid(page, **kw):
-    """Réglages de la grille (pavé « Grille… » en placement, sinon bouton « + »). Renvoie le message de refus, ou None."""
+    """Réglages de la grille (pavé « Grille… » en placement, sinon menu « Actions » de l'en-tête). Renvoie le message de refus, ou None."""
     sel = page.locator(".furn-sel")
     if sel.count():
         sel.get_by_role("button", name="Grille…").click()
     else:
-        page.locator("#plan-add").click()
+        page.locator("#manage-toggle").click()
         page.locator(".ctx-menu").get_by_role("button", name="Régler la grille…", exact=True).click()
     d = page.locator("dialog.dialog[open]")
     labels = {"cols": "Colonnes", "rows": "Lignes", "top": "Dessus", "bottom": "Dessous", "ratio": "Proportions", "feet": "Pieds"}
@@ -264,7 +273,7 @@ def scenario_room(browser, base):
     check("pièce | le choix du plan est commun au logement et aux pièces", page.locator("#view-toggle").get_attribute("data-mode") == "graphic")
     page.goto(base + "#/l/" + sej)
     page.wait_for_selector(".furn-body[data-fit]")
-    page.locator("#plan-add").click()
+    page.locator("#manage-toggle").click()
     page.locator(".ctx-menu").get_by_role("button", name="Régler la grille…", exact=True).click()
     d = page.locator("dialog.dialog[open]")
     check("pièce | réglage direct de la grille : colonnes et lignes seulement", d.get_by_label("Colonnes").count() == 1 and d.get_by_label("Dessus").count() == 0 and d.get_by_label("Proportions").count() == 0)

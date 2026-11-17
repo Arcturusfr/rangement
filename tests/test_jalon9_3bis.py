@@ -1,7 +1,7 @@
 # tests/test_jalon9_3bis.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_3bis.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -17,12 +17,12 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c
@@ -100,8 +100,17 @@ def names(page):
     return page.locator("#pane-detail .furn-cell .furn-name").all_inner_texts()
 
 
+def longpress(page, locator, ms=650):
+    """V019 : appui long (souris maintenue) au centre d'un élément."""
+    b = locator.bounding_box()
+    page.mouse.move(b["x"] + b["width"] / 2, b["y"] + b["height"] / 2)
+    page.mouse.down()
+    page.wait_for_timeout(ms)
+    page.mouse.up()
+
+
 def tap(page, name):
-    cell(page, name).locator(".furn-open").click()
+    longpress(page, cell(page, name))
     page.wait_for_selector(".ctx-menu")
 
 
@@ -145,7 +154,7 @@ def scenario_single_navigation(browser, base):
     page.wait_for_selector(".furn-body[data-fit]")
     more = cell(page, "Séjour").locator(".furn-more")
     check("bandeau | visible sur une case assez large", more.is_visible())
-    check("bandeau | nom accessible : « Ouvrir … »", more.get_attribute("aria-label").startswith("Ouvrir") and "sous-emplacement" in more.get_attribute("aria-label"))
+    check("bandeau | indicateur : nombre de sous-emplacements dans l'infobulle", "sous-emplacement" in (more.get_attribute("title") or ""))
     more.click()
     wait_title(page, "Séjour")
     page.wait_for_selector(".furn-body[data-fit]")
@@ -189,7 +198,7 @@ def scenario_narrow_tiles(browser, base):
     cb = cell(page, "Séjour").bounding_box()
     check("étroit | la zone d'appui occupe toute la case", op["width"] >= cb["width"] - 6, (op, cb))
     tap(page, "Séjour")
-    check("étroit | un appui ouvre le menu avec « Ouvrir » en tête", page.locator(".ctx-menu .ctx-primary").inner_text() == "Ouvrir")
+    check("étroit | un appui ouvre le menu avec « Ouvrir » en tête", page.locator(".ctx-menu button").first.inner_text() == "Ouvrir")
     page.locator(".ctx-menu").get_by_role("button", name="Ouvrir", exact=True).click()
     wait_title(page, "Séjour")
     check("étroit | « Ouvrir » ouvre la pièce", js(page, "location.hash") == "#/l/" + loc_id(page, "Séjour"))
@@ -235,7 +244,8 @@ def scenario_deep_graphic(browser, base):
     # placement à ce niveau
     js(page, "%s.setGrid('%s',{cols:2, rows:2})" % (F, tg))
     page.wait_for_function("Rangement.features.furniture.get('%s').rows === 2" % tg)
-    cell(page, "Boîte A").locator(".furn-open").click()
+    longpress(page, cell(page, "Boîte A"))
+    page.wait_for_selector(".ctx-menu")
     page.locator(".ctx-menu").get_by_role("button", name="Placer et dimensionner", exact=True).click()
     page.wait_for_selector(".furn-sel")
     check("niveau 3 | placement : bandeaux masqués pendant le placement", page.locator(".furn-more").count() == 0)

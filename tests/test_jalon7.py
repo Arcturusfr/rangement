@@ -1,7 +1,7 @@
 # tests/test_jalon7.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon7.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -17,12 +17,12 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c
@@ -115,8 +115,17 @@ def cell(page, name):
 
 
 
+def longpress(page, locator, ms=650):
+    """V019 : appui long (souris maintenue) au centre d'un élément."""
+    b = locator.bounding_box()
+    page.mouse.move(b["x"] + b["width"] / 2, b["y"] + b["height"] / 2)
+    page.mouse.down()
+    page.wait_for_timeout(ms)
+    page.mouse.up()
+
+
 def open_menu(page, name):
-    page.locator(".furn-cell", has_text=name).locator(".furn-open").click()
+    longpress(page, page.locator(".furn-cell", has_text=name))
     page.wait_for_selector(".ctx-menu")
 
 
@@ -132,12 +141,12 @@ def start_edit(page, name):
 
 
 def set_grid(page, **kw):
-    """Réglages de la grille (pavé « Grille… » en placement, sinon bouton « + »). Renvoie le message de refus, ou None."""
+    """Réglages de la grille (pavé « Grille… » en placement, sinon menu « Actions » de l'en-tête). Renvoie le message de refus, ou None."""
     sel = page.locator(".furn-sel")
     if sel.count():
         sel.get_by_role("button", name="Grille…").click()
     else:
-        page.locator("#plan-add").click()
+        page.locator("#manage-toggle").click()
         page.locator(".ctx-menu").get_by_role("button", name="Régler la grille…", exact=True).click()
     d = page.locator("dialog.dialog[open]")
     labels = {"cols": "Colonnes", "rows": "Lignes", "top": "Dessus", "bottom": "Dessous", "ratio": "Proportions", "feet": "Pieds"}
@@ -200,7 +209,7 @@ def scenario_view(browser, base):
     check("vue | pas d'icône de détail sans sous-niveau", page.locator(".furn-more").count() == 0)
     check("vue | proportions par défaut appliquées", js(page, "document.querySelector('.furn-body').style.aspectRatio") in ("1.5", "1.5 / 1"))
     check("vue | aucun débordement au départ", inside(page) == [], inside(page))
-    check("vue | lecture seule : pas de case libre ni de réglages", page.locator(".furn-slot").count() == 0 and page.locator(".furn-controls").count() == 0)
+    check("vue | cases libres visibles hors modification (appui long = menu), pas de réglages en ligne", page.locator(".furn-slot").count() == 0 and page.locator(".furn-controls").count() == 0)
     page.reload()
     page.wait_for_selector("#pane-detail .furn-view")
     check("vue | choix du mode conservé après rechargement", page.locator("#view-toggle").get_attribute("data-mode") == "graphic")
@@ -218,7 +227,7 @@ def scenario_view(browser, base):
     js(page, "Rangement.features.locations.create({name:'<b>Boîte A</b>', kind:'boite', parentId:'%s'})" % tg)
     js(page, "Rangement.features.locations.create({name:'Boîte B', kind:'boite', parentId:'%s'})" % tg)
     more = cell(page, "Tiroir bas gauche").locator(".furn-more")
-    check("niveaux | icône de détail sur le rectangle qui a des sous-niveaux", more.count() == 1 and "2 sous-emplacements" in more.get_attribute("aria-label") and "niveau 4" in more.get_attribute("aria-label") and more.inner_text().strip() == "2", more.get_attribute("aria-label"))
+    check("niveaux | icône de détail sur le rectangle qui a des sous-niveaux", more.count() == 1 and "2 sous-emplacements" in more.get_attribute("title") and "niveau 4" in more.get_attribute("title") and more.inner_text().strip() == "2", more.get_attribute("title"))
     more.click()
     wait_title(page, "Tiroir bas gauche")
     page.wait_for_selector("#pane-detail .furn-view")
@@ -315,7 +324,7 @@ def scenario_grid(browser, base):
     page.reload()
     page.wait_for_selector(".furn-view")
     check("persistance | bandes et places conservées après rechargement", page.locator(".furn-band").count() == 2 and page.locator(".furn-sel").count() == 0 and geo(page, "Tiroir bas gauche")["zone"] == "top")
-    check("persistance | hors placement, les cases ouvrent le menu", page.locator("button.furn-open[aria-haspopup]").count() == 2 and page.locator("a.furn-open").count() == 0)
+    check("persistance | hors placement, les cases ouvrent le menu", page.locator("button.furn-open").count() == 2 and page.locator("a.furn-open").count() == 0)
     s = js(page, "JSON.stringify(JSON.parse(Rangement.features.backup.prepareExport().text).locations.filter(function(l){return l.name==='Grand tiroir du bas';})[0].geometry)")
     check("sauvegarde | la grille figure dans l'export", '"zone":"bottom"' in s and '"w":1' in s, s)
     check("sauvegarde | données valides", js(page, "Rangement.models.validateData(JSON.parse(localStorage.getItem('rangement.data'))).ok"))
@@ -362,12 +371,16 @@ def scenario_overflow(browser, base):
     page.wait_for_selector(".furn-view")
     for w in (884, 390):
         page.set_viewport_size({"width": w, "height": 900})
+        page.wait_for_function("document.documentElement.dataset.panes === %r" % ("1" if w < 720 else "2"))
+        page.wait_for_timeout(150)
         check("débordement | 9 emplacements, largeur %d : tout dans le cadre" % w, inside(page) == [], inside(page))
     res = js(page, "%s.setGrid('%s', {cols:1})" % (F, com))
     check("débordement | passer à 1 colonne : les places automatiques suivent", res["ok"] is True and js(page, "%s.layout('%s').L" % (F, com)) == 9, res)
     page.wait_for_function("document.querySelectorAll('.furn-body .furn-cell').length === 9")
     for w in (884, 390):
         page.set_viewport_size({"width": w, "height": 900})
+        page.wait_for_function("document.documentElement.dataset.panes === %r" % ("1" if w < 720 else "2"))
+        page.wait_for_timeout(150)
         check("débordement | 9 lignes, largeur %d : tout dans le cadre" % w, inside(page) == [], inside(page))
         check("débordement | 9 lignes, largeur %d : le cadre grandit (≥ 9 × 64 px)" % w, page.locator(".furn-body").bounding_box()["height"] >= 9 * 64 - 1, page.locator(".furn-body").bounding_box())
         check("débordement | largeur %d : pas de défilement horizontal" % w, js(page, "document.documentElement.scrollWidth - window.innerWidth") <= 0)

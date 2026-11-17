@@ -1,16 +1,18 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V018b
-  Horodatage : 2026-11-13 02:25 (heure de Paris)
-  Résumé : V018b livrée (tests : serveur de test silencieux) — fichiers à enregistrer ; V018 toujours à tester.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 livrée — fichiers à enregistrer et à tester ; V018 validée.
 -->
 
-# ToDo Utilisateur — Rangement `V018b`
+# ToDo Utilisateur — Rangement `V019`
 
-> Dernière mise à jour : 13/11/2026 02:25 (Paris) — **V018b**
+> Dernière mise à jour : 17/11/2026 07:12 (Paris) — **V019**
 
 ## Fait
 
+- [x] Tester la V018 : aucun bug de fonctionnement ; valider la V018 ; répondre aux questions (boutons à regrouper à droite et en pictogrammes, rail par défaut OK et remis au démarrage) ; demander l'appui simple / long, le mode « Modifier le plan », la suppression du « + » (avec menu sur case libre) et des bandeaux plus bas ; fournir `Pictogrammes.html`
+- [x] Enregistrer les fichiers de la V018a et de la V018b (tests uniquement)
 - [x] Tester la V017 : aucun bug ; seuil de masquage du bandeau (85 px) et bandeau à 44 px conservés ; valider la V017 ; demander l'étape 9.4 (plan en accueil, boutons flottants, arborescence à 3 états)
 
 - [x] Tester la V016 : info-bulle, boutons Liste / Plan et écran replié convenables ; valider le jalon 9.3 ; signaler l'ambiguïté « Ouvrir » / bandeau de niveau et demander la V017 avant l'étape 9.4
@@ -42,15 +44,23 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V018b** (archive `V018b.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018b.txt`).
-  - **Remplacés** : les **14** `tests/test_jalon*.py`, `sw.js` (**à la racine**), `js/config.js` et les trois `.md`. **Inchangés** : tout le reste (le code de l'application ne change pas).
-  - **Vérifier que la version affichée est `V018b`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (`sw.js`, `config.js`, les tests, les trois `.md`).
-  - Relancer un test sous Windows (par ex. `test_jalon6bis.py`) : les traces `WinError 10053` ne doivent plus apparaître. Si un timeout revient, regarder si un bandeau rouge « L'application n'a pas pu démarrer correctement » s'affiche (`launch(headless=False)`) et me le décrire.
-- [x] **Enregistrer les fichiers de la V018a** (fait : `test_jalon5.py` passe sur le PC Windows ; archive `V018a.zip`).
-  - **Remplacés** : `tests/test_jalon5.py`, `sw.js` (**à la racine**), `js/config.js` et les trois `.md`. **Inchangés** : tout le reste (le code de l'application ne change pas).
-  - **Vérifier que la version affichée est `V018a`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (`sw.js`, `config.js`, `test_jalon5.py`, les trois `.md`).
-- [ ] **Console Windows** : lancer les tests avec `PYTHONUTF8=1` (PowerShell : `$env:PYTHONUTF8=1` ; une fois pour toutes : `setx PYTHONUTF8 1`, puis rouvrir le terminal) pour afficher correctement `≥`, `≤`, `ℹ️`. Relancer `test_jalon5.py` et, si `test_jalon6bis.py` plante encore, me coller **la dernière ligne de l'erreur** (`UnicodeEncodeError` ou `OSError` ?).
-- **(la V018 ci-dessous reste à tester et à valider)**
+- [ ] **Enregistrer les fichiers de la V019** (archive `V019.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V019.txt`).
+  - **Nouveaux** : `js/ui/icons.js`, `js/ui/components/longpress.js`, `tests/test_jalon10.py`.
+  - **Remplacés** : `index.html`, `sw.js` (**à la racine**), `js/config.js`, `js/main.js`, `css/layout.css`, `css/components.css`, `css/furniture.css`, `js/ui/components/detailbar.js`, `js/ui/components/contextmenu.js`, `js/ui/views/browse.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `js/ui/views/location-actions.js`, `js/features/furniture.js`, `js/features/locations.js`, les **14** anciens `tests/test_jalon*.py` et les trois `.md`.
+  - **Inchangés** : tout le reste.
+- [ ] **Vérifier que la version affichée est `V019`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (supprimer les versions remplacées ; ajouter les 3 nouveaux fichiers).
+- [ ] **Exporter une sauvegarde** de vos vraies données avant d'essayer (précaution habituelle).
+- [ ] **Tester la V019** (écran déplié **et** replié) :
+  1. **Au démarrage** : le plan du logement, l'arborescence en rail ; en-tête et recherche sur une seule ligne (déplié) ; le plan tient-il mieux dans la zone centrale, y compris arborescence réduite ou masquée ?
+  2. **Boutons** : trois pictogrammes ronds à droite sous ▲ ▼ / Actions (Liste/Plan, Agrandir, Modifier le plan) ; ils ne recouvrent plus le plan ; reconnaissez-vous bien chaque pictogramme ?
+  3. **Appui simple** sur une pièce / un meuble : il s'ouvre. **Appui long** : le menu apparaît (la durée d'environ 0,45 s vous convient-elle ? le menu natif du navigateur ne doit pas apparaître).
+  4. **Case libre** (pointillés) : appui long → créer un emplacement **à cette place**, ajouter un objet, régler la grille ; essayer aussi dans une pièce et un meuble.
+  5. **Modifier le plan** : le bouton s'enfonce, le plan est entouré de pointillés ; appui simple = sélection, pavés de flèches, « Grille… », « Terminer » ; un second appui sur le bouton termine.
+  6. Menu « Actions » : « Régler la grille… » en vue graphique ; « Réglages » avec son engrenage ; relancer l'application : l'arborescence revient en rail.
+- [ ] **Répondre** : l'emplacement des boutons (dans l'en-tête, sous les flèches) vous convient-il, ou préférez-vous une colonne flottante à droite du plan ? Le menu d'une case libre doit-il aussi proposer « Ajouter un objet ici » ? Garder « Placer et dimensionner » dans le menu des cases (raccourci vers le mode modification) ? Prochaines remarques (pictogrammes dans d'autres boutons, « respiration » des cases libres) ?
+
+### (historique) À faire à la V018b / V018a / V018
+
 - [ ] **Enregistrer les fichiers de la V018** (archive `V018.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V018.txt`).
   - **Nouveau** : `tests/test_jalon9_4.py`.
   - **Remplacés** : `sw.js` (**à la racine**), `index.html`, `js/config.js`, `css/layout.css`, `css/components.css`, `js/ui/components/detailbar.js`, `js/ui/views/browse.js`, `js/ui/views/location.js`, `js/ui/views/furniture.js`, tous les tests `tests/test_jalon*.py` et les trois `.md`.
@@ -164,3 +174,4 @@
 | V018 | 10/11/2026 21:05 | Étape 9.4 : plan en accueil, boutons flottants, arborescence à trois états ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V018a | 12/11/2026 21:50 | Correctif des tests sous Windows ; fichiers à enregistrer (voir liste) |
 | V018b | 13/11/2026 02:25 | Tests : serveur de test silencieux sur les connexions coupées ; fichiers à enregistrer (voir liste) |
+| V019 | 17/11/2026 07:12 | Jalon 10 : pictogrammes, appui simple / long, cases libres, mode « Modifier le plan », bandeaux resserrés, rail au démarrage ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

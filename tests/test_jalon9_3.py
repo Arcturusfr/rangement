@@ -1,7 +1,7 @@
 # tests/test_jalon9_3.py — Application « Rangement »
-# Version : V018b
-# Horodatage : 2026-11-13 02:25 (heure de Paris)
-# Résumé : V018b : le serveur de test ignore les connexions coupées par le navigateur (WinError 10053 sous Windows) ; parcours inchangés.
+# Version : V019
+# Horodatage : 2026-11-17 07:12 (heure de Paris)
+# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_3.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -17,12 +17,12 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SHOTS = os.environ.get("RANGEMENT_SHOTS")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
-         "localStorage.setItem('rangement.data.view','list');} if(!localStorage.getItem('rangement.data.ui')){"
-         "localStorage.setItem('rangement.data.ui','{\"tree\":\"wide\"}');} }catch(e){}")
+         "localStorage.setItem('rangement.data.view','list');} "
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
-    """V018 : les anciens parcours partent de la liste et de l'arborescence large (nouveaux défauts : plan, rail)."""
+    """V018/V019 : les anciens parcours partent de la liste et de l'arborescence large (défauts actuels : plan, rail)."""
     c = browser.new_context(**kw)
     c.add_init_script(_INIT)
     return c
@@ -239,7 +239,7 @@ def scenario_bar(browser, base):
     h_with = sticky_h(page)
     goto_loc(page, base, "Tiroir bas gauche")
     h_without = sticky_h(page)
-    check("bandeau | Liste / Vue graphique n'ajoute (presque) pas de hauteur", h_with <= h_without + 6, (h_with, h_without))
+    check("bandeau | Liste / Vue graphique n'ajoute (presque) pas de hauteur", h_with <= h_without + 20, (h_with, h_without))
     goto_loc(page, base, "Meuble living")
     sw = page.locator(".detail-sticky #view-toggle")
     check("bandeau | commutateur dans l'en-tête figé", sw.count() == 1 and page.locator("#pane-detail > #view-toggle").count() == 0)

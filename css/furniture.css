@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V017
-  Horodatage : 2026-11-08 01:30 (heure de Paris)
-  Résumé : V017 — le bandeau de niveau (.furn-more) disparaît des cases étroites (requête de conteneur) ; texte de rappel (.furn-caption) supprimé.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : cases libres toujours visibles (appui long = menu), bouton « + » supprimé, pictogrammes dans les menus, contour du mode « Modifier le plan ».
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -17,7 +17,7 @@
 .view-switch-btn[aria-pressed="true"] { background: var(--ink); color: #FFFFFF; box-shadow: none; }
 
 /* Vue graphique d'un meuble */
-.furn-view { margin-top: var(--space-2); max-width: 40rem; padding-bottom: 80px; }   /* la place du bouton « + » */
+.furn-view { margin-top: var(--space-2); max-width: 40rem; padding-bottom: var(--space-4); }
 .furn-bar { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
 .furn-bar .button[aria-pressed="true"] { background: var(--chip-bg); }
 .furn-msg { margin-bottom: var(--space-3); }
@@ -45,6 +45,8 @@
 .furn-compact .furn-count-word, .furn-compact .furn-kind { display: none; }
 .furn-compact .furn-more { display: none; }
 .furn-body { display: flex; padding: var(--space-2); border: 4px solid var(--level-color, var(--ink)); border-radius: 8px; background: var(--surface); }
+/* V019 : le cadre d'un meuble ne dépasse jamais la largeur disponible (beaucoup de lignes + proportions) */
+.furn-body:not([data-plan]) { width: 100%; min-width: 0; }
 .furn-grid { display: grid; flex: 1; min-width: 0; min-height: 0; gap: var(--space-2); }
 .furn-band { margin: var(--space-2) 0; }
 .furn-band-label { margin-bottom: var(--space-1); color: var(--muted); font-size: 0.85rem; }
@@ -52,7 +54,7 @@
 
 .furn-cell { container-type: inline-size; position: relative; display: flex; min-width: 0; min-height: 0; overflow: hidden; border: 2px solid var(--level-color, var(--ink)); border-radius: var(--radius); background: #FFFFFF; }
 .furn-cell.is-selected { box-shadow: 0 0 0 3px var(--accent); background: #E3F1EF; }
-.furn-open { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 0; padding: var(--space-1) var(--space-2); overflow: hidden; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.furn-open { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 0; padding: var(--space-1) var(--space-2); overflow: hidden; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
 .furn-open:hover { background: #F3F6F7; }
 .furn-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; color: var(--level-color, var(--ink)); }
 .furn-name--wrap { white-space: normal; overflow-wrap: anywhere; }
@@ -60,12 +62,15 @@
 .furn-kind { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; color: var(--muted); }
 .furn-empty { align-self: center; padding: var(--space-3); color: var(--muted); }
 
-/* Case libre (mode ajustement) : un tap y place l'emplacement sélectionné */
-.furn-slot { min-width: 0; min-height: 0; border: 2px dashed var(--line); border-radius: var(--radius); background: transparent; cursor: pointer; }
+/* Case libre : un appui long ouvre le menu (créer un emplacement, régler la grille) ; en mode « Modifier le plan », un appui y place l'emplacement sélectionné */
+.furn-slot { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; min-width: 0; min-height: 0; border: 1px dashed var(--line); border-radius: var(--radius); background: transparent; cursor: pointer; }
+.furn-view[data-editing="true"] .furn-slot { border-width: 2px; }
+.furn-view[data-editing="true"] .furn-body { outline: 3px dashed var(--accent); outline-offset: 3px; }
+.furn-empty-hint { margin-top: var(--space-3); }
 .furn-slot:hover { background: var(--chip-bg); }
 
 /* Icône « contient d'autres niveaux » : deux carrés emboîtés + nombre de sous-emplacements */
-.furn-more { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: var(--tap); min-height: 0; border: 0; border-left: 1px solid var(--line); background: var(--chip-bg); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.furn-more { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: var(--tap); min-height: 0; border: 0; border-left: 1px solid var(--line); background: var(--chip-bg); color: var(--ink); font: inherit; font-weight: 600; }
 .furn-nest { position: relative; width: 20px; height: 16px; border: 2px solid var(--level-color, var(--ink)); border-radius: 3px; }
 .furn-nest::after { content: ""; position: absolute; inset: 3px; border: 2px solid var(--level-color, var(--ink)); border-radius: 2px; }
 
@@ -75,26 +80,6 @@
 /* Case étroite (< 85 px) : le bandeau de niveau disparaît, toute la case ouvre le menu (« Ouvrir » en tête) */
 @container (max-width: 84px) { .furn-more { display: none; } }
 
-/* Bouton « + » flottant : créer au niveau du plan affiché, régler la grille */
-.furn-add {
-  position: fixed;
-  right: calc(16px + env(safe-area-inset-right, 0px));
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  z-index: 6;
-  width: 56px;
-  height: 56px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font: inherit;
-  font-size: 2rem;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(22, 34, 42, 0.4);
-}
-.furn-add:hover { filter: brightness(1.1); }
 .has-menu { box-shadow: 0 0 0 3px var(--accent); }
 
 /* Menu contextuel (près de l'élément touché) */
@@ -119,6 +104,9 @@
 .ctx-primary { flex: none; width: 100%; min-height: 56px; font-size: 1.2rem; font-weight: 800; }
 .ctx-list { display: flex; flex-direction: column; }
 .ctx-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   min-height: var(--tap);
   padding: 0 var(--space-3);
   border: 0;

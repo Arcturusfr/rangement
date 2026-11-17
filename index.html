@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
   index.html — Application « Rangement »
-  Version : V018
-  Horodatage : 2026-11-10 21:05 (heure de Paris)
-  Résumé : V018 : bouton « Arborescence » (état large / rail / masquée) dans l'en-tête.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : en-tête et recherche regroupés (.app-top), scripts icons.js et longpress.js.
 -->
 <html lang="fr" data-panes="1">
 <head>
@@ -61,6 +61,7 @@
   </script>
 </head>
 <body>
+  <div class="app-top">
   <header class="app-header">
     <h1 class="app-name">Rangement</h1>
     <div class="app-header-end">
@@ -69,9 +70,10 @@
       <span class="app-version" id="app-version" aria-label="Version de l'application"></span>
     </div>
   </header>
+  <div class="searchbar" id="searchbar"></div>
+  </div>
   <div class="status-bar" id="boot-errors" role="alert" hidden></div>
   <div class="status-bar" id="status" role="status" hidden></div>
-  <div class="searchbar" id="searchbar"></div>
 
   <main class="app-main">
     <nav class="pane pane-tree" id="pane-tree" aria-label="Arborescence des emplacements"></nav>
@@ -94,6 +96,7 @@
   <script src="js/features/backup.js"></script>
   <script src="js/features/furniture.js"></script>
   <script src="js/ui/dom.js"></script>
+  <script src="js/ui/icons.js"></script>
   <script src="js/ui/router.js"></script>
   <script src="js/ui/components/breadcrumb.js"></script>
   <script src="js/ui/components/list.js"></script>
@@ -102,6 +105,7 @@
   <script src="js/ui/components/detailbar.js"></script>
   <script src="js/ui/components/contextmenu.js"></script>
   <script src="js/ui/components/bubble.js"></script>
+  <script src="js/ui/components/longpress.js"></script>
   <script src="js/ui/layout.js"></script>
   <script src="js/ui/views/treerail.js"></script>
   <script src="js/ui/views/browse.js"></script>

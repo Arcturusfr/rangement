@@ -1,8 +1,8 @@
 /*
   js/ui/views/location-actions.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : duplication d'un emplacement ; bouton de validation coloré selon le niveau créé.
+  Version : V019
+  Horodatage : 2026-11-17 07:12 (heure de Paris)
+  Résumé : V019 : openCreate(parentId, spot) — création sur une case libre du plan.
 */
 (function () {
   'use strict';
@@ -15,7 +15,8 @@
   }
 
   // Ajoute un emplacement dans `parentId` (null = nouvelle pièce à la racine).
-  function openCreate(parentId) {
+  // spot (facultatif) : { zone, col, row } = case libre du plan où placer le nouvel emplacement.
+  function openCreate(parentId, spot) {
     var parent = parentId ? R.store.getLocation(parentId) : null;
     R.ui.components.dialog.form({
       title: parent ? 'Nouvel emplacement dans \u00ab ' + parent.name + ' \u00bb' : 'Nouvelle pièce',
@@ -27,7 +28,12 @@
       submitLabel: 'Ajouter',
       submitLevel: R.models.levelOf(parent ? R.store.depthOf(parent.id) + 1 : 0),
       onSubmit: function (v) {
-        return R.features.locations.create({ name: v.name, kind: v.kind, note: v.note, parentId: parentId });
+        var geometry = null;
+        if (spot) {
+          R.features.furniture.pin(parentId || R.features.furniture.ROOT);
+          geometry = { zone: spot.zone, col: spot.col, row: spot.row, w: 1, h: 1 };
+        }
+        return R.features.locations.create({ name: v.name, kind: v.kind, note: v.note, parentId: parentId, geometry: geometry });
       }
     });
   }
