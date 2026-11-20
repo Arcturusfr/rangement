@@ -1,7 +1,7 @@
 # tests/test_jalon10.py — Application « Rangement »
-# Version : V019
-# Horodatage : 2026-11-17 07:12 (heure de Paris)
-# Résumé : jalon 10 (V019) : pictogrammes SVG, appui simple / appui long, boutons d'affichage alignés à droite, en-tête et recherche regroupés, bandeaux resserrés, rail au démarrage.
+# Version : V020
+# Horodatage : 2026-11-20 22:57 (heure de Paris)
+# Résumé : V020 : adapté au jalon 11 (recherche masquée ouverte au chargement, boutons de l'en-tête, groupes, volet d'arborescence) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon10.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -96,7 +96,7 @@ def scenario_icons_and_press(browser, base):
     check("pictogrammes | tous les pictogrammes existent", all(js(page, "Rangement.ui.icons.has(%r)" % n) for n in names))
     info = js(page, "(function(){var s=Rangement.ui.icons.create('plan', 30); return [s.tagName.toLowerCase(), s.getAttribute('aria-hidden'), s.getAttribute('width'), s.getAttribute('stroke'), s.childNodes.length, Rangement.ui.icons.has('inconnu')];})()")
     check("pictogrammes | SVG décoratif, couleur du texte, taille réglable, nom inconnu toléré", info == ["svg", "true", "30", "currentColor", 4, False], info)
-    check("pictogrammes | engrenage devant « Réglages »", page.locator("#app-settings svg").count() == 1 and "Réglages" in page.inner_text("#app-settings"))
+    check("pictogrammes | engrenage seul pour « Réglages » (nom accessible conservé)", page.locator("#app-settings svg").count() == 1 and page.get_attribute("#app-settings", "aria-label").startswith("Réglages") and box(page, "#app-settings")["width"] <= 46)
     check("pictogrammes | version affichée", page.inner_text("#app-version").strip() == js(page, "Rangement.config.version"))
 
     # composant d'appui long, sur un élément d'essai (souris, toucher simulé, clavier)
@@ -228,16 +228,20 @@ def scenario_layout(browser, base):
     ctx, page = start(browser, base, 884, 1100, errors)
     top = box(page, ".app-top")
     check("bandeaux | écran déplié : en-tête et recherche sur une seule ligne (≤ 72 px)", top["height"] <= 72, top)
-    ys = [box(page, s)["y"] + box(page, s)["height"] / 2 for s in (".app-name", "#search-input", "#app-settings", "#app-version")]
-    check("bandeaux | nom, recherche, Réglages et version alignés", max(ys) - min(ys) <= 8, ys)
-    check("bandeaux | le bouton Retour est à côté du champ de recherche", box(page, "#app-back")["x"] < box(page, "#search-input")["x"] and abs(box(page, "#app-back")["y"] - box(page, "#search-input")["y"]) <= 4)
-    check("bandeaux | la recherche garde une largeur confortable", box(page, "#search-input")["width"] >= 250, box(page, "#search-input"))
+    ys = [box(page, s)["y"] + box(page, s)["height"] / 2 for s in (".app-name", "#search-toggle", "#app-settings", "#app-version")]
+    check("bandeaux | nom, loupe, Réglages et version alignés", max(ys) - min(ys) <= 8, ys)
+    check("bandeaux | le bouton Retour est à gauche du nom", box(page, "#app-back")["x"] < box(page, ".app-name")["x"])
+    check("bandeaux | champ de recherche masqué par défaut", not page.is_visible("#search-input"))
+    page.locator("#search-toggle").click()
+    page.wait_for_selector("#search-input", state="visible")
+    check("bandeaux | la loupe affiche le champ, sur la même ligne, avec une largeur confortable", box(page, "#search-input")["width"] >= 250 and box(page, ".app-top")["height"] <= 72, (box(page, "#search-input"), box(page, ".app-top")))
+    page.locator("#search-toggle").click()
     st = box(page, ".detail-sticky")
     check("bandeaux | en-tête du détail resserré (≤ 112 px)", st["height"] <= 112, st)
     check("bandeaux | pas de zone flottante ni de bouton « + »", page.locator(".float-zone, .float-btn, #plan-add, .furn-add").count() == 0)
     bt = [box(page, s) for s in ("#view-toggle", "#plan-zoom", "#plan-edit")]
     tools = box(page, ".detail-bar-tools-row")
-    check("boutons | trois boutons ronds de 44 px alignés à droite sous les flèches et « Actions »", all(b["width"] >= 43 and b["height"] >= 43 for b in bt) and bt[0]["y"] >= tools["y"] + tools["height"] - 1 and abs(bt[2]["x"] + bt[2]["width"] - (tools["x"] + tools["width"])) <= 2, (bt, tools))
+    check("boutons | trois boutons ronds de 44 px alignés à droite sous les flèches et « Actions »", all(b["width"] >= 43 and b["height"] >= 43 for b in bt) and bt[0]["y"] >= tools["y"] + tools["height"] - 1 and abs(bt[2]["x"] + bt[2]["width"] - (tools["x"] + tools["width"])) <= 6, (bt, tools))
     check("boutons | rien ne recouvre le plan", bt[0]["y"] + bt[0]["height"] <= box(page, ".furn-body")["y"] + 1, (bt[0], box(page, ".furn-body")))
     # plan 7 × 10 : cases d'au moins 48 px et plan entier dans l'écran
     js(page, "%s.setGrid(%s.ROOT,{cols:7, rows:10})" % (F, F))
@@ -247,7 +251,7 @@ def scenario_layout(browser, base):
     bb = box(page, ".furn-body")
     check("plan | 7 × 10 : cases ≥ 48 px, plan entier dans l'écran sans défiler", cs[0] >= 47 and bb["y"] + bb["height"] <= 1100 and js(page, "document.getElementById('pane-detail').scrollHeight - document.getElementById('pane-detail').clientHeight") <= 1, (cs, bb))
     # volet central agrandi (arborescence masquée) : le plan reste entier
-    page.locator("#tree-cycle").click()
+    page.locator("#tree-toggle").click()
     page.wait_for_function("document.documentElement.dataset.tree === 'hidden'")
     page.wait_for_timeout(300)
     bb = box(page, ".furn-body")
@@ -257,8 +261,11 @@ def scenario_layout(browser, base):
 
     errors = []
     ctx, page = start(browser, base, 390, 844, errors)
+    page.locator("#search-toggle").click()
+    page.wait_for_selector("#search-input", state="visible")
     hb, sb = box(page, ".app-header"), box(page, ".searchbar")
-    check("replié | en-tête et recherche restent deux bandeaux superposés", sb["y"] >= hb["y"] + hb["height"] - 1 and hb["height"] <= 80, (hb, sb))
+    page.locator("#search-toggle").click()
+    check("replié | en-tête et recherche (ouverte par la loupe) restent deux bandeaux superposés", sb["y"] >= hb["y"] + hb["height"] - 1 and hb["height"] <= 80, (hb, sb))
     bt = [box(page, s) for s in ("#view-toggle", "#plan-zoom", "#plan-edit")]
     check("replié | trois boutons sur une même ligne, alignés à droite", max(b["y"] for b in bt) - min(b["y"] for b in bt) <= 1 and bt[2]["x"] + bt[2]["width"] >= 390 - 24, bt)
     check("replié | rien ne recouvre le plan", bt[0]["y"] + bt[0]["height"] <= box(page, ".furn-body")["y"] + 1)
@@ -278,7 +285,7 @@ def scenario_startup(browser, base):
     errors = []
     ctx, page = start(browser, base, 884, 1100, errors)
     check("démarrage | rail par défaut", page.get_attribute("html", "data-tree") == "mini")
-    page.locator("#tree-cycle").click()
+    page.locator("#tree-toggle").click()
     page.wait_for_function("document.documentElement.dataset.tree === 'hidden'")
     check("démarrage | l'état choisi n'est pas mémorisé", js(page, "localStorage.getItem('rangement.data.ui')") is None)
     page.reload()

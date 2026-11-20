@@ -1,45 +1,56 @@
 /*
   js/ui/views/searchbar.js — Application « Rangement »
-  Version : V009
-  Horodatage : 2026-10-25 16:10 (heure de Paris)
-  Résumé : bouton Retour de l'application et icône de loupe devant le champ ; sinon inchangé.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : champ de recherche masqué par défaut, ouvert par le bouton loupe de l'en-tête ; bouton Retour (pictogramme) dans l'en-tête.
 */
 (function () {
   'use strict';
 
   var R = window.Rangement;
   var el = R.ui.dom.el;
+  var bar = null;
   var input = null;
   var backButton = null;
+  var toggleButton = null;
+  var open = false;
 
-  // Le champ reflète la recherche de la route ; hors recherche il est vide.
+  // Le champ reflète la recherche de la route ; hors recherche il est vide. Une recherche en cours affiche toujours le champ.
   function sync() {
     var q = R.ui.router.current().query;
     var wanted = q === null ? '' : q;
+    if (q !== null && !open) { setOpen(true, true); }
     if (input.value !== wanted) { input.value = wanted; }
     backButton.disabled = !R.ui.router.canBack();
   }
 
-  function magnifier() {
-    var ns = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(ns, 'svg');
-    svg.setAttribute('class', 'searchbar-icon');
-    svg.setAttribute('viewBox', '0 0 24 24');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('focusable', 'false');
-    var circle = document.createElementNS(ns, 'circle');
-    circle.setAttribute('cx', '10'); circle.setAttribute('cy', '10'); circle.setAttribute('r', '6.5');
-    var handle = document.createElementNS(ns, 'path');
-    handle.setAttribute('d', 'M15 15l6 6');
-    [circle, handle].forEach(function (n) {
-      n.setAttribute('fill', 'none'); n.setAttribute('stroke', 'currentColor');
-      n.setAttribute('stroke-width', '2.4'); n.setAttribute('stroke-linecap', 'round');
-      svg.appendChild(n);
-    });
-    return svg;
+  // Affiche ou masque le champ ; noFocus : sans donner le focus (clavier virtuel).
+  function setOpen(next, noFocus) {
+    open = !!next;
+    bar.hidden = !open;
+    toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+    toggleButton.setAttribute('title', open ? 'Masquer la recherche' : 'Rechercher');
+    if (open && !noFocus) { input.focus(); }
+  }
+
+  function toggle() {
+    if (open) {
+      setOpen(false);
+      if (R.ui.router.current().query !== null) { R.ui.router.back(); }     // quitter les résultats de recherche
+    } else {
+      setOpen(true);
+    }
   }
 
   function mount(root) {
+    bar = root;
+    backButton = document.getElementById('app-back');
+    toggleButton = document.getElementById('search-toggle');
+    backButton.appendChild(R.ui.icons.create('arrow-left', 22));
+    toggleButton.appendChild(R.ui.icons.create('search', 22));
+    backButton.addEventListener('click', function () { R.ui.router.back(); });
+    toggleButton.addEventListener('click', toggle);
+
     input = el('input', {
       id: 'search-input',
       type: 'search',
@@ -49,26 +60,22 @@
       spellcheck: 'false',
       enterkeyhint: 'search'
     });
-    backButton = el('button', {
-      class: 'button button--secondary', id: 'app-back', type: 'button',
-      onclick: function () { R.ui.router.back(); }
-    }, ['\u2190 Retour']);
     var form = el('form', { class: 'searchbar-form', role: 'search', novalidate: true, onsubmit: function (event) {
       event.preventDefault();
       input.blur();            // referme le clavier sur mobile
     } }, [
-      backButton,
       el('div', { class: 'searchbar-field' }, [
         el('label', { class: 'visually-hidden', 'for': 'search-input' }, ['Rechercher']),
-        magnifier(),
+        R.ui.icons.create('search', 20),
         input
       ])
     ]);
+    form.querySelector('svg').setAttribute('class', 'searchbar-icon');
     input.addEventListener('input', function () { R.ui.router.search(input.value); });
     root.appendChild(form);
     R.events.on('route:changed', sync);
     sync();
   }
 
-  R.ns('ui.views').searchbar = { mount: mount };
+  R.ns('ui.views').searchbar = { mount: mount, setOpen: setOpen, isOpen: function () { return open; } };
 })();

@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <!--
   index.html — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : en-tête et recherche regroupés (.app-top), scripts icons.js et longpress.js.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : en-tête refondu (Retour, loupe, engrenage en pictogrammes), champ de recherche masqué par défaut, voile de l'arborescence sur écran replié.
 -->
 <html lang="fr" data-panes="1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#16222A">
+  <meta name="theme-color" content="#043BB2">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="icons/icon-192x192.png">
   <link rel="apple-touch-icon" href="icons/icon-192x192.png">
@@ -63,14 +63,17 @@
 <body>
   <div class="app-top">
   <header class="app-header">
-    <h1 class="app-name">Rangement</h1>
+    <div class="app-header-start">
+      <button class="hdr-btn" id="app-back" type="button" aria-label="Retour" title="Retour"></button>
+      <h1 class="app-name">Rangement</h1>
+    </div>
     <div class="app-header-end">
-      <button class="app-link" id="tree-cycle" type="button">Arborescence</button>
-      <a class="app-link" id="app-settings" href="#/r">Réglages</a>
+      <button class="hdr-btn" id="search-toggle" type="button" aria-label="Rechercher" title="Rechercher" aria-expanded="false" aria-controls="searchbar"></button>
+      <a class="hdr-btn app-link" id="app-settings" href="#/r" aria-label="Réglages" title="Réglages"><span class="visually-hidden">Réglages</span></a>
       <span class="app-version" id="app-version" aria-label="Version de l'application"></span>
     </div>
   </header>
-  <div class="searchbar" id="searchbar"></div>
+  <div class="searchbar" id="searchbar" hidden></div>
   </div>
   <div class="status-bar" id="boot-errors" role="alert" hidden></div>
   <div class="status-bar" id="status" role="status" hidden></div>
@@ -78,6 +81,7 @@
   <main class="app-main">
     <nav class="pane pane-tree" id="pane-tree" aria-label="Arborescence des emplacements"></nav>
     <section class="pane pane-detail" id="pane-detail" aria-live="polite"></section>
+    <div class="tree-scrim" id="tree-scrim" hidden></div>
   </main>
 
   <noscript><p class="status-bar">Cette application nécessite JavaScript.</p></noscript>

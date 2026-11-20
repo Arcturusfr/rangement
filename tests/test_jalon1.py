@@ -1,7 +1,7 @@
 # tests/test_jalon1.py — Application « Rangement »
-# Version : V019
-# Horodatage : 2026-11-17 07:12 (heure de Paris)
-# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
+# Version : V020
+# Horodatage : 2026-11-20 22:57 (heure de Paris)
+# Résumé : V020 : adapté au jalon 11 (recherche masquée ouverte au chargement, boutons de l'en-tête, groupes, volet d'arborescence) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon1.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -21,7 +21,7 @@ VERSION = re.search(r"version: '([^']+)'", open(os.path.join(ROOT, "js", "config
 
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
          "localStorage.setItem('rangement.data.view','list');} "
-         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} try{ Rangement.ui.views.searchbar.setOpen(true, true); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):

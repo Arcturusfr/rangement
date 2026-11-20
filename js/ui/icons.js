@@ -1,8 +1,8 @@
 /*
   js/ui/icons.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : création — pictogrammes SVG filaires (liste, plan, réglages, modifier, modifier le plan, déplacer, agrandir…), construits sans HTML.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : arborescence, loupe, aide « ? », flèche de retour, élargir / réduire le volet.
 */
 (function () {
   'use strict';
@@ -42,6 +42,16 @@
       ['path', { d: 'M3 3l5 5M3 3v5M3 3h5' }], ['path', { d: 'M21 3l-5 5M21 3v5M21 3h-5' }],
       ['path', { d: 'M3 21l5-5M3 21v-5M3 21h5' }], ['path', { d: 'M21 21l-5-5M21 21v-5M21 21h-5' }]
     ],
+    // V020 : arborescence (nœud + deux branches), loupe, aide, retour, élargir / réduire le volet horizontalement
+    'tree': [
+      ['rect', { x: 9, y: 3, width: 6, height: 4, rx: 1 }], ['rect', { x: 3, y: 17, width: 6, height: 4, rx: 1 }], ['rect', { x: 15, y: 17, width: 6, height: 4, rx: 1 }],
+      ['path', { d: 'M12 7v8M6 17v-2h12v2' }]
+    ],
+    'search': [['circle', { cx: 11, cy: 11, r: 7 }], ['path', { d: 'M21 21l-5-5' }]],
+    'help': [['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3' }], ['line', { x1: 12, y1: 17, x2: 12.01, y2: 17 }]],
+    'arrow-left': [['path', { d: 'M19 12H5M12 19l-7-7 7-7' }]],
+    'expand-h': [['path', { d: 'M9 12H3M15 12h6M6 9l-3 3 3 3M18 9l3 3-3 3' }]],
+    'collapse-h': [['path', { d: 'M3 12h6M21 12h-6M6 9l3 3-3 3M18 9l-3 3 3 3' }]],
     // Agrandir le plan (coins vers l'extérieur) / l'ajuster à l'écran (coins vers l'intérieur)
     'zoom-in': [['path', { d: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5' }]],
     'zoom-out': [['path', { d: 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' }]]

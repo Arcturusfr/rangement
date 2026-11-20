@@ -1,15 +1,27 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : V018 validée ; jalon 10 (ergonomie des plans) livré, en attente de validation.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : V019 validée ; jalon 11 (épure de l'interface) livré, en attente de validation.
 -->
 
-# Roadmap et avancement — Rangement `V019`
+# Roadmap et avancement — Rangement `V020`
 
-> Dernière mise à jour : 17/11/2026 07:12 (Paris) — **V019**
+> Dernière mise à jour : 20/11/2026 22:57 (Paris) — **V020**
 
 ## État actuel
+
+- **V019 validée** (« fonctionne correctement »). **Jalon 11 livré (V020)**, d'après les retours de l'utilisateur sur la V019 :
+  - **Couleur** : niveau 0 (logement) et bandeau d'en-tête de l'application en `#043BB2` ; `theme-color` et manifeste alignés.
+  - **En-tête de l'application** : Retour, loupe et engrenage en **pictogrammes** (plus de libellé « Réglages » ni « Arborescence »). **Recherche masquée** par défaut, ouverte par la loupe (à gauche de l'engrenage).
+  - **Cases libres invisibles en consultation** : un appui long dans le plan choisit la case libre la plus proche et ouvre son menu ; elles apparaissent en pointillés en mode « Modifier le plan ».
+  - **Mode « Modifier le plan »** : le texte d'explication est derrière un bouton **« ? »** (pop-up).
+  - **Boutons regroupés** dans l'en-tête du détail : groupe **arborescence** (afficher / masquer, ▲ ▼) et groupe **commandes** (Actions, Liste / Plan, Agrandir, Modifier, « ? »).
+  - **Arborescence (solution proposée par Claude, à valider)** : deux commandes distinctes à icônes explicites — afficher / masquer (bouton de groupe) et largeur rail ↔ libellés (pictogrammes « élargir » / « réduire » dans le volet, à la place des chevrons) ; le bouton à trois états disparaît. **Rail** : flèche de dépliement devant la racine. **Écran replié** : bouton d'affichage / masquage ; le volet (avec libellés, sans rail) recouvre partiellement l'écran.
+  - Tests Playwright/Chromium : **1235 tests** (jalons 1 à 10 : 1192 ; **43 pour la V020, `test_jalon11.py`**), 0 échec. Tests des jalons 4, 6, 6 bis, 9.4 et 10 adaptés ; tous les tests ouvrent la recherche au chargement (le champ est masqué par défaut). Remarque : sous forte charge (nombreux tests en parallèle), un test peut expirer ; relancé seul, il passe.
+  - En attente : **validation de la V020 par l'utilisateur** (voir `ToDo_Utilisateur.md`).
+
+### (historique) État à la V019
 
 - **V018 validée** (aucun bug de fonctionnement ; V018a et V018b étaient des correctifs de tests). **Jalon 10 livré (V019)**, d'après les retours de l'utilisateur sur la V018 :
   - **Boutons d'affichage** : les trois boutons (Liste / Plan, Agrandir, **Modifier le plan**) sont des **pictogrammes** alignés à droite dans l'en-tête figé, sous ▲ ▼ et « Actions » ; ils ne recouvrent plus le coin du plan. Pictogrammes fournis par l'utilisateur (`Pictogrammes.html`) : module `js/ui/icons.js` ; engrenage devant « Réglages », crayon dans les menus, pictogrammes au centre des pavés de flèches.
@@ -114,6 +126,7 @@
 | Jalon 8 (V013) | **Validé** : pièces en **tuiles collées** (pas de murs, portes ni fenêtres pour l'instant), réutilisation de la grille des meubles, pièces = rectangles de cases (pas de formes en L), nom + nombre d'objets sur chaque case, grille jusqu'à 20 × 20, places automatiques puis figées, disposition des meubles dans une pièce = jalon 8 bis à part. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix Liste / Plan mémorisé séparément de celui des meubles ; 2 / 3 / 4 colonnes automatiques selon le nombre de pièces ; plan stocké dans l'enveloppe (`plan`), facultatif ; cadre à défilement horizontal si beaucoup de colonnes ; l'icône d'une tuile ouvre les meubles de la pièce sur la même grille (première version du jalon 8 bis). |
 | Jalon 9 (V014 →) | **Validé** : les plans deviennent l'élément principal ; tout tient sur l'écran déplié (plan **et** menus), le plan peut être agrandi ; navigation fluide et intuitive. Dimensions réelles de l'utilisateur : logement en **7 colonnes × 10 lignes**, plus grande pièce en 6 × 8 ; libellés absents ou tronqués sur les très petites pièces : sans gêne. **Geste** : un appui sur un élément ouvre un **menu contextuel près de lui**, dont la première commande, plus grande et en gras, est **« Ouvrir »** (quasi un double appui) ; pas d'appui long. **Création au niveau du plan** (nouvelle pièce, etc.) : bouton **« + » flottant** (pas de menu contextuel possible hors d'un élément). **Flèches** déplacer / taille : intégrées au menu contextuel, toujours visibles pendant l'édition, masquables à la fin, sans trop cacher le plan. **Pictogrammes ℹ️** : ouvrent des infobulles pour alléger l'interface (contenu à définir à l'usage : mode d'emploi contextuel, précisions sur un élément). Le menu « Ajuster » disparaîtra de lui-même. Découpage validé : 9.1 plan ajusté à l'écran ; 9.2 menu contextuel (+ bouton « + », flèches intégrées) ; 9.3 infobulles ℹ️ ; 9.4 plan en vue d'accueil ; les tests de chaque étape affineront les suivantes. *(Hypothèses de Claude, à valider :)* 9.1 : cases jamais sous 28 px (le cadre défile alors), la hauteur ne les réduit pas sous 48 px (la page défile alors), « compactes » sous 60 px, 72 px minimum en taille réelle ; le choix Liste / Plan est commun au logement et aux pièces ; liste par défaut jusqu'à l'étape 9.4. |
 | V017 (préalable au 9.4) | **Validé par l'utilisateur** : une seule façon d'entrer dans un niveau (le bandeau de niveau équivaut à « Ouvrir » ; on supprime le niveau dessiné dans le plan du parent et ses accessoires) ; bandeau masqué sur les petites tuiles ; Vue graphique étendue à tous les niveaux qui ont des sous-emplacements. *(Hypothèses de Claude, à valider à l'usage :)* seuil de masquage du bandeau = case de moins de 85 px de large ; bandeau absent pendant le placement ; un meuble garde toujours son commutateur Liste / Vue graphique, un niveau plus bas ne l'a que s'il a des sous-emplacements ; un niveau plus bas se dessine comme un meuble ; le choix Liste / Vue graphique reste commun à tous ces niveaux. |
+| Jalon 11 (V020) | **Demandé / validé par l'utilisateur** : cases libres masquées en consultation (appui long = case la plus proche + menu) ; couleur `#043BB2` pour le niveau 0 et le bandeau d'en-tête ; « Réglages » en engrenage seul ; « Arborescence » en pictogramme ; boutons regroupés (arborescence / autres) ; texte d'aide du mode modification derrière un « ? » ; champ de recherche masqué + loupe à gauche de l'engrenage ; flèche de dépliement dans le rail ; bouton d'affichage du volet sur écran replié (sans rail, volet recouvrant). *(Solution de Claude, à valider :)* le bouton à trois états est remplacé par « afficher / masquer » (bouton de groupe) + « largeur » (bouton du volet, icônes élargir / réduire) ; ce bouton d'arborescence est dans l'en-tête du détail (absent des écrans Recherche et Réglages) ; le bouton Retour sort du formulaire de recherche et va dans l'en-tête ; refermer la recherche pendant une recherche revient à l'écran précédent ; le volet recouvrant se ferme par le voile, Échap ou le choix d'un élément ; les groupes sont deux « pilules » teintées alignées à droite ; le texte d'aide s'affiche en info-bulle ; aide « ? » visible seulement en modification. |
 | Jalon 10 (V019) | **Demandé / validé par l'utilisateur** : trois boutons d'affichage en pictogrammes **alignés à droite** (pas en haut à gauche) ; rail remis au démarrage ; bandeaux à réduire (en-tête et recherche fusionnés sur l'écran déplié) ; appui simple = ouvrir, appui long = menu contextuel avec « Ouvrir » écrit comme les autres ; bouton pour le mode modification du plan ; bouton « + » supprimé à condition qu'un appui long sur une case libre ouvre le menu (créer un emplacement, modifier la grille). *(Hypothèses de Claude, à valider à l'usage :)* les trois boutons sont dans l'en-tête figé, sous ▲ ▼ et « Actions » (et non flottants sur le plan) ; appui long ≈ 450 ms avec vibration brève, clic droit / touche Menu équivalents ; un appui simple sur une case libre ne fait rien ; le menu d'une case libre propose aussi « Ajouter un objet ici » (hors logement) ; « Régler la grille… » aussi dans le menu « Actions » en vue graphique ; « Placer et dimensionner » conservé dans le menu d'une case comme raccourci vers le mode modification ; l'indicateur de niveau reste affiché mais n'est plus un bouton ; engrenage devant « Réglages » (le mot reste) ; en mode modification un appui long ouvre quand même le menu. |
 | Jalon 9.4 (V018) | **Demandé / validé par l'utilisateur** : l'application s'ouvre sur le plan du logement (qui tient dans l'écran) ; zones de l'écran déplié : en-tête et recherche figés pleine largeur, navigation figée au-dessus du plan, arborescence figée à gauche ; **Agrandir / Ajuster** = bouton flottant à icône explicite en haut à droite du plan ; **Liste / Plan** = un seul bouton flottant dont le libellé indique l'action (éventuellement précédé de ➔) ; valable pour logement, pièces et meubles ; **arborescence à 3 états** (large, rail, masquée). *(Hypothèses de Claude, à valider à l'usage :)* rail par défaut ; bouton « Arborescence » dans l'en-tête qui fait défiler les trois états ; bouton Liste / Plan en haut à gauche sous l'en-tête figé, Agrandir à droite (sur un plan seulement) ; les boutons recouvrent le coin du plan, en liste de la place leur est réservée ; vue graphique par défaut aussi pour meubles et niveaux plus bas ; boutons de 44 px à fond sombre semi-opaque. |
 | Jalon 9.3 (V016) | **Demandé / validé par l'utilisateur** : ℹ️ juste après le nom (y compris fiche d'objet) avec info-bulle reprenant niveau, nombre d'emplacements et d'objets ; menu « Actions » conservé mais déroulant ; libellé de catégorie dans l'en-tête figé à la suite du nom (tronqué + chevron rotatif → bulle) ; Liste / Plan sous les flèches et « Actions » sans augmenter la hauteur du bandeau. *(Hypothèses de Claude, à valider à l'usage :)* le texte de rappel du plan ne reste que dans un niveau inférieur dessiné ; la note d'un emplacement passe dans l'info-bulle ; libellé « Objet » sur une fiche ; boutons du commutateur de 32 px de haut (zone d'appui étendue) ; en-tête en deux colonnes (en écran replié : fil d'Ariane sur toute la largeur, titre un peu plus petit) ; les boutons « Ajouter… » du menu ne sont plus colorés. |
@@ -216,13 +229,20 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ✅ Validation sur GitHub Pages et sur le Z Fold (utilisateur) : aucun bug ; améliorations ergonomiques → jalon 10
 - ⬜ *(plus tard)* « respiration » du contour des cases libres en placement
 
-### Jalon 10 — Ergonomie des plans ✅ (livré en V019, validation utilisateur en attente)
+### Jalon 11 — Épure de l'interface ✅ (livré en V020, validation utilisateur en attente)
+- ✅ Couleur `#043BB2` (niveau 0, bandeau d'en-tête, thème)
+- ✅ En-tête en pictogrammes (Retour, loupe, engrenage) ; recherche masquée
+- ✅ Groupes de boutons ; aide « ? » du mode modification ; cases libres invisibles en consultation
+- ✅ Arborescence : afficher / masquer + largeur (icônes explicites), flèche dans le rail, volet recouvrant sur écran replié
+- ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
+
+### Jalon 10 — Ergonomie des plans ✅ (livré en V019, validé)
 - ✅ Pictogrammes SVG (`icons.js`) et boutons d'affichage alignés à droite dans l'en-tête figé (Liste / Plan, Agrandir, Modifier le plan)
 - ✅ Appui simple = ouvrir, appui long = menu contextuel (`longpress.js`) ; cases libres avec menu (créer un emplacement à cette place, régler la grille) ; bouton « + » supprimé
 - ✅ Mode « Modifier le plan » (bouton enfoncé, sélection par appui simple, pavés de flèches)
 - ✅ En-tête et recherche sur une ligne (écran déplié), en-tête du détail resserré ; plan 7 × 10 entier dans l'écran
 - ✅ Rail remis à chaque démarrage
-- ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
+- ✅ Validation sur GitHub Pages et sur le Z Fold (utilisateur) : fonctionne correctement ; améliorations → jalon 11
 
 ### Jalon 8 bis — Disposition des meubles dans une pièce *(en grande partie couvert par le jalon 9)*
 - ⬜ Vue d'une pièce avec ses meubles posés sur la grille (première version déjà accessible par l'icône d'une tuile du plan)
@@ -263,3 +283,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V018a | 12/11/2026 21:50 | Correctif des tests sous Windows (`test_jalon5.py`, sortie UTF-8) ; aucun changement de code de l'application (1103 tests au total) |
 | V018b | 13/11/2026 02:25 | Serveur de test silencieux sur les connexions coupées (14 fichiers de tests) ; aucun changement de code de l'application (1103 tests au total) |
 | V019 | 17/11/2026 07:12 | V018 validée ; jalon 10 livré : pictogrammes, appui simple / long, cases libres, mode « Modifier le plan », bandeaux resserrés, rail au démarrage (60 tests dédiés, 1181 au total) |
+| V020 | 20/11/2026 22:57 | V019 validée ; jalon 11 livré : couleur #043BB2, en-tête en pictogrammes, recherche masquée, groupes de boutons, aide « ? », cases libres invisibles, volet d'arborescence (43 tests dédiés, 1235 au total) |

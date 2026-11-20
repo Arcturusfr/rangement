@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : appui simple = ouvrir, appui long = menu contextuel (cases et cases libres) ; mode « Modifier le plan » (bouton-pictogramme de l'en-tête) ; boutons-pictogrammes ; bouton « + » supprimé.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : cases libres invisibles en consultation (un appui long choisit la plus proche) ; texte d'aide du mode modification dans une pop-up (bouton « ? »).
 */
 (function () {
   'use strict';
@@ -94,6 +94,25 @@
       id: 'plan-edit', icon: 'edit-plan', label: label, pressed: editing,
       title: editing ? 'Terminer les modifications' : label, onclick: function () { setEditing(!editing); }
     });
+  }
+
+  // Bouton « ? » (mode modification) : l'explication s'affiche dans une pop-up.
+  function helpButton(scope) {
+    var what = scope === 'plan' ? 'le plan' : 'la disposition';
+    var btn = viewButton({
+      id: 'plan-help', icon: 'help', label: 'Aide : modifier ' + what, onclick: function () {
+        R.ui.components.bubble.toggle({
+          anchor: btn, title: 'Modifier ' + what, label: 'Aide', level: 'racine',
+          lines: [
+            'Touchez une case pour la s\u00e9lectionner, puis d\u00e9placez-la ou changez sa taille avec les deux pav\u00e9s de fl\u00e8ches.',
+            'Une case libre (pointill\u00e9s) y place la case s\u00e9lectionn\u00e9e.',
+            'Un appui long sur une case ouvre son menu ; \u00ab Grille\u2026 \u00bb r\u00e8gle les colonnes et les lignes.',
+            'Le bouton \u00ab Modifier ' + what + ' \u00bb termine les modifications.'
+          ]
+        });
+      }
+    });
+    return btn;
   }
 
   // ---------- réglages ----------
@@ -344,7 +363,6 @@
     }
     if (bar.length) { wrap.appendChild(el('div', { class: 'furn-bar' }, bar)); }
     if (message) { wrap.appendChild(el('p', { class: 'form-error furn-msg', role: 'status' }, [message])); message = null; }
-    if (!sel && editing && kidsCount) { wrap.appendChild(el('p', { class: 'hint' }, [atRoot ? 'Touchez une pièce pour la sélectionner, puis déplacez-la ou changez sa taille ; une case libre y place la pièce sélectionnée. Le bouton « Modifier le plan » termine les modifications.' : 'Touchez un emplacement pour le sélectionner, puis déplacez-le ou changez sa taille ; une case libre y place l\u2019emplacement sélectionné.'])); }
 
     var start = { top: 0, body: lay.T, bottom: lay.T + lay.L };
     function zoneGrid(zone, rows) {
@@ -361,9 +379,10 @@
           if (taken[r + ',' + c0]) { continue; }
           (function (row, col) {
             var slot = el('button', {
-              class: 'furn-slot', type: 'button', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + zoneLabel(zone, planLike).toLowerCase() + ')'
+              class: 'furn-slot', type: 'button', tabindex: editing ? null : '-1', 'aria-label': 'Case libre : colonne ' + (col + 1) + ', ligne ' + (row + 1) + ' (' + zoneLabel(zone, planLike).toLowerCase() + ')'
             });
             var spot = { zone: zone, col: col, row: row };
+            slot._spot = spot;
             R.ui.components.longpress.attach(slot, {
               onShort: function (event) {
                 if (editing) {
@@ -406,10 +425,27 @@
     frame.push(body);
     if (g.feet) { frame.push(el('div', { class: 'furn-feet', 'data-level': level }, [el('span', { class: 'furn-foot' }), el('span', { class: 'furn-foot' })])); }
     if (lay.B) { frame.push(band('bottom', lay.B)); }
-    wrap.appendChild(el('div', { class: 'furn-frame' + (planLike ? ' furn-frame--plan' : '') }, frame));
+    var frameNode = el('div', { class: 'furn-frame' + (planLike ? ' furn-frame--plan' : '') }, frame);
+    wrap.appendChild(frameNode);
+    // Un appui long ailleurs que sur une case : la case libre la plus proche est choisie et son menu s'ouvre.
+    R.ui.components.longpress.attach(frameNode, {
+      filter: function (event) { return !(event.target.closest && event.target.closest('.furn-cell, .furn-slot')); },
+      onShort: function () { /* rien */ },
+      onLong: function (event) {
+        var best = null, bestD = Infinity;
+        Array.prototype.forEach.call(frameNode.querySelectorAll('.furn-slot'), function (sl) {
+          var r = sl.getBoundingClientRect();
+          var dx = Math.max(r.left - event.clientX, 0, event.clientX - r.right);
+          var dy = Math.max(r.top - event.clientY, 0, event.clientY - r.bottom);
+          var d = dx * dx + dy * dy;
+          if (d < bestD) { bestD = d; best = sl; }
+        });
+        if (best) { openSlotMenu(best, best, shownId, best._spot); }
+      }
+    });
     if (sel) { wrap.appendChild(selectionPanel(sel, lay, redraw, planLike, shownId)); }
     if (!kidsCount && !editing) {
-      wrap.appendChild(el('p', { class: 'hint furn-empty-hint' }, [atRoot ? 'Aucune pièce : appui long sur une case libre pour en créer une.' : 'Aucun sous-emplacement : appui long sur une case libre pour en créer un ; les objets sont rangés directement ici.']));
+      wrap.appendChild(el('p', { class: 'hint furn-empty-hint' }, [atRoot ? 'Aucune pièce : appui long dans le plan pour en créer une.' : 'Aucun sous-emplacement : appui long dans le plan pour en créer un ; les objets sont rangés directement ici.']));
     }
 
     var items = atRoot ? [] : R.store.itemsIn(shownId);
@@ -443,5 +479,5 @@
   // Un changement d'écran referme le placement et oublie le niveau inférieur ouvert (ils ne doivent pas suivre d'un meuble ou d'un plan à l'autre).
   R.events.on('route:changed', function () { editing = false; selected = null; message = null; });
 
-  R.ns('ui.views').furniture = { create: create, createPlan: createPlan, switcher: switcher, zoomButton: zoomButton, editButton: editButton, openGrid: openGrid, isEditing: function () { return editing; }, mode: mode, setMode: setMode };
+  R.ns('ui.views').furniture = { create: create, createPlan: createPlan, switcher: switcher, zoomButton: zoomButton, editButton: editButton, helpButton: helpButton, openGrid: openGrid, isEditing: function () { return editing; }, mode: mode, setMode: setMode };
 })();

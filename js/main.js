@@ -1,8 +1,8 @@
 /*
   js/main.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : icons et longpress déclarés dans REQUIRED ; pictogramme d'engrenage devant « Réglages ».
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : « Réglages » en pictogramme seul (nom accessible conservé).
 */
 (function () {
   'use strict';
@@ -112,8 +112,7 @@
       if (ready) { parts.push('mise à jour disponible'); }
       if (ready) { settingsLink.setAttribute('data-badge', 'update'); } else { settingsLink.removeAttribute('data-badge'); }
       if (unsaved) { settingsLink.setAttribute('data-unsaved', 'true'); } else { settingsLink.removeAttribute('data-unsaved'); }
-      if (parts.length) { settingsLink.setAttribute('aria-label', 'Réglages (' + parts.join(', ') + ')'); }
-      else { settingsLink.removeAttribute('aria-label'); }
+      settingsLink.setAttribute('aria-label', parts.length ? 'Réglages (' + parts.join(', ') + ')' : 'Réglages');
     }
     R.events.on('pwa:changed', markUpdate);
     R.events.on('store:changed', markUpdate);

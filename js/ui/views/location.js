@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : boutons-pictogrammes Liste / Plan, Agrandir et Modifier le plan dans l'en-tête ; « Régler la grille… » dans le menu « Actions ».
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : bouton « ? » (aide du mode modification) ; en-tête refait au changement de mise en page.
 */
 (function () {
   'use strict';
@@ -178,6 +178,7 @@
     if (viewSwitch) { views.push(viewSwitch); }
     if (planGraphic) { views.push(V.zoomButton()); }
     if (anyGraphic) { views.push(V.editButton(planScope ? 'plan' : 'furniture')); }
+    if (anyGraphic && V.isEditing()) { views.push(V.helpButton(planScope ? 'plan' : 'furniture')); }
     var bar = R.ui.components.detailbar.create({
       ref: loc ? { type: 'location', id: loc.id } : { type: 'root' },
       path: loc ? R.store.pathOf(id) : [],
@@ -219,6 +220,7 @@
     R.events.on('store:changed', render);
     R.events.on('backup:changed', render);
     R.events.on('view:changed', render);
+    R.events.on('layout:changed', render);
     R.events.on('pwa:changed', function () { if (R.ui.router.current().settings) { render(); } });
     R.events.on('route:changed', function () { render(); container.scrollTop = 0; });
   }

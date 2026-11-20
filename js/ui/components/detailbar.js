@@ -1,8 +1,8 @@
 /*
   js/ui/components/detailbar.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : boutons-pictogrammes (opts.views) dans l'en-tête, sous les flèches et « Actions » ; plus de zone flottante.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : deux groupes de boutons — arborescence (afficher / masquer, ▲ ▼) et commandes (Actions, Liste / Plan, Agrandir, Modifier, aide).
 */
 (function () {
   'use strict';
@@ -92,10 +92,20 @@
   function create(opts) {
     remember(opts.ref);
 
+    // Groupe « arborescence » : afficher / masquer le volet, puis les flèches de niveau.
+    var B = R.ui.views.browse;
+    var shown = !!(B && B.isVisible());
+    var treeLabel = shown ? 'Masquer l\u2019arborescence' : 'Afficher l\u2019arborescence';
+    var treeBtn = el('button', {
+      class: 'view-btn', type: 'button', id: 'tree-toggle', 'aria-pressed': shown ? 'true' : 'false', 'aria-label': treeLabel, title: treeLabel,
+      onclick: function () { B.toggleVisible(); }
+    }, [R.ui.icons.create('tree', 22), el('span', { class: 'visually-hidden' }, [treeLabel])]);
     var tools = [
+      treeBtn,
       arrow('\u25B2', 'Niveau supérieur', upTarget(opts.ref)),
       arrow('\u25BC', 'Niveau inférieur', downTarget(opts.ref))
     ];
+    var commands = [];
     if (opts.actions && opts.actions.length) {
       var toggle = el('button', {
         class: 'button button--secondary button--toggle', type: 'button', id: 'manage-toggle', 'aria-haspopup': 'true'
@@ -105,8 +115,9 @@
           anchor: toggle, title: opts.title, subtitle: 'Actions', label: 'Actions', level: opts.level, items: opts.actions
         });
       });
-      tools.push(toggle);
+      commands.push(toggle);
     }
+    (opts.views || []).forEach(function (v) { commands.push(v); });
 
     var row = [el('h2', { class: 'detail-title' }, [opts.title])];
     if (opts.info && opts.info.length) {
@@ -128,14 +139,14 @@
     }
     left.push(el('div', { class: 'detail-titlerow' + (opts.depleted ? ' detail-head--depleted' : '') }, row));
 
-    var right = [el('div', { class: 'detail-bar-tools-row' }, tools)];
+    var right = [el('div', { class: 'detail-bar-tools-row' }, [el('div', { class: 'detail-group', role: 'group', 'aria-label': 'Arborescence' }, tools)])];
 
-    var hasViews = !!(opts.views && opts.views.length);
+    var hasViews = commands.length > 0;
     var parts = [
       el('div', { class: 'detail-bar-left' }, left),
       el('div', { class: 'detail-bar-tools' }, right)
     ];
-    if (hasViews) { parts.push(el('div', { class: 'detail-bar-views', role: 'group', 'aria-label': 'Affichage' }, opts.views)); }
+    if (hasViews) { parts.push(el('div', { class: 'detail-bar-views' }, [el('div', { class: 'detail-group', role: 'group', 'aria-label': 'Commandes et affichage' }, commands)])); }
     var header = el('header', { class: 'detail-bar' + (hasViews ? '' : ' detail-bar--noviews'), 'data-level': opts.level }, parts);
     var head = el('div', { class: 'detail-sticky' }, [header]);
     if (kind) { kind._refresh(); }

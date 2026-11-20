@@ -1,11 +1,11 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : en-tête figé resserré, boutons-pictogrammes (.view-btn) alignés à droite sous les flèches et « Actions » ; zone flottante supprimée.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : groupes de boutons dans l'en-tête du détail (arborescence / commandes), niveau 0 en #043BB2, pastilles de « Réglages » sur le pictogramme, champ de recherche sans bouton Retour.
 */
 
-/* Barre de recherche (sous l'en-tête) : bouton Retour + champ avec loupe */
+/* Barre de recherche (sous l'en-tête, masquée par défaut) : champ avec loupe */
 .searchbar { flex: none; padding: var(--space-2) var(--space-4); background: var(--surface); border-bottom: 1px solid var(--line); }
 .searchbar-form { display: flex; align-items: center; gap: var(--space-2); }
 .searchbar-field { position: relative; flex: 1; min-width: 0; }
@@ -52,7 +52,9 @@
 .detail-bar-tools { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
 .detail-bar-tools-row { display: flex; align-items: center; gap: var(--space-1); }
 .detail-bar--noviews .detail-bar-tools { grid-row: 1 / span 2; align-self: center; }
-.detail-bar-views { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: flex-end; gap: var(--space-1); }
+.detail-bar-views { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: flex-end; }
+/* Deux groupes de boutons : l'arborescence (afficher / masquer, flèches de niveau) et les commandes (Actions, affichage) */
+.detail-group { display: flex; align-items: center; gap: var(--space-1); padding: 0 3px; border-radius: 12px; background: #D5DFE5; }
 .button--icon { min-width: var(--tap); padding: 0 var(--space-2); }
 .button--toggle { padding: 0 var(--space-3); gap: var(--space-1); }
 
@@ -139,7 +141,7 @@
   border-bottom: 1px solid var(--line);
 }
 .tree-head .tree-root { flex: 1; min-width: 0; }
-.tree-shrink { flex: none; min-width: 36px; min-height: 36px; border: 0; border-radius: var(--radius); background: transparent; color: var(--muted); font: inherit; font-size: 1.1rem; cursor: pointer; }
+.tree-shrink { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; border: 0; border-radius: var(--radius); background: transparent; color: var(--muted); font: inherit; font-size: 1.1rem; cursor: pointer; }
 .tree-shrink:hover { background: var(--chip-bg); }
 
 .tree-root, .tree-link {
@@ -151,7 +153,7 @@
   text-decoration: none;
   overflow-wrap: anywhere;
 }
-.tree-root { font-weight: 650; }
+.tree-root { font-weight: 650; color: var(--level-racine); }
 .tree-link { color: var(--level-color, var(--ink)); font-weight: 550; }
 .tree-row { display: flex; align-items: center; gap: 2px; margin: 2px 0; }
 .tree-row .tree-link { flex: 1; min-width: 0; }
@@ -177,7 +179,7 @@
 .tree-children > .tree { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s linear 0.16s; }
 .tree-node[data-open="true"] > .tree-children > .tree { visibility: inherit; transition-delay: 0s; }
 .tree-root:hover, .tree-link:hover { background: var(--chip-bg); }
-[aria-current="page"].tree-root { background: var(--ink); color: #FFFFFF; }
+[aria-current="page"].tree-root { background: var(--level-racine); color: #FFFFFF; }
 [aria-current="page"].tree-link { background: var(--level-color); color: #FFFFFF; }
 
 /* Rail d'arborescence (volet réduit) et infobulle de sélection */
@@ -335,9 +337,9 @@ a.list-row:hover { background: #F3F6F7; }
   color: var(--danger-ink);
 }
 
-/* Pastilles sur le lien Réglages : mise à jour disponible (jaune, après) ; modifications non sauvegardées (orange, avant) */
-.app-link[data-badge="update"]::after { content: "\25CF"; margin-left: var(--space-1); color: #FFD166; }
-.app-link[data-unsaved="true"]::before { content: "\25CF"; margin-right: var(--space-1); color: #FF8A5B; }
+/* Pastilles sur le pictogramme Réglages : mise à jour disponible (jaune, en haut à droite) ; modifications non sauvegardées (orange, en haut à gauche) */
+.app-link[data-badge="update"]::after { content: "\25CF"; position: absolute; top: -3px; right: -2px; font-size: 15px; line-height: 1; color: #FFD166; text-shadow: 0 0 2px #043BB2; }
+.app-link[data-unsaved="true"]::before { content: "\25CF"; position: absolute; top: -3px; left: -2px; font-size: 15px; line-height: 1; color: #FF8A5B; text-shadow: 0 0 2px #043BB2; }
 
 @media (prefers-reduced-motion: reduce) {
   .tree-children, .tree-toggle::before, .tree-children > .tree, .kind-chev { transition: none; }

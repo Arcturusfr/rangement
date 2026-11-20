@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : cases libres toujours visibles (appui long = menu), bouton « + » supprimé, pictogrammes dans les menus, contour du mode « Modifier le plan ».
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : cases libres invisibles en consultation (visibles en modification), bouton « ? ».
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -62,12 +62,12 @@
 .furn-kind { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; color: var(--muted); }
 .furn-empty { align-self: center; padding: var(--space-3); color: var(--muted); }
 
-/* Case libre : un appui long ouvre le menu (créer un emplacement, régler la grille) ; en mode « Modifier le plan », un appui y place l'emplacement sélectionné */
-.furn-slot { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; min-width: 0; min-height: 0; border: 1px dashed var(--line); border-radius: var(--radius); background: transparent; cursor: pointer; }
-.furn-view[data-editing="true"] .furn-slot { border-width: 2px; }
+/* Case libre : invisible en consultation (un appui long dans le plan choisit la plus proche et ouvre le menu : créer un emplacement, régler la grille) ; en mode « Modifier le plan », dessinée en pointillés et un appui y place l'emplacement sélectionné */
+.furn-slot { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; min-width: 0; min-height: 0; border: 2px dashed transparent; border-radius: var(--radius); background: transparent; cursor: default; }
+.furn-view[data-editing="true"] .furn-slot { border-color: var(--line); cursor: pointer; }
 .furn-view[data-editing="true"] .furn-body { outline: 3px dashed var(--accent); outline-offset: 3px; }
 .furn-empty-hint { margin-top: var(--space-3); }
-.furn-slot:hover { background: var(--chip-bg); }
+.furn-view[data-editing="true"] .furn-slot:hover { background: var(--chip-bg); }
 
 /* Icône « contient d'autres niveaux » : deux carrés emboîtés + nombre de sous-emplacements */
 .furn-more { flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: var(--tap); min-height: 0; border: 0; border-left: 1px solid var(--line); background: var(--chip-bg); color: var(--ink); font: inherit; font-weight: 600; }

@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : version V019 ; pictogrammes (icons.js) et appui long (longpress.js) pré-cachés.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : version V020.
 */
 'use strict';
 
-var VERSION = 'V019';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V020';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 

@@ -1,7 +1,7 @@
 # tests/test_jalon6bis.py — Application « Rangement »
-# Version : V019
-# Horodatage : 2026-11-17 07:12 (heure de Paris)
-# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
+# Version : V020
+# Horodatage : 2026-11-20 22:57 (heure de Paris)
+# Résumé : V020 : adapté au jalon 11 (recherche masquée ouverte au chargement, boutons de l'en-tête, groupes, volet d'arborescence) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon6bis.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -21,7 +21,7 @@ TEAL, BROWN, ORANGE, BLUE, GREY, WHITE = ("rgb(11, 107, 99)", "rgb(122, 74, 30)"
                                             "rgb(47, 95, 158)", "rgb(95, 110, 118)", "rgb(255, 255, 255)")
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
          "localStorage.setItem('rangement.data.view','list');} "
-         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} try{ Rangement.ui.views.searchbar.setOpen(true, true); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
@@ -567,7 +567,7 @@ def scenario_badge(browser, base):
     page.wait_for_selector("#pane-detail .settings")
     with page.expect_download():
         page.click("#export-button")
-    check("pastille | disparaît après l'export", page.get_attribute("#app-settings", "data-unsaved") is None and page.get_attribute("#app-settings", "aria-label") is None)
+    check("pastille | disparaît après l'export", page.get_attribute("#app-settings", "data-unsaved") is None and page.get_attribute("#app-settings", "aria-label") == "Réglages")
     js(page, "Rangement.features.locations.create({name:'Garage', kind:'piece'})")
     check("pastille | réapparaît après une modification", page.get_attribute("#app-settings", "data-unsaved") == "true")
     page.reload()
@@ -620,7 +620,7 @@ def scenario_narrow(browser, base):
     check("replié | 1 volet", page.get_attribute("html", "data-panes") == "1")
     b = page.locator("#app-back").bounding_box()
     f = page.locator("#search-input").bounding_box()
-    check("replié | bouton Retour ≥ 44 px, dans l'écran", b["height"] >= 44 and b["x"] >= 0 and f["x"] + f["width"] <= 390 and f["x"] > b["x"] + b["width"] - 1, (b, f))
+    check("replié | bouton Retour ≥ 44 px, dans l'écran", b["height"] >= 44 and b["x"] >= 0 and b["x"] + b["width"] <= 390 and f["x"] + f["width"] <= 390, (b, f))
     check("replié | champ de recherche encore ≥ 44 px", f["height"] >= 44 and f["width"] >= 180, f)
     for i in range(30):
         js(page, "Rangement.features.items.create({name:'Objet %02d', locationId:'%s'})" % (i, loc_id(page, "Tiroir bas gauche")))

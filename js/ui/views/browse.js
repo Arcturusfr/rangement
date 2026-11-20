@@ -1,8 +1,8 @@
 /*
   js/ui/views/browse.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : rail au démarrage (les trois états ne sont plus mémorisés).
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : arborescence = afficher / masquer (bouton de l'en-tête du détail) + largeur rail / large (bouton du volet) ; sur écran replié, volet recouvrant toujours large ; flèche de dépliement dans le rail.
 */
 (function () {
   'use strict';
@@ -12,7 +12,11 @@
   var container = null;
   var expanded = {};        // id → true : emplacements dépliés (en mémoire, repliés à chaque ouverture)
   var lastHighlight;        // dernier élément surligné (undefined = jamais rendu)
-  var mode = 'mini';        // 'wide' (libellés) | 'mini' (rail sans libellés, défaut) | 'hidden' (volet masqué)
+  var mode = 'mini';        // largeur du volet (écran déplié) : 'mini' (rail sans libellés, défaut) | 'wide' (libellés)
+  var visible = true;       // écran déplié : volet affiché ou masqué
+  var overlay = false;      // écran replié : volet affiché par-dessus le contenu
+
+  function folded() { return R.ui.layout.panes() === 1; }
 
   // Emplacement à surligner : celui de la route, ou celui de l'objet affiché.
   function highlightedId() {
@@ -26,28 +30,41 @@
 
   // ---------- état ----------
 
-  // V019 : l'arborescence repart toujours en rail au démarrage ; les trois états ne sont plus mémorisés.
-  function loadMode() { mode = 'mini'; }
+  // Le volet est-il affiché (selon la mise en page courante) ?
+  function isVisible() { return folded() ? overlay : visible; }
 
+  // Mode rendu : sur écran replié, toujours avec libellés.
+  function renderMode() { return folded() ? 'wide' : mode; }
+
+  function applyAttrs() {
+    var root = document.documentElement;
+    root.setAttribute('data-tree', folded() ? 'wide' : (visible ? mode : 'hidden'));
+    root.setAttribute('data-tree-open', folded() && overlay ? 'true' : 'false');
+    var scrim = document.getElementById('tree-scrim');
+    if (scrim) { scrim.hidden = !(folded() && overlay); }
+  }
+
+  // V020 : l'arborescence repart toujours en rail, volet affiché (écran déplié) ou masqué (écran replié) ; rien n'est mémorisé.
+  // setMode('wide' | 'mini') règle la largeur et affiche le volet ; setMode('hidden') le masque.
   function setMode(next) {
-    mode = next;
-    document.documentElement.setAttribute('data-tree', mode);
-    updateCycle();
+    if (next === 'hidden') { visible = false; } else { mode = next; visible = true; }
+    applyAttrs();
     render();
+    R.events.emit('view:changed', {});
   }
 
-  var MODE_NAMES = { wide: 'large', mini: 'r\u00e9duite', hidden: 'masqu\u00e9e' };
-
-  function updateCycle() {
-    var c = document.getElementById('tree-cycle');
-    if (!c) { return; }
-    c.setAttribute('data-state', mode);
-    c.setAttribute('aria-label', 'Arborescence : ' + MODE_NAMES[mode] + '. Changer l\u2019affichage.');
-    c.setAttribute('title', 'Arborescence : ' + MODE_NAMES[mode]);
+  // Affiche ou masque le volet (écran déplié : le volet ; écran replié : le volet recouvrant).
+  function setVisible(next) {
+    if (folded()) { overlay = !!next; } else { visible = !!next; }
+    applyAttrs();
+    render();
+    R.events.emit('view:changed', {});
   }
 
-  // Large \u2192 rail \u2192 masquée \u2192 large.
-  function cycle() { setMode(mode === 'wide' ? 'mini' : (mode === 'mini' ? 'hidden' : 'wide')); }
+  function toggleVisible() { setVisible(!isVisible()); }
+
+  // Rail ↔ libellés (écran déplié seulement).
+  function setWidth(next) { mode = next; applyAttrs(); render(); }
 
   function hasKids(id) { return R.store.childLocations(id).length > 0; }
 
@@ -61,7 +78,7 @@
 
   // Met à jour sur place (sans reconstruire, pour l'animation) l'état ouvert / fermé de chaque nœud.
   function syncOpen() {
-    if (mode === 'mini') { render(); return; }
+    if (renderMode() === 'mini') { render(); return; }
     container.querySelectorAll('.tree-node').forEach(function (node) {
       var id = node.getAttribute('data-id');
       var isOpen = !!expanded[id];
@@ -137,8 +154,8 @@
     } });
     var shrink = el('button', {
       class: 'tree-shrink', id: 'tree-shrink', type: 'button', 'aria-label': 'Réduire l\u2019arborescence',
-      title: 'Réduire l\u2019arborescence', onclick: function () { setMode('mini'); }
-    }, ['\u00AB']);
+      title: 'Réduire l\u2019arborescence', onclick: function () { setWidth('mini'); }
+    }, [R.ui.icons.create('collapse-h', 20)]);
     container.appendChild(el('div', { class: 'tree-head' }, [
       rootToggle,
       el('a', { class: 'tree-root', href: R.ui.router.href(null), 'aria-current': rootCurrent ? 'page' : null }, [R.models.rootLabel()]),
@@ -162,10 +179,16 @@
     });
     var grow = el('button', {
       class: 'tree-shrink', id: 'tree-grow', type: 'button', 'aria-label': 'Agrandir l\u2019arborescence',
-      title: 'Agrandir l\u2019arborescence', onclick: function () { setMode('wide'); }
-    }, ['\u00BB']);
-    container.appendChild(el('div', { class: 'tree-head tree-head--mini' }, [grow, rail.head]));
+      title: 'Agrandir l\u2019arborescence', onclick: function () { setWidth('wide'); }
+    }, [R.ui.icons.create('expand-h', 20)]);
+    // Flèche « tout déplier / tout replier » devant la racine, comme dans l'arborescence large.
+    var rootToggle = el('button', { class: 'tree-toggle', id: 'tree-root-toggle', type: 'button', onclick: function () {
+      if (allExpanded()) { collapseAll(); } else { expandAll(); }
+    } });
+    if (!R.store.childLocations(null).length) { rootToggle.disabled = true; }
+    container.appendChild(el('div', { class: 'tree-head tree-head--mini' }, [grow, el('div', { class: 'mini-row' }, [rootToggle, rail.head])]));
     container.appendChild(rail.body);
+    updateRootToggle();
   }
 
   function render() {
@@ -180,21 +203,30 @@
     }
     var rootCurrent = !(currentId || searching);
     R.ui.dom.clear(container);
-    if (mode === 'hidden') { return; }
-    if (mode === 'mini') { renderMini(currentId, rootCurrent); } else { renderWide(currentId, rootCurrent); }
+    if (!isVisible()) { return; }
+    if (renderMode() === 'mini') { renderMini(currentId, rootCurrent); } else { renderWide(currentId, rootCurrent); }
   }
 
   function mount(node) {
     container = node;
-    loadMode();
-    document.documentElement.setAttribute('data-tree', mode);
-    var c = document.getElementById('tree-cycle');
-    if (c) { c.addEventListener('click', cycle); }
-    updateCycle();
+    applyAttrs();
+    var scrim = document.getElementById('tree-scrim');
+    if (scrim) { scrim.addEventListener('click', function () { setVisible(false); }); }
+    // Écran replié : Échap ferme le volet recouvrant.
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && folded() && overlay && !R.ui.components.contextmenu.isOpen() && !R.ui.components.bubble.isOpen()) { setVisible(false); }
+    });
     render();
     R.events.on('store:changed', render);
-    R.events.on('route:changed', render);
+    R.events.on('route:changed', function () {
+      if (folded() && overlay) { overlay = false; applyAttrs(); }      // choisir un élément ferme le volet recouvrant
+      render();
+    });
+    R.events.on('layout:changed', function () { applyAttrs(); render(); });
   }
 
-  R.ns('ui.views').browse = { mount: mount, expandAll: expandAll, collapseAll: collapseAll, setMode: setMode, cycle: cycle, mode: function () { return mode; } };
+  R.ns('ui.views').browse = {
+    mount: mount, expandAll: expandAll, collapseAll: collapseAll, setMode: setMode, setVisible: setVisible, toggleVisible: toggleVisible, isVisible: isVisible,
+    mode: function () { return isVisible() ? renderMode() : 'hidden'; }
+  };
 })();

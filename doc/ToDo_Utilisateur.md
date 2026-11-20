@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 livrée — fichiers à enregistrer et à tester ; V018 validée.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 livrée — fichiers à enregistrer et à tester ; V019 validée.
 -->
 
-# ToDo Utilisateur — Rangement `V019`
+# ToDo Utilisateur — Rangement `V020`
 
-> Dernière mise à jour : 17/11/2026 07:12 (Paris) — **V019**
+> Dernière mise à jour : 20/11/2026 22:57 (Paris) — **V020**
 
 ## Fait
 
+- [x] Tester la V019 : fonctionne correctement ; valider la V019 ; demander le jalon 11 (cases libres masquées en consultation, couleur #043BB2, en-tête en pictogrammes, recherche masquée + loupe, groupes de boutons, aide « ? », arborescence : afficher/masquer, rail avec flèche, volet recouvrant sur écran replié)
 - [x] Tester la V018 : aucun bug de fonctionnement ; valider la V018 ; répondre aux questions (boutons à regrouper à droite et en pictogrammes, rail par défaut OK et remis au démarrage) ; demander l'appui simple / long, le mode « Modifier le plan », la suppression du « + » (avec menu sur case libre) et des bandeaux plus bas ; fournir `Pictogrammes.html`
 - [x] Enregistrer les fichiers de la V018a et de la V018b (tests uniquement)
 - [x] Tester la V017 : aucun bug ; seuil de masquage du bandeau (85 px) et bandeau à 44 px conservés ; valider la V017 ; demander l'étape 9.4 (plan en accueil, boutons flottants, arborescence à 3 états)
@@ -44,20 +45,19 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V019** (archive `V019.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V019.txt`).
-  - **Nouveaux** : `js/ui/icons.js`, `js/ui/components/longpress.js`, `tests/test_jalon10.py`.
-  - **Remplacés** : `index.html`, `sw.js` (**à la racine**), `js/config.js`, `js/main.js`, `css/layout.css`, `css/components.css`, `css/furniture.css`, `js/ui/components/detailbar.js`, `js/ui/components/contextmenu.js`, `js/ui/views/browse.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, `js/ui/views/location-actions.js`, `js/features/furniture.js`, `js/features/locations.js`, les **14** anciens `tests/test_jalon*.py` et les trois `.md`.
+- [ ] **Enregistrer les fichiers de la V020** (archive `V020.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V020.txt`).
+  - **Nouveau** : `tests/test_jalon11.py`.
+  - **Remplacés** : `index.html`, `sw.js` (**à la racine**), `manifest.webmanifest`, `js/config.js`, `js/main.js`, `css/base.css`, `css/layout.css`, `css/components.css`, `css/furniture.css`, `js/ui/icons.js`, `js/ui/components/longpress.js`, `js/ui/components/detailbar.js`, `js/ui/views/browse.js`, `js/ui/views/searchbar.js`, `js/ui/views/furniture.js`, `js/ui/views/location.js`, les **15** anciens `tests/test_jalon*.py` et les trois `.md`.
   - **Inchangés** : tout le reste.
-- [ ] **Vérifier que la version affichée est `V019`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (supprimer les versions remplacées ; ajouter les 3 nouveaux fichiers).
+- [ ] **Vérifier que la version affichée est `V020`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`**.
 - [ ] **Exporter une sauvegarde** de vos vraies données avant d'essayer (précaution habituelle).
-- [ ] **Tester la V019** (écran déplié **et** replié) :
-  1. **Au démarrage** : le plan du logement, l'arborescence en rail ; en-tête et recherche sur une seule ligne (déplié) ; le plan tient-il mieux dans la zone centrale, y compris arborescence réduite ou masquée ?
-  2. **Boutons** : trois pictogrammes ronds à droite sous ▲ ▼ / Actions (Liste/Plan, Agrandir, Modifier le plan) ; ils ne recouvrent plus le plan ; reconnaissez-vous bien chaque pictogramme ?
-  3. **Appui simple** sur une pièce / un meuble : il s'ouvre. **Appui long** : le menu apparaît (la durée d'environ 0,45 s vous convient-elle ? le menu natif du navigateur ne doit pas apparaître).
-  4. **Case libre** (pointillés) : appui long → créer un emplacement **à cette place**, ajouter un objet, régler la grille ; essayer aussi dans une pièce et un meuble.
-  5. **Modifier le plan** : le bouton s'enfonce, le plan est entouré de pointillés ; appui simple = sélection, pavés de flèches, « Grille… », « Terminer » ; un second appui sur le bouton termine.
-  6. Menu « Actions » : « Régler la grille… » en vue graphique ; « Réglages » avec son engrenage ; relancer l'application : l'arborescence revient en rail.
-- [ ] **Répondre** : l'emplacement des boutons (dans l'en-tête, sous les flèches) vous convient-il, ou préférez-vous une colonne flottante à droite du plan ? Le menu d'une case libre doit-il aussi proposer « Ajouter un objet ici » ? Garder « Placer et dimensionner » dans le menu des cases (raccourci vers le mode modification) ? Prochaines remarques (pictogrammes dans d'autres boutons, « respiration » des cases libres) ?
+- [ ] **Tester la V020** (écran déplié **et** replié) :
+  1. **En-tête** : bandeau bleu `#043BB2` ; Retour, loupe et engrenage en pictogrammes ; la loupe affiche / masque le champ de recherche ; pastilles (orange / jaune) sur l'engrenage.
+  2. **Plan en consultation** : plus de cases pointillées ; un appui long n'importe où dans le plan (hors case) ouvre le menu de la case libre la plus proche ; créer une pièce / un emplacement ainsi.
+  3. **Modifier le plan** : cases en pointillés ; plus de texte d'explication, mais un bouton « ? » qui l'affiche.
+  4. **Groupes de boutons** dans l'en-tête du détail : arborescence (afficher/masquer, ▲ ▼) et commandes (Actions, Liste/Plan, Agrandir, Modifier).
+  5. **Arborescence** : bouton « afficher / masquer » ; bouton « élargir / réduire » dans le volet (icônes) ; flèche de dépliement dans le rail ; **écran replié** : le bouton ouvre le volet par-dessus l'écran (se ferme par un appui à côté, Échap ou le choix d'un élément).
+- [ ] **Répondre** : la solution pour l'arborescence (deux boutons distincts : afficher/masquer et largeur) vous convient-elle ? Le bouton d'arborescence, placé dans l'en-tête du détail, est absent des écrans Recherche et Réglages : est-ce gênant (sur écran replié notamment) ? Le niveau 0 en bleu partout vous plaît-il ?
 
 ### (historique) À faire à la V018b / V018a / V018
 
@@ -175,3 +175,4 @@
 | V018a | 12/11/2026 21:50 | Correctif des tests sous Windows ; fichiers à enregistrer (voir liste) |
 | V018b | 13/11/2026 02:25 | Tests : serveur de test silencieux sur les connexions coupées ; fichiers à enregistrer (voir liste) |
 | V019 | 17/11/2026 07:12 | Jalon 10 : pictogrammes, appui simple / long, cases libres, mode « Modifier le plan », bandeaux resserrés, rail au démarrage ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V020 | 20/11/2026 22:57 | Jalon 11 : couleur #043BB2, en-tête en pictogrammes, recherche masquée, groupes de boutons, aide « ? », cases libres invisibles, volet d'arborescence ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

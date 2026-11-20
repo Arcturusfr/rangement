@@ -1,7 +1,7 @@
 # tests/test_jalon9_4.py — Application « Rangement »
-# Version : V019
-# Horodatage : 2026-11-17 07:12 (heure de Paris)
-# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
+# Version : V020
+# Horodatage : 2026-11-20 22:57 (heure de Paris)
+# Résumé : V020 : adapté au jalon 11 (recherche masquée ouverte au chargement, boutons de l'en-tête, groupes, volet d'arborescence) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_4.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -135,27 +135,34 @@ def scenario_levels(browser, base):
 def scenario_tree(browser, base):
     errors = []
     ctx, page = start(browser, base, 884, 1100, errors)
-    c = page.locator("#tree-cycle")
-    check("arbo | bouton d'en-tête visible, état annoncé", c.is_visible() and "réduite" in c.get_attribute("aria-label"))
+    t = page.locator("#tree-toggle")
+    check("arbo | V020 : bouton d'en-tête à pictogramme, enfoncé = volet affiché", t.is_visible() and t.locator("svg").count() == 1 and t.get_attribute("aria-pressed") == "true" and "Masquer" in t.get_attribute("aria-label"))
+    check("arbo | plus de bouton à trois états ni de libellé « Arborescence »", page.locator("#tree-cycle").count() == 0)
     w_mini = page.locator("#pane-detail").bounding_box()["width"]
-    c.click()
+    t.click()
     page.wait_for_function("document.documentElement.dataset.tree === 'hidden'")
     page.wait_for_timeout(250)
-    check("arbo | 2e appui : volet masqué, détail sur toute la largeur", not page.is_visible("#pane-tree") and page.locator("#pane-detail").bounding_box()["width"] > w_mini + 60 and "masquée" in c.get_attribute("aria-label"))
+    check("arbo | un appui : volet masqué, détail sur toute la largeur", not page.is_visible("#pane-tree") and page.locator("#pane-detail").bounding_box()["width"] > w_mini + 60 and page.locator("#tree-toggle").get_attribute("aria-pressed") == "false" and "Afficher" in page.locator("#tree-toggle").get_attribute("aria-label"))
     page.reload()
     page.wait_for_selector("#pane-detail .furn-view")
-    check("arbo | V019 : après rechargement, retour au rail", page.get_attribute("html", "data-tree") == "mini" and page.is_visible("#pane-tree") and page.locator("#pane-tree .tree-mini-item").count() == 4)
-    page.locator("#tree-cycle").click()
-    page.wait_for_function("document.documentElement.dataset.tree === 'hidden'")
-    page.locator("#tree-cycle").click()
-    page.wait_for_function("document.documentElement.dataset.tree === 'wide'")
-    check("arbo | 3e appui : arborescence large avec libellés", page.locator("#pane-tree .tree-link").count() == 3 + 5 and page.is_visible("#pane-tree"))
-    page.locator("#tree-cycle").click()
-    page.wait_for_function("document.documentElement.dataset.tree === 'mini'")
-    check("arbo | 4e appui : retour au rail", page.locator("#pane-tree .tree-mini-item").count() == 4)
+    check("arbo | après rechargement, retour au rail", page.get_attribute("html", "data-tree") == "mini" and page.is_visible("#pane-tree") and page.locator("#pane-tree .tree-mini-item").count() == 4)
+    check("arbo | largeur : pictogramme explicite (agrandir), sans chevron texte", page.locator("#tree-grow svg").count() == 1 and page.locator("#tree-grow").inner_text().strip() == "")
     page.locator("#tree-grow").click()
     page.wait_for_function("document.documentElement.dataset.tree === 'wide'")
-    check("arbo | les boutons « » du volet fonctionnent toujours", page.locator("#pane-tree .tree-link").count() == 8)
+    check("arbo | agrandir : arborescence large avec libellés", page.locator("#pane-tree .tree-link").count() == 8 and page.locator("#tree-shrink svg").count() == 1)
+    page.locator("#tree-toggle").click()
+    page.wait_for_function("document.documentElement.dataset.tree === 'hidden'")
+    page.locator("#tree-toggle").click()
+    page.wait_for_function("document.documentElement.dataset.tree === 'wide'")
+    check("arbo | masquer puis afficher : la largeur choisie est conservée", page.locator("#pane-tree .tree-link").count() == 8)
+    page.locator("#tree-shrink").click()
+    page.wait_for_function("document.documentElement.dataset.tree === 'mini'")
+    check("arbo | réduire : retour au rail", page.locator("#pane-tree .tree-mini-item").count() == 4)
+    check("arbo | rail : flèche de dépliement du niveau 1 devant la racine", page.locator("#pane-tree #tree-root-toggle").count() == 1)
+    page.locator("#tree-root-toggle").click()
+    check("arbo | rail : la flèche déplie tout (7 pièces et meubles visibles)", page.locator("#pane-tree .tree-mini-item").count() == 9 and page.locator("#tree-root-toggle").get_attribute("aria-label") == "Tout replier", page.locator("#pane-tree .tree-mini-item").count())
+    page.locator("#tree-root-toggle").click()
+    check("arbo | rail : la flèche replie tout", page.locator("#pane-tree .tree-mini-item").count() == 4)
     check("arbo | aucune erreur console", not errors, errors)
     ctx.close()
 
@@ -163,7 +170,24 @@ def scenario_tree(browser, base):
 def scenario_narrow(browser, base):
     errors = []
     ctx, page = start(browser, base, 390, 844, errors)
-    check("replié | bouton d'arborescence masqué (un seul volet)", not page.is_visible("#tree-cycle"))
+    t = page.locator("#tree-toggle")
+    check("replié | bouton d'arborescence visible, volet masqué au départ", t.is_visible() and t.get_attribute("aria-pressed") == "false" and not page.is_visible("#pane-tree"))
+    t.click()
+    page.wait_for_selector("#pane-tree", state="visible")
+    pb = page.locator("#pane-tree").bounding_box()
+    check("replié | le volet recouvre partiellement l'écran, avec libellés (pas de rail)", 200 <= pb["width"] <= 390 * 0.86 and page.locator("#pane-tree .tree-link").count() == 8 and page.locator("#tree-shrink:visible, #tree-grow:visible").count() == 0, pb)
+    check("replié | le contenu reste visible derrière le volet (voile)", page.is_visible("#tree-scrim") and page.is_visible("#pane-detail"))
+    page.locator("#tree-scrim").click(position={"x": 370, "y": 300})
+    page.wait_for_selector("#pane-tree", state="hidden")
+    check("replié | un appui sur le voile referme le volet", page.locator("#tree-toggle").get_attribute("aria-pressed") == "false")
+    page.locator("#tree-toggle").click()
+    page.wait_for_selector("#pane-tree", state="visible")
+    page.keyboard.press("Escape")
+    check("replié | Échap referme le volet", not page.is_visible("#pane-tree"))
+    page.locator("#tree-toggle").click()
+    page.locator("#pane-tree .tree-link", has_text="Séjour").click()
+    page.wait_for_function("document.querySelector('#pane-detail .detail-title') && document.querySelector('#pane-detail .detail-title').textContent === 'Séjour'")
+    check("replié | choisir un élément l'ouvre et referme le volet", not page.is_visible("#pane-tree"))
     for sel in ("#view-toggle", "#plan-zoom"):
         b = page.locator(sel).bounding_box()
         check("replié | %s ≥ 44 px et dans l'écran" % sel, b["height"] >= 43 and b["x"] >= 0 and b["x"] + b["width"] <= 391, b)

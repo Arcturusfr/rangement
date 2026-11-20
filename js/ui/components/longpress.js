@@ -1,8 +1,8 @@
 /*
   js/ui/components/longpress.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : création — appui simple / appui long (≈ 450 ms) sur un élément ; clic droit et touche Menu = appui long ; le clic qui suit un appui long est ignoré.
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : option filter(event) — un conteneur peut ignorer les appuis venant de ses enfants.
 */
 (function () {
   'use strict';
@@ -11,7 +11,7 @@
   var DELAY = 450;     // durée de l'appui long (ms)
   var SLOP = 10;       // déplacement toléré pendant l'appui (px) ; au-delà, c'est un défilement
 
-  // cfg : { onShort(event), onLong(event), delay? }
+  // cfg : { onShort(event), onLong(event), delay?, filter?(event) → false pour ignorer l'événement }
   // Appui simple = clic (la touche Entrée sur un bouton compte aussi). Appui long = doigt ou souris maintenu,
   // ou clic droit, ou touche Menu / Maj+F10 (événement « contextmenu »). Le menu natif du navigateur est supprimé.
   function attach(node, cfg) {
@@ -37,6 +37,7 @@
     }
 
     node.addEventListener('pointerdown', function (event) {
+      if (cfg.filter && !cfg.filter(event)) { return; }
       if (event.pointerType === 'mouse' && event.button !== 0) { return; }
       if (resetTimer) { clearTimeout(resetTimer); resetTimer = null; }
       fired = false;
@@ -57,6 +58,7 @@
       node.addEventListener(name, function () { stop(); releaseSoon(); });
     });
     node.addEventListener('contextmenu', function (event) {
+      if (cfg.filter && !cfg.filter(event)) { return; }
       event.preventDefault();
       if (fired) { return; }
       stop();
@@ -64,6 +66,7 @@
       releaseSoon();
     });
     node.addEventListener('click', function (event) {
+      if (cfg.filter && !cfg.filter(event)) { return; }
       if (fired && event.detail !== 0) { fired = false; event.preventDefault(); event.stopPropagation(); return; }   // le clic qui suit un appui long est ignoré (pas celui du clavier, detail = 0)
       cfg.onShort(event);
     });

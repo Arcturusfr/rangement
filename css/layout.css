@@ -1,8 +1,8 @@
 /*
   css/layout.css — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : en-tête et recherche sur une seule ligne sur l'écran déplié (.app-top).
+  Version : V020
+  Horodatage : 2026-11-20 22:57 (heure de Paris)
+  Résumé : V020 : en-tête en pictogrammes (Retour, loupe, engrenage), recherche masquée par défaut, voile de l'arborescence sur écran replié, couleur #043BB2.
 */
 html, body { height: 100%; }
 
@@ -19,7 +19,7 @@ body {
   justify-content: space-between;
   gap: var(--space-3);
   padding: calc(var(--space-3) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-3);
-  background: var(--ink);
+  background: var(--brand);
   color: #FFFFFF;
 }
 
@@ -27,17 +27,29 @@ body {
 
 .app-header-end { display: flex; align-items: center; gap: var(--space-3); }
 
-.app-link {
+.app-header-start, .app-header-end { display: flex; align-items: center; gap: var(--space-2); }
+
+/* Boutons-pictogrammes de l'en-tête : ronds, 44 px, clairs sur fond bleu ; « enfoncé » = actif */
+.hdr-btn {
+  position: relative;
+  flex: none;
   display: inline-flex;
   align-items: center;
-  min-height: var(--tap);
-  margin: calc(-1 * var(--space-2)) 0;
-  padding: 0 var(--space-2);
-  color: #FFFFFF;
-  text-decoration: underline;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--brand);
+  cursor: pointer;
+  text-decoration: none;
 }
-.app-link[aria-current="page"] { font-weight: 650; text-decoration-thickness: 3px; }
-.app-link:focus-visible { outline-color: #FFFFFF; }
+.hdr-btn:hover { filter: brightness(0.94); }
+.hdr-btn:focus-visible { outline-color: #FFFFFF; }
+.hdr-btn[disabled] { opacity: 0.45; cursor: not-allowed; filter: none; }
+.hdr-btn[aria-pressed="true"], .hdr-btn[aria-expanded="true"] { background: transparent; color: #FFFFFF; box-shadow: inset 0 0 0 2px #FFFFFF; }
 
 .app-version {
   font-size: 0.85rem;
@@ -91,11 +103,16 @@ body {
 /* Arborescence masquée (écran déplié) : le détail prend toute la largeur */
 [data-panes="2"][data-tree="hidden"] .app-main { grid-template-columns: 1fr; }
 [data-tree="hidden"] .pane-tree { display: none; }
-button.app-link { background: none; border: 0; font: inherit; cursor: pointer; }
-[data-panes="1"] #tree-cycle { display: none; }
 
-/* Écran replié : un seul volet, la navigation se fait par le contenu */
+/* Écran replié : un seul volet ; l'arborescence est un volet qui recouvre partiellement l'écran (bouton de l'en-tête du détail), toujours avec libellés */
+.app-main { position: relative; }
 [data-panes="1"] .pane-tree { display: none; }
+[data-panes="1"][data-tree-open="true"] .pane-tree {
+  display: block; position: absolute; top: 0; bottom: 0; left: 0; z-index: 30;
+  width: min(320px, 85vw); background: var(--surface); box-shadow: 4px 0 24px rgba(22, 34, 42, 0.35);
+}
+[data-panes="1"][data-tree-open="true"] .tree-scrim { display: block; position: absolute; inset: 0; z-index: 29; background: rgba(22, 34, 42, 0.35); }
+[data-panes="1"] .tree-shrink { display: none; }
 
 /* V019 : en-tête et recherche regroupés. Écran replié : deux bandeaux superposés comme avant ;
    écran déplié : une seule ligne (nom, Retour + recherche, Arborescence, Réglages, version) pour rendre de la hauteur au plan. */
@@ -105,11 +122,10 @@ button.app-link { background: none; border: 0; font: inherit; cursor: pointer; }
   align-items: center;
   gap: var(--space-4);
   padding: calc(var(--space-2) + env(safe-area-inset-top, 0px)) var(--space-4) var(--space-2);
-  background: var(--ink);
+  background: var(--brand);
   color: #FFFFFF;
 }
 [data-panes="2"] .app-header { display: contents; }
-[data-panes="2"] .app-name { order: 0; }
 [data-panes="2"] .searchbar { order: 1; flex: 1; min-width: 0; padding: 0; background: none; border: 0; }
-[data-panes="2"] .app-header-end { order: 2; }
-.app-link svg { flex: none; margin-right: 6px; }
+[data-panes="2"] .app-header-start { order: 0; }
+[data-panes="2"] .app-header-end { order: 2; margin-left: auto; }

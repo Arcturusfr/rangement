@@ -1,7 +1,7 @@
 # tests/test_jalon6.py — Application « Rangement »
-# Version : V019
-# Horodatage : 2026-11-17 07:12 (heure de Paris)
-# Résumé : V019 : adapté au jalon 10 (menu à l'appui long, pictogrammes, boutons de l'en-tête, rail au démarrage) ; parcours inchangés.
+# Version : V020
+# Horodatage : 2026-11-20 22:57 (heure de Paris)
+# Résumé : V020 : adapté au jalon 11 (recherche masquée ouverte au chargement, boutons de l'en-tête, groupes, volet d'arborescence) ; parcours inchangés.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon6.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -24,7 +24,7 @@ VERSION = re.search(r"version: '([^']+)'", open(os.path.join(ROOT, "js", "config
 
 _INIT = ("try{ if(!localStorage.getItem('rangement.data.planview')){localStorage.setItem('rangement.data.planview','list');"
          "localStorage.setItem('rangement.data.view','list');} "
-         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} }); }catch(e){}")
+         "window.addEventListener('load', function(){ try{ Rangement.ui.views.browse.setMode('wide'); }catch(e){} try{ Rangement.ui.views.searchbar.setOpen(true, true); }catch(e){} }); }catch(e){}")
 
 
 def _nc(browser, **kw):
@@ -120,7 +120,7 @@ def scenario_static():
     inst = src[src.index("addEventListener('install'"):src.index("// Activation")]
     check("statique | pas de skipWaiting automatique à l'installation", "skipWaiting" not in inst)
     m = json.load(open(os.path.join(ROOT, "manifest.webmanifest"), encoding="utf-8"))
-    check("manifeste | nom, affichage, couleurs", m["name"] == "Rangement" and m["display"] == "standalone" and m["theme_color"] == "#16222A" and m["lang"] == "fr")
+    check("manifeste | nom, affichage, couleurs", m["name"] == "Rangement" and m["display"] == "standalone" and m["theme_color"] == "#043BB2" and m["lang"] == "fr")
     check("manifeste | start_url et scope relatifs (GitHub Pages)", not m["start_url"].startswith("/") and not m["scope"].startswith("/"), (m["start_url"], m["scope"]))
     sizes = {(i["sizes"], i["purpose"]): i["src"] for i in m["icons"]}
     check("manifeste | 4 icônes (192/512, any et maskable)", set(sizes) == {("192x192", "any"), ("512x512", "any"), ("192x192", "maskable"), ("512x512", "maskable")}, list(sizes))
