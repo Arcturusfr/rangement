@@ -48,8 +48,10 @@
       ['path', { d: 'M6 7v12M6 12h6M6 19h6', 'stroke-opacity': 0.5 }]
     ],
     'actions': [
-      ['line', { x1: 12, y1: 5, x2: 12.01, y2: 5, 'stroke-width': 3 }], ['line', { x1: 12, y1: 12, x2: 12.01, y2: 12, 'stroke-width': 3 }], ['line', { x1: 12, y1: 19, x2: 12.01, y2: 19, 'stroke-width': 3 }]
-    ],
+        ['rect',{ x: 3, y: 3, width: 18, height: 18, rx: 3.5, 'stroke-width': 2 }]
+    
+    ['path', { d: 'M13.2 7L9 12.8h3.2l-0.9 4.2 4.2-5.8h-3.2l0.9-4.2z', 'fill': 'currentColor', 'stroke': 'currentColor', 'stroke-width': 0.8, 'stroke-linejoin': 'round' }]
+ ],
     'search': [['circle', { cx: 11, cy: 11, r: 7 }], ['path', { d: 'M21 21l-5-5' }]],
     'help': [['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3' }], ['line', { x1: 12, y1: 17, x2: 12.01, y2: 17 }]],
     'arrow-left': [['path', { d: 'M19 12H5M12 19l-7-7 7-7' }]],
