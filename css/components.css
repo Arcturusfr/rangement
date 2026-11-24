@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V020
-  Horodatage : 2026-11-20 22:57 (heure de Paris)
-  Résumé : V020 : groupes de boutons dans l'en-tête du détail (arborescence / commandes), niveau 0 en #043BB2, pastilles de « Réglages » sur le pictogramme, champ de recherche sans bouton Retour.
+  Version : V021
+  Horodatage : 2026-11-24 01:46 (heure de Paris)
+  Résumé : V021 : bouton « Actions » en pictogramme (même style que les boutons d'affichage, enfoncé quand son menu est ouvert).
 */
 
 /* Barre de recherche (sous l'en-tête, masquée par défaut) : champ avec loupe */
@@ -61,6 +61,7 @@
 /* Boutons-pictogrammes d'affichage (Liste / Plan, Agrandir, Modifier le plan) : ronds, 44 px, « enfoncés » = actifs */
 .view-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; width: var(--tap); height: var(--tap); padding: 0; border: 0; border-radius: 999px; background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); cursor: pointer; }
 .view-btn:hover { background: var(--chip-bg); }
+.view-btn.has-menu { background: var(--accent); color: #FFFFFF; box-shadow: none; }
 .view-btn[aria-pressed="true"] { background: var(--accent); color: #FFFFFF; box-shadow: none; }
 
 /* Écran replié : le fil d'Ariane prend toute la largeur, puis le nom (à gauche) et les commandes (à droite), puis les boutons d'affichage */

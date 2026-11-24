@@ -1,8 +1,8 @@
 /*
   js/ui/components/detailbar.js — Application « Rangement »
-  Version : V020
-  Horodatage : 2026-11-20 22:57 (heure de Paris)
-  Résumé : V020 : deux groupes de boutons — arborescence (afficher / masquer, ▲ ▼) et commandes (Actions, Liste / Plan, Agrandir, Modifier, aide).
+  Version : V021
+  Horodatage : 2026-11-24 01:46 (heure de Paris)
+  Résumé : V021 : « Actions » devient un bouton-pictogramme (nom accessible conservé).
 */
 (function () {
   'use strict';
@@ -108,8 +108,8 @@
     var commands = [];
     if (opts.actions && opts.actions.length) {
       var toggle = el('button', {
-        class: 'button button--secondary button--toggle', type: 'button', id: 'manage-toggle', 'aria-haspopup': 'true'
-      }, ['Actions', el('span', { 'aria-hidden': 'true' }, ['\u25BE'])]);
+        class: 'view-btn', type: 'button', id: 'manage-toggle', 'aria-haspopup': 'true', 'aria-label': 'Actions', title: 'Actions'
+      }, [R.ui.icons.create('actions', 22), el('span', { class: 'visually-hidden' }, ['Actions'])]);
       toggle.addEventListener('click', function () {
         R.ui.components.contextmenu.open({
           anchor: toggle, title: opts.title, subtitle: 'Actions', label: 'Actions', level: opts.level, items: opts.actions
