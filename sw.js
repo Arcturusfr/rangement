@@ -6,7 +6,7 @@
 */
 'use strict';
 
-var VERSION = 'V021a';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V021';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 
