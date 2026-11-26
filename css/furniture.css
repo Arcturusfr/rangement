@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V020
-  Horodatage : 2026-11-20 22:57 (heure de Paris)
-  Résumé : V020 : cases libres invisibles en consultation (visibles en modification), bouton « ? ».
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : pictogrammes devant les commandes des menus (couleur du texte, rouge pour « Supprimer »).
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -117,5 +117,6 @@
   text-align: left;
   cursor: pointer;
 }
+.ctx-item svg { flex: none; }
 .ctx-item:hover { background: var(--chip-bg); }
 .ctx-item--danger { color: #B3261E; }

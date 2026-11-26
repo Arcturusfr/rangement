@@ -1,15 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V021
-  Horodatage : 2026-11-24 01:46 (heure de Paris)
-  Résumé : V021 livrée — fichiers à enregistrer et à tester ; V020 validée.
+  Version : V022
+  Horodatage : 2026-11-25 22:35 (heure de Paris)
+  Résumé : V022 livrée — fichiers à enregistrer et à tester ; V021 validée.
 -->
 
-# ToDo Utilisateur — Rangement `V021`
+# ToDo Utilisateur — Rangement `V022`
 
-> Dernière mise à jour : 24/11/2026 01:46 (Paris) — **V021**
+> Dernière mise à jour : 25/11/2026 22:35 (Paris) — **V022**
 
 ## Fait
+
+- [x] Tester la V021 et la valider ; transmettre la liste d'évolutions (focus, conteneur des boutons, volet, icônes des menus, pieds, catégories) ; valider le lotissement V022 / V023 / V024 et ajouter « Ouvrir » et les « Ajouter… » aux pictogrammes
 
 - [x] Tester la V020 : aucun bug ; valider la V020 (absence du bouton d'arborescence sur Recherche / Réglages et fermeture du volet par un appui à côté : OK) ; demander le jalon 12 (pictogrammes des boutons)
 - [x] Tester la V019 : fonctionne correctement ; valider la V019 ; demander le jalon 11 (cases libres masquées en consultation, couleur #043BB2, en-tête en pictogrammes, recherche masquée + loupe, groupes de boutons, aide « ? », arborescence : afficher/masquer, rail avec flèche, volet recouvrant sur écran replié)
@@ -46,18 +48,24 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V021** (archive `V021.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V021.txt`).
-  - **Nouveau** : `tests/test_jalon12.py`.
-  - **Remplacés** : `sw.js` (**à la racine**), `js/config.js`, `js/ui/icons.js`, `js/ui/components/detailbar.js`, `css/layout.css`, `css/components.css` et les trois `.md`.
-  - **Inchangés** : tout le reste (les anciens tests aussi).
-- [ ] **Vérifier que la version affichée est `V021`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (supprimer les versions remplacées).
+- [ ] **Enregistrer les fichiers de la V022** (archive `V022.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V022.txt`).
+  - **Nouveau** : `tests/test_jalon13.py`.
+  - **Remplacés** : `sw.js` (**à la racine**), `js/config.js`, `js/ui/icons.js`, `js/ui/views/location.js`, `js/ui/views/item.js`, `js/ui/views/furniture.js`, `css/base.css`, `css/layout.css`, `css/components.css`, `css/furniture.css` et les trois `.md`.
+  - **Inchangés** : tout le reste (`index.html` aussi ; les anciens tests aussi).
+- [ ] **Vérifier que la version affichée est `V022`** (sinon, Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis **mettre à jour la base `Contexte`** (supprimer les versions remplacées).
+- [ ] **Vérifier `manifest.webmanifest`** : la copie présente dans la base `Contexte` indique encore `theme_color` `#16222A` (le test du jalon 6 attend `#043BB2`, valeur de la V020). Votre version en ligne doit déjà être à jour ; sinon, remplacez-la (et mettez à jour la copie de la base).
 - [ ] **Exporter une sauvegarde** de vos vraies données avant d'essayer (précaution habituelle).
-- [ ] **Tester la V021** (écran déplié **et** replié) :
-  1. **En-tête** : les trois boutons (Retour, loupe, engrenage) sont transparents, pictogramme et cercle blancs ; loupe ouverte et Réglages ouverts : couleurs inversées (disque blanc, pictogramme bleu).
-  2. **Arborescence** : nouveau pictogramme (fils alignés sous le père) ; volet un peu plus étroit sur écran déplié ; écran replié inchangé.
-  3. **« Actions »** : pictogramme (trois points) à la place du libellé ; le menu s'ouvre comme avant.
-  4. **Élargir / réduire le volet** : pictogramme « agrandir » dans le rail, « réduire » dans le volet large.
-- [ ] **Répondre** : le pictogramme « Actions » (trois points) vous convient-il, ou préférez-vous un autre dessin ? Le pictogramme « réduire » (chevron vers la gauche, barres plus courtes) est-il assez explicite ? La largeur du volet (288 px) convient-elle ?
+- [ ] **Tester la V022** (écran déplié **et** replié) :
+  1. **Focus** : appuyer sur la loupe, l'engrenage, Retour : plus de carré semi-transparent après l'appui.
+  2. **Boutons du détail** : un seul conteneur gris pour les deux rangées, séparées par un fin filet ; ▲ ▼ ronds (écran replié : deux groupes distincts, comme avant).
+  3. **Marge du bas** : le plan 7 × 10 sur le Z Fold déplié n'est plus masqué par la barre des tâches (16 px de plus).
+  4. **Volet** : bouton réduire / élargir bleu, de la hauteur de « Logement » (rail et large).
+  5. **Icônes** : nouvelle icône « Actions » ; pictogrammes devant les commandes des menus (Actions, appui long sur une case, case libre, fiche d'un objet).
+- [ ] **Répondre** : la marge de 16 px est-elle suffisante ? Les pictogrammes de « Ouvrir » (flèche entrant dans un cadre) et d'« Ajouter pièce » (plan avec « + ») vous conviennent-ils ? Pour préparer la V024 : **une seule ou plusieurs catégories par objet** ? **Où modifier la liste** (Réglages ?) ? **Que devient un objet dont on supprime la catégorie** (« Divers ») ? La saisie libre d'une catégorie doit-elle rester possible ?
+
+### (historique) À faire à la V021
+
+- [x] Enregistrer les fichiers de la V021 et tester (validée).
 
 ### (historique) À faire à la V020
 
@@ -193,3 +201,4 @@
 | V019 | 17/11/2026 07:12 | Jalon 10 : pictogrammes, appui simple / long, cases libres, mode « Modifier le plan », bandeaux resserrés, rail au démarrage ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V020 | 20/11/2026 22:57 | Jalon 11 : couleur #043BB2, en-tête en pictogrammes, recherche masquée, groupes de boutons, aide « ? », cases libres invisibles, volet d'arborescence ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V021 | 24/11/2026 01:46 | Jalon 12 : pictogrammes des commandes, volet d'arborescence plus étroit ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V022 | 25/11/2026 22:35 | Jalon 13 : ajustements d'interface ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

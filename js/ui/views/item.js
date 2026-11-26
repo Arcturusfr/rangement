@@ -1,8 +1,8 @@
 /*
   js/ui/views/item.js — Application « Rangement »
-  Version : V016
-  Horodatage : 2026-11-06 12:00 (heure de Paris)
-  Résumé : jalon 9.3 — ℹ️ et libellé « Objet » dans l'en-tête figé, « Actions » en menu déroulant.
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : pictogrammes devant les commandes du menu « Actions » d'un objet.
 */
 (function () {
   'use strict';
@@ -36,10 +36,10 @@
         'Quantité : ' + R.features.items.formatQuantity(item.quantity) + (depleted ? ' (épuisé)' : '')
       ],
       actions: [
-        { label: 'Modifier', run: function () { A.openEdit(item.id); } },
-        { label: 'D\u00e9placer', run: function () { A.openMove(item.id); } },
-        { label: 'Dupliquer', run: function () { A.openDuplicate(item.id); } },
-        { label: 'Supprimer', danger: true, run: function () { A.askDelete(item.id); } }
+        { label: 'Modifier', icon: 'edit-text', run: function () { A.openEdit(item.id); } },
+        { label: 'D\u00e9placer', icon: 'move-to', run: function () { A.openMove(item.id); } },
+        { label: 'Dupliquer', icon: 'duplicate', run: function () { A.openDuplicate(item.id); } },
+        { label: 'Supprimer', icon: 'delete', danger: true, run: function () { A.askDelete(item.id); } }
       ]
     });
 

@@ -1,15 +1,28 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V021
-  Horodatage : 2026-11-24 01:46 (heure de Paris)
-  Résumé : V021 : V020 validée ; jalon 12 (pictogrammes des commandes) livré, en attente de validation.
+  Version : V022
+  Horodatage : 2026-11-25 22:35 (heure de Paris)
+  Résumé : V022 : V021 validée ; jalon 13 (ajustements d'interface) livré, en attente de validation ; lotissement V023 (pieds) et V024 (catégories) convenu.
 -->
 
-# Roadmap et avancement — Rangement `V021`
+# Roadmap et avancement — Rangement `V022`
 
-> Dernière mise à jour : 24/11/2026 01:46 (Paris) — **V021**
+> Dernière mise à jour : 25/11/2026 22:35 (Paris) — **V022**
 
 ## État actuel
+
+- **V021 validée.** **Jalon 13 livré (V022)**, premier lot de la liste d'évolutions de l'utilisateur :
+  - **Focus** : plus de carré de surbrillance au toucher sur les boutons (l'anneau reste pour le clavier) ; survol réservé à la souris.
+  - **Boutons du détail** : un seul conteneur (écran déplié) avec un fin filet transparent entre les deux groupes ; flèches ▲ ▼ **circulaires**.
+  - **Volet d'arborescence** : bouton réduire / élargir **bleu #043BB2**, aussi haut que « Logement » (dans le rail : toute la largeur).
+  - **Icône « Actions »** : éclair plein dans un carré (SVG de l'utilisateur, corrigé).
+  - **Pictogrammes des menus** (Actions, menu d'une case, case libre, objet) : Ouvrir, Ajouter pièce / emplacement, Ajouter objet, Régler la grille, Déplacer, Dupliquer, Supprimer (corbeille), plus les existants.
+  - **Marge** de 16 px sous le contenu (barre des tâches du téléphone) : *à valider sur le Z Fold*.
+  - Tests Playwright/Chromium : **1306 tests** (jalons 1 à 12 : 1263 ; **43 pour la V022, `test_jalon13.py`**), 0 échec ; aucun ancien test modifié. Sous forte charge (tests lancés en parallèle), un test long peut expirer ; relancé seul, il passe.
+  - **Lotissement convenu pour la suite** : **V023** = pieds des meubles « Petits / Grands » (« Grands » = moitié de la hauteur, bande « Dessous » entre les pieds) ; **V024** (éventuellement V025) = « Catégories » à la place des mots-clés (liste déroulante modifiable, « Divers » par défaut) — questions à trancher avant : une ou plusieurs catégories par objet, où modifier la liste, sort des objets d'une catégorie supprimée, saisie libre.
+  - En attente : **validation de la V022 par l'utilisateur** (voir `ToDo_Utilisateur.md`).
+
+### (historique) État à la V021
 
 - **V020 validée** (aucun bug ; absence du bouton d'arborescence sur les écrans Recherche et Réglages, et fermeture du volet d'arborescence sur écran replié par un appui à côté, validées). **Jalon 12 livré (V021)**, d'après les demandes de l'utilisateur sur les pictogrammes des boutons :
   - **Boutons de l'en-tête** (Retour, loupe, engrenage) : fond transparent, pictogramme et cercle blancs ; **couleurs inversées** quand la loupe ou l'engrenage est enfoncé.
@@ -137,6 +150,7 @@
 | Jalon 8 (V013) | **Validé** : pièces en **tuiles collées** (pas de murs, portes ni fenêtres pour l'instant), réutilisation de la grille des meubles, pièces = rectangles de cases (pas de formes en L), nom + nombre d'objets sur chaque case, grille jusqu'à 20 × 20, places automatiques puis figées, disposition des meubles dans une pièce = jalon 8 bis à part. *(Hypothèses de Claude, à valider à l'usage :)* liste par défaut, choix Liste / Plan mémorisé séparément de celui des meubles ; 2 / 3 / 4 colonnes automatiques selon le nombre de pièces ; plan stocké dans l'enveloppe (`plan`), facultatif ; cadre à défilement horizontal si beaucoup de colonnes ; l'icône d'une tuile ouvre les meubles de la pièce sur la même grille (première version du jalon 8 bis). |
 | Jalon 9 (V014 →) | **Validé** : les plans deviennent l'élément principal ; tout tient sur l'écran déplié (plan **et** menus), le plan peut être agrandi ; navigation fluide et intuitive. Dimensions réelles de l'utilisateur : logement en **7 colonnes × 10 lignes**, plus grande pièce en 6 × 8 ; libellés absents ou tronqués sur les très petites pièces : sans gêne. **Geste** : un appui sur un élément ouvre un **menu contextuel près de lui**, dont la première commande, plus grande et en gras, est **« Ouvrir »** (quasi un double appui) ; pas d'appui long. **Création au niveau du plan** (nouvelle pièce, etc.) : bouton **« + » flottant** (pas de menu contextuel possible hors d'un élément). **Flèches** déplacer / taille : intégrées au menu contextuel, toujours visibles pendant l'édition, masquables à la fin, sans trop cacher le plan. **Pictogrammes ℹ️** : ouvrent des infobulles pour alléger l'interface (contenu à définir à l'usage : mode d'emploi contextuel, précisions sur un élément). Le menu « Ajuster » disparaîtra de lui-même. Découpage validé : 9.1 plan ajusté à l'écran ; 9.2 menu contextuel (+ bouton « + », flèches intégrées) ; 9.3 infobulles ℹ️ ; 9.4 plan en vue d'accueil ; les tests de chaque étape affineront les suivantes. *(Hypothèses de Claude, à valider :)* 9.1 : cases jamais sous 28 px (le cadre défile alors), la hauteur ne les réduit pas sous 48 px (la page défile alors), « compactes » sous 60 px, 72 px minimum en taille réelle ; le choix Liste / Plan est commun au logement et aux pièces ; liste par défaut jusqu'à l'étape 9.4. |
 | V017 (préalable au 9.4) | **Validé par l'utilisateur** : une seule façon d'entrer dans un niveau (le bandeau de niveau équivaut à « Ouvrir » ; on supprime le niveau dessiné dans le plan du parent et ses accessoires) ; bandeau masqué sur les petites tuiles ; Vue graphique étendue à tous les niveaux qui ont des sous-emplacements. *(Hypothèses de Claude, à valider à l'usage :)* seuil de masquage du bandeau = case de moins de 85 px de large ; bandeau absent pendant le placement ; un meuble garde toujours son commutateur Liste / Vue graphique, un niveau plus bas ne l'a que s'il a des sous-emplacements ; un niveau plus bas se dessine comme un meuble ; le choix Liste / Vue graphique reste commun à tous ces niveaux. |
+| Jalon 13 (V022) | **Demandé / validé par l'utilisateur** : liste d'évolutions lotie en V022 (interface), V023 (pieds), V024 (catégories) ; pictogrammes aussi pour « Ouvrir » et les « Ajouter… ». *(Choix de Claude, à valider :)* focus clavier conservé ; filet de 2 px entre les deux groupes, fusion seulement sur écran déplié ; bouton du volet = fond bleu, pictogramme blanc ; « Supprimer » = corbeille (rouge « danger ») ; « Ouvrir » = flèche entrant dans un cadre ; « Ajouter pièce / emplacement » = plan avec un « + » ; marge sous le plan de 16 px. |
 | Jalon 12 (V021) | **Demandé par l'utilisateur** : boutons de l'en-tête transparents (pictogramme et cercle blancs), couleurs inversées quand loupe / engrenage sont enfoncés ; pictogramme de l'arborescence redessiné (fils alignés sous le père) ; volet d'arborescence 10 % plus étroit sur écran déplié ; « Actions » remplacé par un pictogramme ; pictogrammes plus explicites, alternés, pour élargir / réduire le volet. *(Hypothèses de Claude, à valider :)* « Actions » = trois points verticaux ; pictogramme « réduire » = pendant du dessin « agrandir » (chevron vers la gauche, séparation et barres plus courtes) ; largeur de volet = 288 px (320 × 0,9), minimum 216 px ; bouton « Actions » enfoncé (couleur d'accent) pendant que son menu est ouvert ; engrenage inversé tant que les Réglages sont ouverts. |
 | Jalon 11 (V020) | **Demandé / validé par l'utilisateur (V020 validée)** : cases libres masquées en consultation (appui long = case la plus proche + menu) ; couleur `#043BB2` pour le niveau 0 et le bandeau d'en-tête ; « Réglages » en engrenage seul ; « Arborescence » en pictogramme ; boutons regroupés (arborescence / autres) ; texte d'aide du mode modification derrière un « ? » ; champ de recherche masqué + loupe à gauche de l'engrenage ; flèche de dépliement dans le rail ; bouton d'affichage du volet sur écran replié (sans rail, volet recouvrant). *(Solution de Claude, à valider :)* le bouton à trois états est remplacé par « afficher / masquer » (bouton de groupe) + « largeur » (bouton du volet, icônes élargir / réduire) ; ce bouton d'arborescence est dans l'en-tête du détail (absent des écrans Recherche et Réglages) ; le bouton Retour sort du formulaire de recherche et va dans l'en-tête ; refermer la recherche pendant une recherche revient à l'écran précédent ; le volet recouvrant se ferme par le voile, Échap ou le choix d'un élément ; les groupes sont deux « pilules » teintées alignées à droite ; le texte d'aide s'affiche en info-bulle ; aide « ? » visible seulement en modification. |
 | Jalon 10 (V019) | **Demandé / validé par l'utilisateur** : trois boutons d'affichage en pictogrammes **alignés à droite** (pas en haut à gauche) ; rail remis au démarrage ; bandeaux à réduire (en-tête et recherche fusionnés sur l'écran déplié) ; appui simple = ouvrir, appui long = menu contextuel avec « Ouvrir » écrit comme les autres ; bouton pour le mode modification du plan ; bouton « + » supprimé à condition qu'un appui long sur une case libre ouvre le menu (créer un emplacement, modifier la grille). *(Hypothèses de Claude, à valider à l'usage :)* les trois boutons sont dans l'en-tête figé, sous ▲ ▼ et « Actions » (et non flottants sur le plan) ; appui long ≈ 450 ms avec vibration brève, clic droit / touche Menu équivalents ; un appui simple sur une case libre ne fait rien ; le menu d'une case libre propose aussi « Ajouter un objet ici » (hors logement) ; « Régler la grille… » aussi dans le menu « Actions » en vue graphique ; « Placer et dimensionner » conservé dans le menu d'une case comme raccourci vers le mode modification ; l'indicateur de niveau reste affiché mais n'est plus un bouton ; engrenage devant « Réglages » (le mot reste) ; en mode modification un appui long ouvre quand même le menu. |
@@ -241,7 +255,13 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 - ✅ Validation sur GitHub Pages et sur le Z Fold (utilisateur) : aucun bug ; améliorations ergonomiques → jalon 10
 - ⬜ *(plus tard)* « respiration » du contour des cases libres en placement
 
-### Jalon 12 — Pictogrammes des commandes ✅ (livré en V021, validation utilisateur en attente)
+### Jalon 13 — Ajustements d'interface ✅ (livré en V022, validation utilisateur en attente)
+- ✅ Focus sans carré ; conteneur unique des boutons du détail ; flèches circulaires
+- ✅ Bouton du volet bleu et aussi haut que « Logement » ; icône « Actions » ; pictogrammes des menus ; marge sous le plan
+- ⬜ Validation sur GitHub Pages et sur le Z Fold (utilisateur)
+- ⬜ V023 : pieds « Petits / Grands » ; V024 : catégories (voir « État actuel »)
+
+### Jalon 12 — Pictogrammes des commandes ✅ (livré en V021, validé)
 - ✅ Boutons de l'en-tête transparents, couleurs inversées quand enfoncés
 - ✅ Pictogramme de l'arborescence redessiné ; volet d'arborescence 10 % plus étroit (écran déplié)
 - ✅ « Actions » en pictogramme ; pictogrammes élargir / réduire le volet
@@ -303,3 +323,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V019 | 17/11/2026 07:12 | V018 validée ; jalon 10 livré : pictogrammes, appui simple / long, cases libres, mode « Modifier le plan », bandeaux resserrés, rail au démarrage (60 tests dédiés, 1181 au total) |
 | V020 | 20/11/2026 22:57 | V019 validée ; jalon 11 livré : couleur #043BB2, en-tête en pictogrammes, recherche masquée, groupes de boutons, aide « ? », cases libres invisibles, volet d'arborescence (43 tests dédiés, 1235 au total) |
 | V021 | 24/11/2026 01:46 | V020 validée ; jalon 12 livré : pictogrammes des commandes (en-tête transparent / inversé, arborescence, « Actions », élargir / réduire), volet d'arborescence 10 % plus étroit (28 tests dédiés, 1263 au total) |
+| V022 | 25/11/2026 22:35 | V021 validée ; jalon 13 livré : ajustements d'interface (focus, conteneur unique, flèches rondes, bouton du volet, icône « Actions », pictogrammes des menus, marge sous le plan ; 43 tests dédiés, 1306 au total) |

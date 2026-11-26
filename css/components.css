@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V021
-  Horodatage : 2026-11-24 01:46 (heure de Paris)
-  Résumé : V021 : bouton « Actions » en pictogramme (même style que les boutons d'affichage, enfoncé quand son menu est ouvert).
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : un seul conteneur pour les boutons en haut à droite (fine séparation transparente), flèches de niveau circulaires, bouton réduire / élargir du volet bleu et aussi haut que « Logement ».
 */
 
 /* Barre de recherche (sous l'en-tête, masquée par défaut) : champ avec loupe */
@@ -54,8 +54,18 @@
 .detail-bar--noviews .detail-bar-tools { grid-row: 1 / span 2; align-self: center; }
 .detail-bar-views { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: flex-end; }
 /* Deux groupes de boutons : l'arborescence (afficher / masquer, flèches de niveau) et les commandes (Actions, affichage) */
-.detail-group { display: flex; align-items: center; gap: var(--space-1); padding: 0 3px; border-radius: 12px; background: #D5DFE5; }
+.detail-group { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-1); padding: 0 3px; border-radius: 12px; background: #D5DFE5; }
+/* V022 : écran déplié, les deux groupes forment UN seul conteneur (bords arrondis à l'extérieur seulement), séparés par un fin filet transparent */
+[data-panes="2"] .detail-bar { row-gap: 2px; }
+[data-panes="2"] .detail-bar-tools, [data-panes="2"] .detail-bar-views { align-self: stretch; }
+[data-panes="2"] .detail-bar-tools-row { display: flex; justify-content: stretch; width: 100%; }
+[data-panes="2"] .detail-bar-tools-row .detail-group, [data-panes="2"] .detail-bar-views .detail-group { flex: 1; }
+[data-panes="2"] .detail-bar:not(.detail-bar--noviews) .detail-bar-tools { justify-content: flex-end; }
+[data-panes="2"] .detail-bar:not(.detail-bar--noviews) .detail-bar-tools .detail-group { border-radius: 12px 12px 2px 2px; }
+[data-panes="2"] .detail-bar:not(.detail-bar--noviews) .detail-bar-views .detail-group { border-radius: 2px 2px 12px 12px; }
+/* V022 : flèches de niveau circulaires */
 .button--icon { min-width: var(--tap); padding: 0 var(--space-2); }
+.detail-bar .button--icon { width: var(--tap); min-width: var(--tap); padding: 0; border-radius: 999px; }
 .button--toggle { padding: 0 var(--space-3); gap: var(--space-1); }
 
 /* Boutons-pictogrammes d'affichage (Liste / Plan, Agrandir, Modifier le plan) : ronds, 44 px, « enfoncés » = actifs */
@@ -73,7 +83,7 @@
 [data-panes="1"] .detail-bar-views { grid-column: 1 / -1; grid-row: 3; }
 [data-panes="1"] .detail-kind { min-width: 22px; }
 [data-panes="1"] .detail-bar .detail-title { font-size: 1.1rem; overflow-wrap: break-word; }
-[data-panes="1"] .detail-bar .button--icon { min-width: 40px; padding: 0 var(--space-1); }
+[data-panes="1"] .detail-bar .button--icon { width: var(--tap); min-width: var(--tap); padding: 0; }
 [data-panes="1"] .detail-bar .button--toggle { padding: 0 var(--space-2); }
 
 /* ℹ️ : pictogramme juste après le nom (zone d'appui de 44 px sans agrandir la ligne) */
@@ -142,8 +152,11 @@
   border-bottom: 1px solid var(--line);
 }
 .tree-head .tree-root { flex: 1; min-width: 0; }
-.tree-shrink { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; border: 0; border-radius: var(--radius); background: transparent; color: var(--muted); font: inherit; font-size: 1.1rem; cursor: pointer; }
-.tree-shrink:hover { background: var(--chip-bg); }
+/* V022 : bouton réduire / élargir le volet : bleu du niveau 0, aussi haut que le cadre du libellé « Logement » */
+.tree-head { align-items: stretch; }
+.tree-shrink { flex: none; align-self: stretch; display: inline-flex; align-items: center; justify-content: center; width: var(--tap); min-height: 40px; border: 0; border-radius: var(--radius); background: var(--brand); color: #FFFFFF; font: inherit; cursor: pointer; }
+@media (hover: hover) { .tree-shrink:hover { filter: brightness(1.2); } }
+.tree-head--mini .tree-shrink { width: auto; }
 
 .tree-root, .tree-link {
   display: block;

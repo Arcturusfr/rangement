@@ -1,8 +1,8 @@
 /*
   js/ui/views/location.js — Application « Rangement »
-  Version : V020
-  Horodatage : 2026-11-20 22:57 (heure de Paris)
-  Résumé : V020 : bouton « ? » (aide du mode modification) ; en-tête refait au changement de mise en page.
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : pictogrammes devant les commandes du menu « Actions ».
 */
 (function () {
   'use strict';
@@ -66,19 +66,19 @@
     var A = R.ui.views.locationActions;
     var V = R.ui.views.furniture;
     if (!loc) {
-      var root = [{ label: 'Ajouter une pièce', run: function () { A.openCreate(null); } }];
-      if (graphic) { root.push({ label: 'R\u00e9gler la grille\u2026', run: function () { V.openGrid(R.features.furniture.ROOT); } }); }
+      var root = [{ label: 'Ajouter une pièce', icon: 'add-place', run: function () { A.openCreate(null); } }];
+      if (graphic) { root.push({ label: 'R\u00e9gler la grille\u2026', icon: 'grid', run: function () { V.openGrid(R.features.furniture.ROOT); } }); }
       return root;
     }
-    var grid = graphic ? [{ label: 'R\u00e9gler la grille\u2026', run: function () { V.openGrid(loc.id); } }] : [];
+    var grid = graphic ? [{ label: 'R\u00e9gler la grille\u2026', icon: 'grid', run: function () { V.openGrid(loc.id); } }] : [];
     return [
-      { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(loc.id); } },
-      { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(loc.id); } }
+      { label: 'Ajouter un objet ici', icon: 'add-item', run: function () { R.ui.views.itemActions.openCreate(loc.id); } },
+      { label: 'Ajouter un emplacement ici', icon: 'add-place', run: function () { A.openCreate(loc.id); } }
     ].concat(grid, [
       { label: 'Modifier', icon: 'edit-text', run: function () { A.openEdit(loc.id); } },
-      { label: 'D\u00e9placer', run: function () { A.openMove(loc.id); } },
-      { label: 'Dupliquer', run: function () { A.openDuplicate(loc.id); } },
-      { label: 'Supprimer', danger: true, run: function () { A.askDelete(loc.id); } }
+      { label: 'D\u00e9placer', icon: 'move-to', run: function () { A.openMove(loc.id); } },
+      { label: 'Dupliquer', icon: 'duplicate', run: function () { A.openDuplicate(loc.id); } },
+      { label: 'Supprimer', icon: 'delete', danger: true, run: function () { A.askDelete(loc.id); } }
     ]);
   }
 

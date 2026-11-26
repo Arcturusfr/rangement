@@ -1,8 +1,8 @@
 /*
   css/base.css — Application « Rangement »
-  Version : V020
-  Horodatage : 2026-11-20 22:57 (heure de Paris)
-  Résumé : V020 : couleur du niveau 0 et de l'en-tête de l'application = #043BB2 (--brand).
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : plus de surbrillance de toucher (tap highlight) sur les boutons et liens.
 */
 :root {
   --bg: #E9EEF0;
@@ -30,6 +30,7 @@
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
+  --bottom-extra: 16px;       /* V022 : marge sous le contenu (la barre des tâches d'Android masque le bas, même en PWA) ; à répercuter dans BOTTOM_EXTRA de furniture.js */
   --radius: 6px;
   --tap: 44px;
 
@@ -60,6 +61,10 @@ a { color: var(--accent); }
 }
 
 [hidden] { display: none !important; }
+
+/* V022 : pas de carré de surbrillance au toucher ; l'anneau de focus n'apparaît qu'au clavier (:focus-visible) */
+button, a, summary, [role="button"], select { -webkit-tap-highlight-color: transparent; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none; }
 
 /* Couleur associée à chaque niveau : pièce, emplacement de premier ordre, sous-emplacement, objet, objet épuisé */
 [data-level="piece"]       { --level-color: var(--level-piece); }

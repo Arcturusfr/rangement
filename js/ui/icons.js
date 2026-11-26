@@ -1,8 +1,8 @@
 /*
   js/ui/icons.js — Application « Rangement »
-  Version : V021
-  Horodatage : 2026-11-24 01:46 (heure de Paris)
-  Résumé : V021 : pictogramme arborescence redessiné, pictogramme « Actions », pictogrammes élargir / réduire le volet.
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : nouveau pictogramme « Actions » (éclair dans un carré) ; pictogrammes des commandes des menus (ouvrir, ajouter pièce / objet, grille, déplacer, dupliquer, supprimer).
 */
 (function () {
   'use strict';
@@ -47,8 +47,39 @@
       ['rect', { x: 3, y: 3, width: 9, height: 4, rx: 1 }], ['rect', { x: 12, y: 17, width: 9, height: 4, rx: 1 }], ['rect', { x: 12, y: 10, width: 9, height: 4, rx: 1 }],
       ['path', { d: 'M6 7v12M6 12h6M6 19h6', 'stroke-opacity': 0.5 }]
     ],
+    // V022 : « Actions » = éclair plein dans un carré arrondi
     'actions': [
-      ['line', { x1: 12, y1: 5, x2: 12.01, y2: 5, 'stroke-width': 3 }], ['line', { x1: 12, y1: 12, x2: 12.01, y2: 12, 'stroke-width': 3 }], ['line', { x1: 12, y1: 19, x2: 12.01, y2: 19, 'stroke-width': 3 }]
+      ['rect', { x: 3, y: 3, width: 18, height: 18, rx: 3.5, 'stroke-width': 2 }],
+      ['path', { d: 'M13 6.5L8.5 13h3.5l-1 4.5 4.5-6.5H12l1-4.5z', fill: 'currentColor', 'stroke-width': 1 }]
+    ],
+    // V022 : commandes des menus (« Actions », menu d'une case, menu d'une case libre)
+    'open': [['path', { d: 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4' }], ['path', { d: 'M10 17l5-5-5-5M15 12H3' }]],
+    'add-place': [
+      ['path', { d: 'M3 3h11M3 3v18h18V11M9 3v18M3 12h6M15 21v-6h5', 'stroke-opacity': 0.7 }],
+      ['path', { d: 'M18 3v6M15 6h6' }]
+    ],
+    'add-item': [
+      ['path', { d: 'M16 17h6M19 14v6' }],
+      ['path', { d: 'M12 22V12M21 10.535V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.729l7 4a2 2 0 0 0 2 .001l1.675-.955M3.29 7 12 12l8.71-5' }]
+    ],
+    'grid': [
+      ['rect', { x: 1, y: 1, width: 14, height: 14, rx: 2, 'stroke-width': 1.5, 'stroke-opacity': 0.55 }],
+      ['path', { d: 'M8 1v14M1 8h14', 'stroke-width': 1.5, 'stroke-opacity': 0.55 }],
+      ['path', { d: 'M19 5l2-4 2 4M21 4v11m-2-4l2 4 2-4', 'stroke-width': 1.5 }],
+      ['path', { d: 'M5 19l-4 2 4 2M4 21h11m-4-2l4 2-4 2', 'stroke-width': 1.5 }]
+    ],
+    'move-to': [
+      ['rect', { x: 2, y: 14, width: 9, height: 9 }], ['rect', { x: 14, y: 2, width: 9, height: 9, opacity: 0.5 }],
+      ['path', { d: 'M6.5 18L19 6h-8M19 6v8' }]
+    ],
+    'duplicate': [
+      ['line', { x1: 15, x2: 15, y1: 12, y2: 18 }], ['line', { x1: 12, x2: 18, y1: 15, y2: 15 }],
+      ['rect', { width: 14, height: 14, x: 8, y: 8, rx: 2, ry: 2 }],
+      ['path', { d: 'M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2' }]
+    ],
+    'delete': [
+      ['path', { d: 'M10 11v6' }], ['path', { d: 'M14 11v6' }], ['path', { d: 'M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6' }],
+      ['path', { d: 'M3 6h18' }], ['path', { d: 'M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2' }]
     ],
     'search': [['circle', { cx: 11, cy: 11, r: 7 }], ['path', { d: 'M21 21l-5-5' }]],
     'help': [['circle', { cx: 12, cy: 12, r: 10 }], ['path', { d: 'M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3' }], ['line', { x1: 12, y1: 17, x2: 12.01, y2: 17 }]],

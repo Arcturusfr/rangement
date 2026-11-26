@@ -1,8 +1,8 @@
 /*
   css/layout.css — Application « Rangement »
-  Version : V021
-  Horodatage : 2026-11-24 01:46 (heure de Paris)
-  Résumé : V021 : boutons de l'en-tête transparents (pictogramme et cercle blancs, inversés quand enfoncés) ; volet d'arborescence 10 % plus étroit sur écran déplié.
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : survol des boutons de l'en-tête seulement à la souris, pas de focus au toucher ; marge sous le plan (barre des tâches).
 */
 html, body { height: 100%; }
 
@@ -47,7 +47,8 @@ body {
   cursor: pointer;
   text-decoration: none;
 }
-.hdr-btn:hover { background: rgba(255, 255, 255, 0.18); }
+@media (hover: hover) { .hdr-btn:hover { background: rgba(255, 255, 255, 0.18); } }
+.hdr-btn:focus:not(:focus-visible) { outline: none; }
 .hdr-btn:focus-visible { outline-color: #FFFFFF; }
 .hdr-btn[disabled] { opacity: 0.45; cursor: not-allowed; filter: none; }
 /* « Enfoncé » (loupe, Réglages ouverts) : couleurs inversées, pictogramme bleu sur disque blanc */
@@ -79,7 +80,7 @@ body {
   min-height: 0;
   overflow-y: auto;
   padding: var(--pane-pad);
-  padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--space-5) + var(--bottom-extra) + env(safe-area-inset-bottom, 0px));   /* V022 : marge en plus pour la barre des tâches du téléphone */
 }
 
 /* Écran déplié / grand écran : arborescence (volet réduit de 10 % en V021) + détail côte à côte */
@@ -92,7 +93,7 @@ body {
   background: var(--surface);
 }
 
-[data-panes="2"] .pane-detail { --pane-pad: var(--space-5); padding: var(--pane-pad); }
+[data-panes="2"] .pane-detail { --pane-pad: var(--space-5); padding: var(--pane-pad); padding-bottom: calc(var(--pane-pad) + var(--bottom-extra) + env(safe-area-inset-bottom, 0px)); }
 
 /* Volet de l'arborescence : la première ligne (« Logement ») reste visible au défilement */
 .pane-tree { padding-top: 0; }

@@ -1,12 +1,12 @@
 /*
   sw.js — Application « Rangement »
-  Version : V021
-  Horodatage : 2026-11-24 01:46 (heure de Paris)
-  Résumé : version V021.
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : version V022.
 */
 'use strict';
 
-var VERSION = 'V021';                       // doit être identique à js/config.js (vérifié par les tests)
+var VERSION = 'V022';                       // doit être identique à js/config.js (vérifié par les tests)
 var CACHE_PREFIX = 'rangement-';
 var CACHE = CACHE_PREFIX + VERSION;
 

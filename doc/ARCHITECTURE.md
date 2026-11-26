@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V021
-  Horodatage : 2026-11-24 01:46 (heure de Paris)
-  Résumé : V021 (jalon 12) : pictogrammes des commandes — boutons de l'en-tête transparents / inversés, arborescence redessinée, « Actions » en pictogramme, volet d'arborescence 10 % plus étroit, pictogrammes élargir / réduire. V020 validée.
+  Version : V022
+  Horodatage : 2026-11-25 22:35 (heure de Paris)
+  Résumé : V022 (jalon 13) : ajustements d'interface — focus, conteneur unique des boutons du détail, flèches circulaires, bouton du volet bleu, icône « Actions », pictogrammes des menus, marge sous le plan. V021 validée.
 -->
 
-# ARCHITECTURE — Rangement `V021`
+# ARCHITECTURE — Rangement `V022`
 
-> Dernière mise à jour : 24/11/2026 01:46 (Paris) — **V021** (jalon 12 : pictogrammes des commandes ; **V020 validée**)
-> Statut : **jalon 12 livré (V021)** : boutons de l'en-tête (Retour, loupe, engrenage) **transparents** à pictogramme et cercle blancs, **inversés** (disque blanc, pictogramme bleu) quand ils sont enfoncés ; pictogramme de l'arborescence redessiné (fils alignés sous le père) ; « Actions » remplacé par un **pictogramme** (trois points) ; volet d'arborescence **10 % plus étroit** sur écran déplié (288 px au plus ; écran replié inchangé) ; pictogrammes **élargir / réduire** du volet plus explicites (écran, séparation, arborescence, chevron). Jalons 1 à 11 livrés et validés.
+> Dernière mise à jour : 25/11/2026 22:35 (Paris) — **V022** (jalon 13 : ajustements d'interface ; **V021 validée**)
+> Statut : **jalon 13 livré (V022)** : plus de carré de surbrillance au toucher sur les boutons ; boutons du détail (écran déplié) réunis dans **un seul conteneur** à fin filet transparent ; flèches de niveau **circulaires** ; bouton réduire / élargir le volet **bleu #043BB2** et aussi haut que « Logement » ; nouvelle icône « Actions » (éclair dans un carré) ; **pictogrammes devant les commandes des menus** ; marge de 16 px de plus sous le contenu (barre des tâches du téléphone). Jalons 1 à 12 livrés et validés.
 
 ## 1. Principes directeurs
 
@@ -46,6 +46,7 @@
 │   ├── test_jalon9_3.py       Tests Playwright/Chromium : ℹ️ et info-bulle, libellé de catégorie tronqué + chevron, menu déroulant « Actions », Liste / Plan dans l'en-tête figé
 │   ├── test_jalon9_3bis.py    Tests Playwright/Chromium (V017) : bandeau de niveau = « Ouvrir », bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux
 │   ├── test_jalon9_4.py       Tests Playwright/Chromium (V018) : plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états
+│   ├── test_jalon13.py        Tests Playwright/Chromium (V022) : focus, conteneur unique des boutons du détail, flèches circulaires, bouton du volet, icône « Actions », pictogrammes des menus, marge sous le plan
 │   ├── test_jalon12.py        Tests Playwright/Chromium (V021) : boutons de l'en-tête transparents / inversés, pictogramme arborescence, « Actions » en pictogramme, largeur du volet, pictogrammes élargir / réduire
 │   ├── test_jalon11.py        Tests Playwright/Chromium (V020) : couleur #043BB2, recherche masquée + loupe, Réglages en pictogramme, groupes de boutons, aide « ? », cases libres invisibles (appui long = case la plus proche), volet d'arborescence sur écran replié
 │   ├── test_jalon10.py        Tests Playwright/Chromium (V019) : pictogrammes, appui simple / long, mode « Modifier le plan », en-tête et recherche regroupés, rail au démarrage, cases libres
@@ -73,7 +74,7 @@
     │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
-    │   ├── icons.js           Pictogrammes SVG filaires (`Rangement.ui.icons.create(nom, taille)`) : list, plan, settings, edit-text, edit-plan, move-cell, enlarge-cell, zoom-in, zoom-out, tree, search, help, arrow-left, expand-h, collapse-h, actions
+    │   ├── icons.js           Pictogrammes SVG filaires (`Rangement.ui.icons.create(nom, taille)`) : list, plan, settings, edit-text, edit-plan, move-cell, enlarge-cell, zoom-in, zoom-out, tree, search, help, arrow-left, expand-h, collapse-h, actions, open, add-place, add-item, grid, move-to, duplicate, delete
     │   ├── router.js          Navigation interne (hash `#/...`)
     │   ├── layout.js          Bascule 1 volet / 2 volets selon la largeur
     │   ├── components/
@@ -380,6 +381,16 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Largeur du volet d'arborescence** (écran déplié) : `minmax(216px, 288px)` (10 % de moins qu'en V020) ; le rail (76 px) et le volet recouvrant de l'écran replié (≤ 320 px, 85 % de la largeur) sont inchangés.
 - **Pictogrammes du volet** : `expand-h` (rail → large) et `collapse-h` (large → rail), qui alternent : écran avec séparation du volet, petites barres d'arborescence et chevron dans le sens du changement (vers la droite pour agrandir, vers la gauche pour réduire) ; le rail est évoqué par des barres plus courtes et une séparation plus à gauche.
 
+### Règles du jalon 13 (V022)
+
+- **Focus** : `-webkit-tap-highlight-color: transparent` sur boutons, liens et listes ; l'anneau de focus n'apparaît qu'au clavier (`:focus-visible`) ; le survol des boutons de l'en-tête n'existe qu'avec une souris (`@media (hover: hover)`), pour qu'il ne reste pas « collé » après un appui tactile.
+- **Conteneur des boutons du détail** (écran déplié) : les groupes « arborescence » et « commandes » forment **un seul bloc** de même largeur, aux bords arrondis à l'extérieur seulement (12 px) et séparé par un **filet transparent de 2 px** (`row-gap` de `.detail-bar`). Écran replié : deux groupes distincts comme avant (ils ne sont pas voisins dans la grille).
+- **Flèches de niveau** (▲ ▼) : boutons ronds de 44 px (`.detail-bar .button--icon`).
+- **Volet d'arborescence** : le bouton réduire / élargir (`.tree-shrink`) est bleu `--brand` (#043BB2), pictogramme blanc, et occupe toute la hauteur de la ligne « Logement » (40 px au moins) ; dans le rail, il occupe toute la largeur du rail.
+- **Menus** : chaque commande peut porter un pictogramme (`icon`) : Ouvrir (`open`), Ajouter une pièce / un emplacement (`add-place`), Ajouter un objet (`add-item`), Régler la grille (`grid`), Placer et dimensionner (`move-cell`), Modifier (`edit-text`), Déplacer (`move-to`), Dupliquer (`duplicate`), Supprimer (`delete`, corbeille, rouge « danger » comme le texte). Pictogrammes dessinés en `currentColor` (les couleurs fixes des modèles ont été remplacées).
+- **Icône « Actions »** : carré arrondi contenant un éclair plein (`actions`).
+- **Marge sous le contenu** : `--bottom-extra` (16 px, `base.css`) ajouté au remplissage bas des volets, et `BOTTOM_EXTRA` (16, `views/furniture.js`) à la réserve de hauteur du plan ajusté. À régler si la barre des tâches masque encore le bas.
+
 ### 5.1 Diagnostic de démarrage
 
 Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `icons.js`, `longpress.js`, `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`, `treerail.js` et `furniture.js` (fonction et vue)).
@@ -445,3 +456,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V019 | 17/11/2026 07:12 | Jalon 10 : V018 validée ; pictogrammes SVG (`icons.js`), appui simple = ouvrir / appui long = menu (`longpress.js`), cases libres avec menu, mode « Modifier le plan », boutons d'affichage alignés à droite dans l'en-tête, bouton « + » supprimé, en-tête + recherche sur une ligne, rail au démarrage |
 | V020 | 20/11/2026 22:57 | Jalon 11 : V019 validée ; couleur #043BB2, en-tête en pictogrammes (Retour, loupe, engrenage), recherche masquée, groupes de boutons (arborescence / commandes), aide « ? », cases libres invisibles (appui long = la plus proche), volet d'arborescence (afficher/masquer, largeur, rail avec flèche, volet recouvrant sur écran replié) |
 | V021 | 24/11/2026 01:46 | Jalon 12 : V020 validée ; boutons de l'en-tête transparents / inversés, pictogramme arborescence redessiné, « Actions » en pictogramme, volet d'arborescence 10 % plus étroit, pictogrammes élargir / réduire |
+| V022 | 25/11/2026 22:35 | Jalon 13 : V021 validée ; focus sans carré, conteneur unique des boutons du détail, flèches circulaires, bouton du volet bleu et haut, icône « Actions », pictogrammes des menus, marge sous le plan |
