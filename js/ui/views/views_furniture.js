@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V020
-  Horodatage : 2026-11-20 22:57 (heure de Paris)
-  Résumé : V020 : cases libres invisibles en consultation (un appui long choisit la plus proche) ; texte d'aide du mode modification dans une pop-up (bouton « ? »).
+  Version : V022
+  Horodatage : 2026-11-25 22:05 (heure de Paris)
+  Résumé : V022 : pictogrammes devant les commandes des menus d'une case et d'une case libre ; réserve sous le plan augmentée (barre des tâches).
 */
 (function () {
   'use strict';
@@ -24,6 +24,7 @@
   var selected = null;    // emplacement sélectionné (mode ajustement)
   var message = null;     // refus à afficher une fois
   var uid = 0;
+  var BOTTOM_EXTRA = 16;  // marge sous le plan (px), identique à --bottom-extra de base.css : la barre des tâches du téléphone masque le bas
 
   // Plan « taille réelle » (défilement) ou « ajusté à l'écran » (choix mémorisé sur l'appareil).
   function zoomReal() { return R.storage.getAux('planzoom') === 'real'; }
@@ -178,14 +179,14 @@
       anchor: anchor, focusTo: opener, title: k.name, subtitle: parents || R.models.rootLabel(),
       level: R.models.levelOf(R.store.depthOf(k.id)),
       items: [
-        { label: 'Ouvrir', run: function () { R.ui.router.navigate(k.id); } },
+        { label: 'Ouvrir', icon: 'open', run: function () { R.ui.router.navigate(k.id); } },
         { label: 'Placer et dimensionner', icon: 'move-cell', run: function () { editing = true; selected = k.id; message = null; R.events.emit('view:changed', {}); } },
-        { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(k.id); } },
-        { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(k.id); } },
+        { label: 'Ajouter un objet ici', icon: 'add-item', run: function () { R.ui.views.itemActions.openCreate(k.id); } },
+        { label: 'Ajouter un emplacement ici', icon: 'add-place', run: function () { A.openCreate(k.id); } },
         { label: 'Modifier', icon: 'edit-text', run: function () { A.openEdit(k.id); } },
-        { label: 'D\u00e9placer', run: function () { A.openMove(k.id); } },
-        { label: 'Dupliquer', run: function () { A.openDuplicate(k.id); } },
-        { label: 'Supprimer', danger: true, run: function () { A.askDelete(k.id); } }
+        { label: 'D\u00e9placer', icon: 'move-to', run: function () { A.openMove(k.id); } },
+        { label: 'Dupliquer', icon: 'duplicate', run: function () { A.openDuplicate(k.id); } },
+        { label: 'Supprimer', icon: 'delete', danger: true, run: function () { A.askDelete(k.id); } }
       ]
     });
   }
@@ -197,12 +198,12 @@
     var atRoot = F.isRoot(shownId);
     var loc = atRoot ? null : R.store.getLocation(shownId);
     var items = atRoot
-      ? [{ label: 'Ajouter une pi\u00e8ce ici', run: function () { A.openCreate(null, spot); } }]
+      ? [{ label: 'Ajouter une pi\u00e8ce ici', icon: 'add-place', run: function () { A.openCreate(null, spot); } }]
       : [
-          { label: 'Ajouter un emplacement ici', run: function () { A.openCreate(shownId, spot); } },
-          { label: 'Ajouter un objet ici', run: function () { R.ui.views.itemActions.openCreate(shownId); } }
+          { label: 'Ajouter un emplacement ici', icon: 'add-place', run: function () { A.openCreate(shownId, spot); } },
+          { label: 'Ajouter un objet ici', icon: 'add-item', run: function () { R.ui.views.itemActions.openCreate(shownId); } }
         ];
-    items.push({ label: 'R\u00e9gler la grille\u2026', run: function () { openGrid(shownId); } });
+    items.push({ label: 'R\u00e9gler la grille\u2026', icon: 'grid', run: function () { openGrid(shownId); } });
     R.ui.components.contextmenu.open({
       anchor: anchor, focusTo: opener, title: 'Case libre',
       subtitle: (loc ? loc.name : R.models.rootLabel()) + ' \u2014 colonne ' + (spot.col + 1) + ', ligne ' + (spot.row + 1),
@@ -449,7 +450,7 @@
     }
 
     var items = atRoot ? [] : R.store.itemsIn(shownId);
-    wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: editing ? 230 : 40 } : null;
+    wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: (editing ? 230 : 40) + BOTTOM_EXTRA } : null;
     if (items.length) {
       wrap.appendChild(el('section', { class: 'section' }, [
         el('h3', { class: 'section-title' }, ['Objets rangés dans \u00ab ' + loc.name + ' \u00bb (niveau ' + (depth + 1) + ') : ' + items.length]),

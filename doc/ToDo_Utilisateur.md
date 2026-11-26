@@ -1,15 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V022
-  Horodatage : 2026-11-25 22:35 (heure de Paris)
-  Résumé : V022 livrée — fichiers à enregistrer et à tester ; V021 validée.
+  Version : V022a
+  Horodatage : 2026-11-26 02:45 (heure de Paris)
+  Résumé : V022a (correctif du pictogramme du volet) — fichiers à enregistrer et à tester.
 -->
 
-# ToDo Utilisateur — Rangement `V022`
+# ToDo Utilisateur — Rangement `V022a`
 
-> Dernière mise à jour : 25/11/2026 22:35 (Paris) — **V022**
+> Dernière mise à jour : 26/11/2026 02:45 (Paris) — **V022a**
 
 ## Fait
+
+- [x] Tester la V022 : tout est très bien sauf le pictogramme du bouton du volet d'arborescence (à agrandir, en bleu ; le bouton ne doit pas être coloré)
 
 - [x] Tester la V021 et la valider ; transmettre la liste d'évolutions (focus, conteneur des boutons, volet, icônes des menus, pieds, catégories) ; valider le lotissement V022 / V023 / V024 et ajouter « Ouvrir » et les « Ajouter… » aux pictogrammes
 
@@ -47,6 +49,12 @@
 - [x] Valider le jalon 4 (recherche) : testé longuement sur GitHub, aucun bug ; améliorations ergonomiques notées pour le jalon 6 bis
 
 ## À faire maintenant
+
+- [ ] **Enregistrer les fichiers de la V022a** (archive `V022a.zip`, liste dans `liste_fichiers_V022a.txt`) : `css/components.css`, `js/config.js`, `sw.js` (**racine**), `tests/test_jalon13.py` et les trois `.md`. Vérifier que la version affichée est `V022a`, puis mettre à jour la base `Contexte`.
+- [ ] **Tester** : le pictogramme du volet (rail et large) est bleu #043BB2, grand et lisible, sans fond coloré.
+- [ ] **Répondre aux questions de la V024** (catégories) listées ci-dessous (inchangées), puis dire quand lancer la V023 (pieds).
+
+### (historique) À faire à la V022
 
 - [ ] **Enregistrer les fichiers de la V022** (archive `V022.zip` : `gestion_fichiers.py` les range ; liste dans `liste_fichiers_V022.txt`).
   - **Nouveau** : `tests/test_jalon13.py`.
@@ -202,3 +210,4 @@
 | V020 | 20/11/2026 22:57 | Jalon 11 : couleur #043BB2, en-tête en pictogrammes, recherche masquée, groupes de boutons, aide « ? », cases libres invisibles, volet d'arborescence ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V021 | 24/11/2026 01:46 | Jalon 12 : pictogrammes des commandes, volet d'arborescence plus étroit ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V022 | 25/11/2026 22:35 | Jalon 13 : ajustements d'interface ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V022a | 26/11/2026 02:45 | Correctif du pictogramme du volet d'arborescence ; fichiers à enregistrer (voir liste) |

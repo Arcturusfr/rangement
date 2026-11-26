@@ -1,8 +1,8 @@
 /*
   css/components.css — Application « Rangement »
-  Version : V022
-  Horodatage : 2026-11-25 22:05 (heure de Paris)
-  Résumé : V022 : un seul conteneur pour les boutons en haut à droite (fine séparation transparente), flèches de niveau circulaires, bouton réduire / élargir du volet bleu et aussi haut que « Logement ».
+  Version : V022a
+  Horodatage : 2026-11-26 02:45 (heure de Paris)
+  Résumé : V022a : le pictogramme du bouton réduire / élargir le volet est bleu #043BB2 et occupe toute la surface du bouton (le bouton n'est plus coloré).
 */
 
 /* Barre de recherche (sous l'en-tête, masquée par défaut) : champ avec loupe */
@@ -154,8 +154,9 @@
 .tree-head .tree-root { flex: 1; min-width: 0; }
 /* V022 : bouton réduire / élargir le volet : bleu du niveau 0, aussi haut que le cadre du libellé « Logement » */
 .tree-head { align-items: stretch; }
-.tree-shrink { flex: none; align-self: stretch; display: inline-flex; align-items: center; justify-content: center; width: var(--tap); min-height: 40px; border: 0; border-radius: var(--radius); background: var(--brand); color: #FFFFFF; font: inherit; cursor: pointer; }
-@media (hover: hover) { .tree-shrink:hover { filter: brightness(1.2); } }
+.tree-shrink { flex: none; align-self: stretch; display: inline-flex; align-items: center; justify-content: center; width: var(--tap); min-height: 40px; padding: 0; border: 0; border-radius: var(--radius); background: transparent; color: var(--brand); font: inherit; cursor: pointer; }
+.tree-shrink svg { width: 38px; height: 38px; }   /* V022a : le dessin détaillé occupe toute la surface du bouton */
+@media (hover: hover) { .tree-shrink:hover { background: rgba(4, 59, 178, 0.1); } }
 .tree-head--mini .tree-shrink { width: auto; }
 
 .tree-root, .tree-link {

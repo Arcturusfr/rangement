@@ -1,15 +1,19 @@
 <!--
   roadmap-et-avancement.md — Application « Rangement »
-  Version : V022
-  Horodatage : 2026-11-25 22:35 (heure de Paris)
-  Résumé : V022 : V021 validée ; jalon 13 (ajustements d'interface) livré, en attente de validation ; lotissement V023 (pieds) et V024 (catégories) convenu.
+  Version : V022a
+  Horodatage : 2026-11-26 02:45 (heure de Paris)
+  Résumé : V022a : V022 testée, un correctif (pictogramme du volet d'arborescence) ; le reste validé ; lotissement V023 (pieds) et V024 (catégories) inchangé.
 -->
 
-# Roadmap et avancement — Rangement `V022`
+# Roadmap et avancement — Rangement `V022a`
 
-> Dernière mise à jour : 25/11/2026 22:35 (Paris) — **V022**
+> Dernière mise à jour : 26/11/2026 02:45 (Paris) — **V022a**
 
 ## État actuel
+
+- **V022 testée : « le reste est très bien »**, une seule remarque. **V022a (correctif)** : le **pictogramme** du bouton réduire / élargir le volet d'arborescence (dessin détaillé) est **bleu #043BB2** et **agrandi** (38 px) pour remplir le bouton ; le bouton lui-même n'est plus coloré (en V022, j'avais colorié le bouton et laissé le dessin petit : malentendu). Tests : **1308**, 0 échec (`test_jalon13.py` adapté : 45 tests). En attente : validation de la V022a (voir `ToDo_Utilisateur.md`) ; puis **V023** (pieds « Petits / Grands») et **V024** (catégories, questions en attente de réponse).
+
+### (historique) État à la V022
 
 - **V021 validée.** **Jalon 13 livré (V022)**, premier lot de la liste d'évolutions de l'utilisateur :
   - **Focus** : plus de carré de surbrillance au toucher sur les boutons (l'anneau reste pour le clavier) ; survol réservé à la souris.
@@ -324,3 +328,4 @@ Légende : ⬜ à faire · 🟦 en cours · ✅ terminé
 | V020 | 20/11/2026 22:57 | V019 validée ; jalon 11 livré : couleur #043BB2, en-tête en pictogrammes, recherche masquée, groupes de boutons, aide « ? », cases libres invisibles, volet d'arborescence (43 tests dédiés, 1235 au total) |
 | V021 | 24/11/2026 01:46 | V020 validée ; jalon 12 livré : pictogrammes des commandes (en-tête transparent / inversé, arborescence, « Actions », élargir / réduire), volet d'arborescence 10 % plus étroit (28 tests dédiés, 1263 au total) |
 | V022 | 25/11/2026 22:35 | V021 validée ; jalon 13 livré : ajustements d'interface (focus, conteneur unique, flèches rondes, bouton du volet, icône « Actions », pictogrammes des menus, marge sous le plan ; 43 tests dédiés, 1306 au total) |
+| V022a | 26/11/2026 02:45 | Correctif : pictogramme du volet d'arborescence bleu et agrandi (1308 tests au total) |

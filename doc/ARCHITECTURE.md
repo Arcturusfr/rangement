@@ -1,13 +1,13 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V022
-  Horodatage : 2026-11-25 22:35 (heure de Paris)
-  Résumé : V022 (jalon 13) : ajustements d'interface — focus, conteneur unique des boutons du détail, flèches circulaires, bouton du volet bleu, icône « Actions », pictogrammes des menus, marge sous le plan. V021 validée.
+  Version : V022a
+  Horodatage : 2026-11-26 02:45 (heure de Paris)
+  Résumé : V022a : pictogramme du volet d'arborescence bleu et agrandi. V022 (jalon 13) : ajustements d'interface. V021 validée.
 -->
 
-# ARCHITECTURE — Rangement `V022`
+# ARCHITECTURE — Rangement `V022a`
 
-> Dernière mise à jour : 25/11/2026 22:35 (Paris) — **V022** (jalon 13 : ajustements d'interface ; **V021 validée**)
+> Dernière mise à jour : 26/11/2026 02:45 (Paris) — **V022a** (correctif du pictogramme du volet ; jalon 13 : ajustements d'interface ; **V021 validée**)
 > Statut : **jalon 13 livré (V022)** : plus de carré de surbrillance au toucher sur les boutons ; boutons du détail (écran déplié) réunis dans **un seul conteneur** à fin filet transparent ; flèches de niveau **circulaires** ; bouton réduire / élargir le volet **bleu #043BB2** et aussi haut que « Logement » ; nouvelle icône « Actions » (éclair dans un carré) ; **pictogrammes devant les commandes des menus** ; marge de 16 px de plus sous le contenu (barre des tâches du téléphone). Jalons 1 à 12 livrés et validés.
 
 ## 1. Principes directeurs
@@ -386,7 +386,7 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Focus** : `-webkit-tap-highlight-color: transparent` sur boutons, liens et listes ; l'anneau de focus n'apparaît qu'au clavier (`:focus-visible`) ; le survol des boutons de l'en-tête n'existe qu'avec une souris (`@media (hover: hover)`), pour qu'il ne reste pas « collé » après un appui tactile.
 - **Conteneur des boutons du détail** (écran déplié) : les groupes « arborescence » et « commandes » forment **un seul bloc** de même largeur, aux bords arrondis à l'extérieur seulement (12 px) et séparé par un **filet transparent de 2 px** (`row-gap` de `.detail-bar`). Écran replié : deux groupes distincts comme avant (ils ne sont pas voisins dans la grille).
 - **Flèches de niveau** (▲ ▼) : boutons ronds de 44 px (`.detail-bar .button--icon`).
-- **Volet d'arborescence** : le bouton réduire / élargir (`.tree-shrink`) est bleu `--brand` (#043BB2), pictogramme blanc, et occupe toute la hauteur de la ligne « Logement » (40 px au moins) ; dans le rail, il occupe toute la largeur du rail.
+- **Volet d'arborescence** : le bouton réduire / élargir (`.tree-shrink`) occupe toute la hauteur de la ligne « Logement » (40 px au moins) et, dans le rail, toute la largeur du rail ; **le pictogramme** (38 px, détaillé) est bleu `--brand` (#043BB2) et remplit le bouton, qui lui-même n'est pas coloré *(V022a ; en V022 le bouton était plein et le pictogramme trop petit)*.
 - **Menus** : chaque commande peut porter un pictogramme (`icon`) : Ouvrir (`open`), Ajouter une pièce / un emplacement (`add-place`), Ajouter un objet (`add-item`), Régler la grille (`grid`), Placer et dimensionner (`move-cell`), Modifier (`edit-text`), Déplacer (`move-to`), Dupliquer (`duplicate`), Supprimer (`delete`, corbeille, rouge « danger » comme le texte). Pictogrammes dessinés en `currentColor` (les couleurs fixes des modèles ont été remplacées).
 - **Icône « Actions »** : carré arrondi contenant un éclair plein (`actions`).
 - **Marge sous le contenu** : `--bottom-extra` (16 px, `base.css`) ajouté au remplissage bas des volets, et `BOTTOM_EXTRA` (16, `views/furniture.js`) à la réserve de hauteur du plan ajusté. À régler si la barre des tâches masque encore le bas.
@@ -457,3 +457,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V020 | 20/11/2026 22:57 | Jalon 11 : V019 validée ; couleur #043BB2, en-tête en pictogrammes (Retour, loupe, engrenage), recherche masquée, groupes de boutons (arborescence / commandes), aide « ? », cases libres invisibles (appui long = la plus proche), volet d'arborescence (afficher/masquer, largeur, rail avec flèche, volet recouvrant sur écran replié) |
 | V021 | 24/11/2026 01:46 | Jalon 12 : V020 validée ; boutons de l'en-tête transparents / inversés, pictogramme arborescence redessiné, « Actions » en pictogramme, volet d'arborescence 10 % plus étroit, pictogrammes élargir / réduire |
 | V022 | 25/11/2026 22:35 | Jalon 13 : V021 validée ; focus sans carré, conteneur unique des boutons du détail, flèches circulaires, bouton du volet bleu et haut, icône « Actions », pictogrammes des menus, marge sous le plan |
+| V022a | 26/11/2026 02:45 | Correctif : pictogramme du volet d'arborescence bleu #043BB2 et agrandi (le bouton n'est plus coloré) |

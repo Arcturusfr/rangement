@@ -1,7 +1,7 @@
 # tests/test_jalon13.py — Application « Rangement »
-# Version : V022
-# Horodatage : 2026-11-25 22:05 (heure de Paris)
-# Résumé : jalon 13 (V022) : pas de surbrillance de focus, conteneur unique des boutons du détail, flèches circulaires, bouton du volet bleu et aussi haut que « Logement », nouvelle icône « Actions », pictogrammes des menus, marge sous le plan.
+# Version : V022a
+# Horodatage : 2026-11-26 02:45 (heure de Paris)
+# Résumé : jalon 13 (V022, V022a) : pas de surbrillance de focus, conteneur unique des boutons du détail, flèches circulaires, pictogramme bleu et grand dans le bouton du volet, nouvelle icône « Actions », pictogrammes des menus, marge sous le plan.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon13.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -136,14 +136,18 @@ def scenario_tree(browser, base):
     errors = []
     ctx, page = start(browser, base, 884, 1000, errors)
     g = box(page, "#tree-grow")
-    check("volet | rail : bouton « agrandir » bleu #043BB2, pictogramme blanc", css(page, "#tree-grow", "backgroundColor") == BRAND and css(page, "#tree-grow", "color") == "rgb(255, 255, 255)")
+    check("volet | rail : pictogramme « agrandir » bleu #043BB2, bouton non coloré", css(page, "#tree-grow", "color") == BRAND and css(page, "#tree-grow", "backgroundColor") == "rgba(0, 0, 0, 0)")
+    sv = box(page, "#tree-grow svg")
+    check("volet | rail : pictogramme grand (≥ 36 px), contenu dans le bouton", sv["width"] >= 36 and sv["height"] >= 36 and sv["height"] <= g["height"] + 1, (sv, g))
     check("volet | rail : bouton plus grand (≥ 60 px de large, ≥ 40 px de haut)", g["width"] >= 60 and g["height"] >= 40, g)
     page.locator("#tree-grow").click()
     page.wait_for_function("document.documentElement.dataset.tree === 'wide'")
     page.wait_for_timeout(300)
     s, r = box(page, "#tree-shrink"), box(page, ".tree-head .tree-root")
     check("volet | large : bouton « réduire » aussi haut que le cadre « Logement »", abs(s["height"] - r["height"]) <= 1 and s["height"] >= 40, (s, r))
-    check("volet | large : bouton bleu #043BB2", css(page, "#tree-shrink", "backgroundColor") == BRAND)
+    check("volet | large : pictogramme bleu #043BB2, bouton non coloré", css(page, "#tree-shrink", "color") == BRAND and css(page, "#tree-shrink", "backgroundColor") == "rgba(0, 0, 0, 0)")
+    sv = box(page, "#tree-shrink svg")
+    check("volet | large : pictogramme grand (≥ 36 px), contenu dans le bouton", sv["width"] >= 36 and sv["height"] <= s["height"] + 1 and sv["width"] <= s["width"] + 1, (sv, s))
     check("volet | large : bouton aligné verticalement sur « Logement »", abs(s["y"] - r["y"]) <= 1, (s, r))
     check("volet | pictogramme « réduire » conservé", "M18 9" in page.locator("#tree-shrink svg path").first.get_attribute("d"))
     check("volet | largeur du volet large inchangée (≈ 288 px)", 285 <= box(page, "#pane-tree")["width"] <= 290)
