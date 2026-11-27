@@ -1,8 +1,8 @@
 /*
   js/features/furniture.js — Application « Rangement »
-  Version : V019
-  Horodatage : 2026-11-17 07:12 (heure de Paris)
-  Résumé : V019 : pin(id) — fige la disposition actuelle avant de créer un emplacement sur une case libre.
+  Version : V023
+  Horodatage : 2026-11-27 00:20 (heure de Paris)
+  Résumé : V023 : pieds « petits » ou « grands » (get().feet = false | 'petits' | 'grands') ; l'ancienne valeur « avec » est lue comme « petits ».
 */
 (function () {
   'use strict';
@@ -43,16 +43,19 @@
     return d === 1 || (d > 1 && R.store.childLocations(id).length > 0);
   }
 
+  // Pieds : false (sans), 'petits' ou 'grands'. L'ancienne valeur booléenne « avec » (true) est lue comme « petits ».
+  function feetOf(v) { return v === 'grands' ? 'grands' : ((v === 'petits' || v === true) ? 'petits' : false); }
+
   function geomOf(l) { return (l && l.geometry && typeof l.geometry === 'object') ? l.geometry : {}; }
   function intIn(v, min, max) { return (typeof v === 'number' && v === Math.floor(v) && v >= min && v <= max) ? v : null; }
 
-  // Réglages d'un emplacement dessiné : { ratio, feet, cols, rows, top, bottom } (0 = automatique pour cols et rows).
+  // Réglages d'un emplacement dessiné : { ratio, feet (false | 'petits' | 'grands'), cols, rows, top, bottom } (0 = automatique pour cols et rows).
   function get(id) {
     var a = absFor(id);
     var g = isRoot(id) ? (R.store.plan() || {}) : geomOf(R.store.getLocation(id));
     return {
       ratio: (typeof g.ratio === 'number' && g.ratio >= 0.3 && g.ratio <= 4) ? g.ratio : DEFAULT_RATIO,
-      feet: !isPlanLike(id) && g.feet === true,
+      feet: isPlanLike(id) ? false : feetOf(g.feet),
       cols: intIn(g.cols, 1, a.cols) || 0,
       rows: intIn(g.rows, 1, a.rows) || 0,
       top: isPlanLike(id) ? 0 : (intIn(g.top, 0, a.band) || 0),
@@ -240,12 +243,12 @@
     return commit(id, layout(id));
   }
 
-  // patch : { ratio?, feet? } (meubles seulement)
+  // patch : { ratio?, feet? } (meubles seulement ; feet : false, 'petits' ou 'grands')
   function set(id, patch) {
     if (isRoot(id) || !R.store.getLocation(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
     var clean = {};
     if (patch.ratio !== undefined && typeof patch.ratio === 'number' && patch.ratio >= 0.3 && patch.ratio <= 4) { clean.ratio = patch.ratio; }
-    if (patch.feet !== undefined) { clean.feet = patch.feet === true; }
+    if (patch.feet !== undefined) { clean.feet = feetOf(patch.feet); }
     var res = R.store.update(function (d) {
       var t = d.locations.filter(function (l) { return l.id === id; })[0];
       t.geometry = Object.assign({}, t.geometry || {}, clean);

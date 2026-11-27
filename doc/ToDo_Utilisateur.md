@@ -1,15 +1,18 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V022a
-  Horodatage : 2026-11-26 02:45 (heure de Paris)
-  Résumé : V022a (correctif du pictogramme du volet) — fichiers à enregistrer et à tester.
+  Version : V023
+  Horodatage : 2026-11-27 00:35 (heure de Paris)
+  Résumé : V023 (pieds « petits / grands ») — fichiers à enregistrer et à tester.
 -->
 
-# ToDo Utilisateur — Rangement `V022a`
+# ToDo Utilisateur — Rangement `V023`
 
-> Dernière mise à jour : 26/11/2026 02:45 (Paris) — **V022a**
+> Dernière mise à jour : 27/11/2026 00:35 (Paris) — **V023**
 
 ## Fait
+
+- [x] Tester la V022a et valider la V022 / V022a ; lancer la V023 (pieds)
+- [x] Enregistrer les fichiers de la V022a
 
 - [x] Tester la V022 : tout est très bien sauf le pictogramme du bouton du volet d'arborescence (à agrandir, en bleu ; le bouton ne doit pas être coloré)
 
@@ -49,6 +52,16 @@
 - [x] Valider le jalon 4 (recherche) : testé longuement sur GitHub, aucun bug ; améliorations ergonomiques notées pour le jalon 6 bis
 
 ## À faire maintenant
+
+- [ ] **Enregistrer les fichiers de la V023** (archive `V023.zip`, liste dans `liste_fichiers_V023.txt`) : **nouveau** `tests/test_jalon14.py` ; **remplacés** `js/features/furniture.js`, `js/ui/views/furniture.js`, `css/furniture.css`, `js/config.js`, `sw.js` (**racine**), `tests/test_jalon9_2.py` et les trois `.md`. Tout le reste est inchangé. Vérifier que la version affichée est `V023` (sinon Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis mettre à jour la base `Contexte`.
+- [ ] **Exporter une sauvegarde** de vos vraies données avant d'essayer (précaution habituelle).
+- [ ] **Tester la V023** (écran déplié **et** replié), sur un meuble en Vue graphique : Actions › « Régler la grille… » › **Pieds** : Sans / Petits / Grands.
+  1. **Petits** : comme avant ; un meuble qui avait « Avec » doit afficher « Petits ».
+  2. **Grands** : deux pieds de la moitié de la hauteur du meuble ; avec **Dessous = 1 ou plus**, la bande se place **entre les pieds** ; y placer un emplacement (« Placer et dimensionner » ou case libre) ; essayer en écran replié.
+- [ ] **Répondre** : les grands pieds (20 px de large, aux extrémités) vous conviennent-ils ? La bande « Dessous » plus étroite entre les pieds est-elle lisible (surtout avec plusieurs colonnes) ?
+- [ ] **Préparer la V024** (ouvertures dans les pièces) : réponses aux questions de cadrage (largeur entière ou non, portes seules ou aussi fenêtres, symbole d'ouverture, purement visuel ou utile à la navigation), à donner dans la conversation de la V024. Les catégories (à la place des mots-clés) attendent votre réflexion.
+
+### (historique) À faire à la V022a
 
 - [ ] **Enregistrer les fichiers de la V022a** (archive `V022a.zip`, liste dans `liste_fichiers_V022a.txt`) : `css/components.css`, `js/config.js`, `sw.js` (**racine**), `tests/test_jalon13.py` et les trois `.md`. Vérifier que la version affichée est `V022a`, puis mettre à jour la base `Contexte`.
 - [ ] **Tester** : le pictogramme du volet (rail et large) est bleu #043BB2, grand et lisible, sans fond coloré.
@@ -211,3 +224,4 @@
 | V021 | 24/11/2026 01:46 | Jalon 12 : pictogrammes des commandes, volet d'arborescence plus étroit ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V022 | 25/11/2026 22:35 | Jalon 13 : ajustements d'interface ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V022a | 26/11/2026 02:45 | Correctif du pictogramme du volet d'arborescence ; fichiers à enregistrer (voir liste) |
+| V023 | 27/11/2026 00:35 | Jalon 14 : pieds « petits / grands » ; fichiers à enregistrer, tests, base Contexte à mettre à jour |

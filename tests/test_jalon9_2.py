@@ -1,7 +1,7 @@
 # tests/test_jalon9_2.py — Application « Rangement »
-# Version : V020
-# Horodatage : 2026-11-20 22:57 (heure de Paris)
-# Résumé : V020 : adapté au jalon 11 (recherche masquée ouverte au chargement, boutons de l'en-tête, groupes, volet d'arborescence) ; parcours inchangés.
+# Version : V023
+# Horodatage : 2026-11-27 00:20 (heure de Paris)
+# Résumé : V023 : « Pieds : Avec » devient « Petits » (feet == 'petits') ; reste inchangé.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_2.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -467,7 +467,7 @@ def scenario_plus(browser, base):
     d.get_by_role("button", name="Appliquer").click()
     closed(page)
     g = geo(page, "Meuble living")
-    check("grille | meuble : pieds, proportions et bande enregistrés", g.get("feet") is True and g.get("ratio") == 1 and g.get("top") == 1, g)
+    check("grille | meuble : pieds, proportions et bande enregistrés", g.get("feet") == "petits" and g.get("ratio") == 1 and g.get("top") == 1, g)
     check("grille | meuble : bande et pieds dessinés", page.locator(".furn-band[data-zone='top']").count() == 1 and page.locator(".furn-feet").count() == 1)
 
     # niveau inférieur : le « + » travaille sur le niveau affiché

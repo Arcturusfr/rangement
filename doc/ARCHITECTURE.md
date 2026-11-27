@@ -1,14 +1,14 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V022a
-  Horodatage : 2026-11-26 02:45 (heure de Paris)
-  Résumé : V022a : pictogramme du volet d'arborescence bleu et agrandi. V022 (jalon 13) : ajustements d'interface. V021 validée.
+  Version : V023
+  Horodatage : 2026-11-27 00:35 (heure de Paris)
+  Résumé : V023 (jalon 14) : pieds des meubles « petits » ou « grands » (moitié de la hauteur, bande « Dessous » entre les pieds). V022 / V022a validées.
 -->
 
-# ARCHITECTURE — Rangement `V022a`
+# ARCHITECTURE — Rangement `V023`
 
-> Dernière mise à jour : 26/11/2026 02:45 (Paris) — **V022a** (correctif du pictogramme du volet ; jalon 13 : ajustements d'interface ; **V021 validée**)
-> Statut : **jalon 13 livré (V022)** : plus de carré de surbrillance au toucher sur les boutons ; boutons du détail (écran déplié) réunis dans **un seul conteneur** à fin filet transparent ; flèches de niveau **circulaires** ; bouton réduire / élargir le volet **bleu #043BB2** et aussi haut que « Logement » ; nouvelle icône « Actions » (éclair dans un carré) ; **pictogrammes devant les commandes des menus** ; marge de 16 px de plus sous le contenu (barre des tâches du téléphone). Jalons 1 à 12 livrés et validés.
+> Dernière mise à jour : 27/11/2026 00:35 (Paris) — **V023** (jalon 14 : pieds « petits / grands » ; **V022 et V022a validées**)
+> Statut : **jalon 14 livré (V023)** : liste « Pieds » = Sans / Petits / Grands, grands pieds = moitié de la hauteur du meuble avec la bande « Dessous » entre eux. Jalon 13 (V022) : plus de carré de surbrillance au toucher sur les boutons ; boutons du détail (écran déplié) réunis dans **un seul conteneur** à fin filet transparent ; flèches de niveau **circulaires** ; bouton réduire / élargir le volet **bleu #043BB2** et aussi haut que « Logement » ; nouvelle icône « Actions » (éclair dans un carré) ; **pictogrammes devant les commandes des menus** ; marge de 16 px de plus sous le contenu (barre des tâches du téléphone). Jalons 1 à 12 livrés et validés.
 
 ## 1. Principes directeurs
 
@@ -46,6 +46,7 @@
 │   ├── test_jalon9_3.py       Tests Playwright/Chromium : ℹ️ et info-bulle, libellé de catégorie tronqué + chevron, menu déroulant « Actions », Liste / Plan dans l'en-tête figé
 │   ├── test_jalon9_3bis.py    Tests Playwright/Chromium (V017) : bandeau de niveau = « Ouvrir », bandeau masqué sur les cases étroites, Vue graphique à tous les niveaux
 │   ├── test_jalon9_4.py       Tests Playwright/Chromium (V018) : plan en vue d'accueil, boutons flottants Liste / Plan et Agrandir, arborescence à trois états
+│   ├── test_jalon14.py        Tests Playwright/Chromium (V023) : pieds Sans / Petits / Grands, migration de l'ancienne valeur « avec », bande « Dessous » entre les grands pieds, redimensionnement
 │   ├── test_jalon13.py        Tests Playwright/Chromium (V022) : focus, conteneur unique des boutons du détail, flèches circulaires, bouton du volet, icône « Actions », pictogrammes des menus, marge sous le plan
 │   ├── test_jalon12.py        Tests Playwright/Chromium (V021) : boutons de l'en-tête transparents / inversés, pictogramme arborescence, « Actions » en pictogramme, largeur du volet, pictogrammes élargir / réduire
 │   ├── test_jalon11.py        Tests Playwright/Chromium (V020) : couleur #043BB2, recherche masquée + loupe, Réglages en pictogramme, groupes de boutons, aide « ? », cases libres invisibles (appui long = case la plus proche), volet d'arborescence sur écran replié
@@ -70,7 +71,7 @@
     │   ├── locations.js       Créer/modifier/déplacer/supprimer des emplacements, avec garde-fous
     │   ├── items.js           Créer/modifier/déplacer/supprimer des objets (quantité, mots-clés, note)
     │   ├── search.js          Recherche d'objets et d'emplacements (nom, mots-clés, note, chemin), classée par pertinence
-    │   ├── furniture.js       Grille d'un meuble **ou du plan du logement** (colonnes, lignes, bandes dessus / dessous pour un meuble, proportions, pieds) et place de chaque sous-emplacement / pièce en cases (`geometry`) ; identifiant spécial `ROOT` = le logement ; `isPlanLike(id)` = le logement ou une pièce (cases carrées, une seule zone) ; `hasGraphic(id)` = Vue graphique proposée (un meuble, ou tout niveau plus bas qui a des sous-emplacements)
+    │   ├── furniture.js       Grille d'un meuble **ou du plan du logement** (colonnes, lignes, bandes dessus / dessous pour un meuble, proportions, pieds `false` | `'petits'` | `'grands'`) et place de chaque sous-emplacement / pièce en cases (`geometry`) ; identifiant spécial `ROOT` = le logement ; `isPlanLike(id)` = le logement ou une pièce (cases carrées, une seule zone) ; `hasGraphic(id)` = Vue graphique proposée (un meuble, ou tout niveau plus bas qui a des sous-emplacements)
     │   └── backup.js          Export / import JSON, copie de sécurité avant import (annulable), suivi de la dernière sauvegarde
     ├── ui/
     │   ├── dom.js             Aides de construction du DOM (texte toujours échappé)
@@ -391,6 +392,13 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Icône « Actions »** : carré arrondi contenant un éclair plein (`actions`).
 - **Marge sous le contenu** : `--bottom-extra` (16 px, `base.css`) ajouté au remplissage bas des volets, et `BOTTOM_EXTRA` (16, `views/furniture.js`) à la réserve de hauteur du plan ajusté. À régler si la barre des tâches masque encore le bas.
 
+### Règles du jalon 14 (V023)
+
+- **Pieds** : le champ `geometry.feet` d'un meuble (ou d'un niveau plus bas dessiné comme un meuble) passe de booléen à `'petits'` ou `'grands'` (absent / `false` = sans). L'ancienne valeur `true` (« Avec ») est **lue comme `'petits'`** (`feetOf()` dans `features/furniture.js`) et réécrite telle quelle au prochain enregistrement des réglages ; `schemaVersion` inchangé. `get(id).feet` renvoie `false`, `'petits'` ou `'grands'` ; un plan (logement, pièce) n'a jamais de pieds.
+- **Réglage** : la boîte « Grille de … » propose « Pieds : Sans / Petits / Grands » (valeurs `0` / `1` / `2`) avec une indication sur les grands pieds.
+- **Petits pieds** : inchangés (deux petits pieds de 16 × 24 px sous le cadre ; la bande « Dessous » se place sous eux).
+- **Grands pieds** : zone `.furn-legs` sous le cadre = deux pieds `.furn-foot--tall` (20 px de large, aux deux extrémités) avec, **entre eux**, la bande « Dessous » (`.furn-legs-mid`). Leur hauteur est **la moitié de celle du cadre du meuble** (`min-height` posée par `fitLegs()` dans `views/furniture.js`, recalculée à l'affichage, au redimensionnement — `ResizeObserver` sur le cadre et `refitAll()` — et à chaque redessin) ; elle grandit si la bande « Dessous » est plus haute que la moitié. Les emplacements placés dans la bande (`zone: 'bottom'`) s'y dessinent, appui long et cases libres compris. `fit()` (plans) n'est pas concerné : seuls les meubles ont des pieds.
+
 ### 5.1 Diagnostic de démarrage
 
 Un petit script **en ligne** dans `index.html` (donc indépendant des fichiers `.js`) affiche à l'écran, dans un bandeau rouge, tout fichier introuvable et toute erreur JavaScript. Au démarrage, `main.js` vérifie en plus que chaque module attendu est présent et nomme le fichier manquant (tableau `REQUIRED`). Quand un fichier est ajouté à l'application, il faut l'ajouter à ce tableau (c'est fait pour `icons.js`, `longpress.js`, `locations.js`, `form.js`, `dialog.js`, `location-actions.js`, `items.js`, `item-actions.js`, `item.js`, `search.js` (fonction et vue), `searchbar.js`, `backup.js`, `settings.js`, `pwa.js`, `detailbar.js`, `contextmenu.js`, `bubble.js`, `treerail.js` et `furniture.js` (fonction et vue)).
@@ -458,3 +466,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V021 | 24/11/2026 01:46 | Jalon 12 : V020 validée ; boutons de l'en-tête transparents / inversés, pictogramme arborescence redessiné, « Actions » en pictogramme, volet d'arborescence 10 % plus étroit, pictogrammes élargir / réduire |
 | V022 | 25/11/2026 22:35 | Jalon 13 : V021 validée ; focus sans carré, conteneur unique des boutons du détail, flèches circulaires, bouton du volet bleu et haut, icône « Actions », pictogrammes des menus, marge sous le plan |
 | V022a | 26/11/2026 02:45 | Correctif : pictogramme du volet d'arborescence bleu #043BB2 et agrandi (le bouton n'est plus coloré) |
+| V023 | 27/11/2026 00:35 | Jalon 14 : V022 / V022a validées ; pieds des meubles « Sans / Petits / Grands » (grands = moitié de la hauteur, bande « Dessous » entre les pieds), ancienne valeur « avec » lue comme « petits » |
