@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V022
-  Horodatage : 2026-11-25 22:05 (heure de Paris)
-  Résumé : V022 : pictogrammes devant les commandes des menus d'une case et d'une case libre ; réserve sous le plan augmentée (barre des tâches).
+  Version : V023
+  Horodatage : 2026-11-27 00:20 (heure de Paris)
+  Résumé : V023 : grands pieds (moitié de la hauteur du meuble, bande « Dessous » entre les pieds) ; liste Pieds : Sans / Petits / Grands.
 */
 (function () {
   'use strict';
@@ -153,7 +153,8 @@
         { name: 'ratio', label: 'Proportions', type: 'select', options: F.ratios, value: nearestRatio(g.ratio) },
         { name: 'top', label: 'Dessus', type: 'select', options: range(0, L.band, lay.T), value: lay.T },
         { name: 'bottom', label: 'Dessous', type: 'select', options: range(0, L.band, lay.B), value: lay.B },
-        { name: 'feet', label: 'Pieds', type: 'select', options: [{ value: '0', label: 'Sans' }, { value: '1', label: 'Avec' }], value: g.feet ? '1' : '0' }
+        { name: 'feet', label: 'Pieds', type: 'select', options: [{ value: '0', label: 'Sans' }, { value: '1', label: 'Petits' }, { value: '2', label: 'Grands' }], value: g.feet === 'grands' ? '2' : (g.feet ? '1' : '0'),
+          hint: '\u00ab Grands \u00bb : les pieds font la moiti\u00e9 de la hauteur du meuble et la bande \u00ab Dessous \u00bb se place entre eux.' }
       );
     }
     R.ui.components.dialog.form({
@@ -165,7 +166,7 @@
         if (!planLike) { patch.top = Number(v.top); patch.bottom = Number(v.bottom); }
         var changed = patch.cols !== lay.C || patch.rows !== lay.L || (!planLike && (patch.top !== lay.T || patch.bottom !== lay.B));
         var res = changed ? F.setGrid(shownId, patch) : { ok: true };
-        if (res.ok && !planLike) { res = F.set(shownId, { ratio: Number(v.ratio), feet: v.feet === '1' }); }
+        if (res.ok && !planLike) { res = F.set(shownId, { ratio: Number(v.ratio), feet: v.feet === '2' ? 'grands' : (v.feet === '1' ? 'petits' : false) }); }
         return res;
       }
     });
@@ -326,13 +327,23 @@
     }
   }
 
+  // Grands pieds : leur hauteur (au moins) est la moitié de celle du meuble ; elle grandit si la bande « Dessous » est plus haute.
+  function fitLegs(wrap) {
+    if (!wrap.isConnected) { return; }
+    var body = wrap.querySelector('.furn-body');
+    var legs = wrap.querySelector('.furn-legs');
+    if (!body || !legs) { return; }
+    legs.style.minHeight = Math.round(body.getBoundingClientRect().height / 2) + 'px';
+  }
+
   function schedule(wrap) {
     fit(wrap);
-    if (window.requestAnimationFrame) { window.requestAnimationFrame(function () { fit(wrap); window.requestAnimationFrame(function () { fit(wrap); }); }); }
+    fitLegs(wrap);
+    if (window.requestAnimationFrame) { window.requestAnimationFrame(function () { fit(wrap); fitLegs(wrap); window.requestAnimationFrame(function () { fit(wrap); fitLegs(wrap); }); }); }
   }
 
   function refitAll() {
-    Array.prototype.forEach.call(document.querySelectorAll('.furn-view'), function (w) { fit(w); });
+    Array.prototype.forEach.call(document.querySelectorAll('.furn-view'), function (w) { fit(w); fitLegs(w); });
   }
   window.addEventListener('resize', refitAll);
   R.events.on('layout:changed', refitAll);
@@ -424,10 +435,23 @@
       body.style.minHeight = (lay.L * ROW_MIN) + 'px';
     }
     frame.push(body);
-    if (g.feet) { frame.push(el('div', { class: 'furn-feet', 'data-level': level }, [el('span', { class: 'furn-foot' }), el('span', { class: 'furn-foot' })])); }
-    if (lay.B) { frame.push(band('bottom', lay.B)); }
+    if (g.feet === 'grands') {      // grands pieds : moitié de la hauteur du meuble, la bande « Dessous » entre les deux pieds
+      frame.push(el('div', { class: 'furn-legs', 'data-level': level }, [
+        el('span', { class: 'furn-foot furn-foot--tall' }),
+        el('div', { class: 'furn-legs-mid' }, lay.B ? [band('bottom', lay.B)] : []),
+        el('span', { class: 'furn-foot furn-foot--tall' })
+      ]));
+    } else {
+      if (g.feet) { frame.push(el('div', { class: 'furn-feet', 'data-level': level }, [el('span', { class: 'furn-foot' }), el('span', { class: 'furn-foot' })])); }
+      if (lay.B) { frame.push(band('bottom', lay.B)); }
+    }
     var frameNode = el('div', { class: 'furn-frame' + (planLike ? ' furn-frame--plan' : '') }, frame);
     wrap.appendChild(frameNode);
+    if (wrap._legsRo) { wrap._legsRo.disconnect(); wrap._legsRo = null; }
+    if (g.feet === 'grands' && window.ResizeObserver) {      // le cadre change de taille (écran, volet) : les pieds suivent
+      wrap._legsRo = new window.ResizeObserver(function () { fitLegs(wrap); });
+      wrap._legsRo.observe(body);
+    }
     // Un appui long ailleurs que sur une case : la case libre la plus proche est choisie et son menu s'ouvre.
     R.ui.components.longpress.attach(frameNode, {
       filter: function (event) { return !(event.target.closest && event.target.closest('.furn-cell, .furn-slot')); },

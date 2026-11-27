@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V023
-  Horodatage : 2026-11-27 00:20 (heure de Paris)
-  Résumé : V023 : grands pieds (moitié de la hauteur du meuble, bande « Dessous » entre les pieds) ; liste Pieds : Sans / Petits / Grands.
+  Version : V023a
+  Horodatage : 2026-11-27 00:50 (heure de Paris)
+  Résumé : V023a : pieds « grands » = hauteur du cadre (moitié de la hauteur totale pieds compris) ; nouveau choix « Très grands » (75 % de la hauteur totale).
 */
 (function () {
   'use strict';
@@ -153,8 +153,8 @@
         { name: 'ratio', label: 'Proportions', type: 'select', options: F.ratios, value: nearestRatio(g.ratio) },
         { name: 'top', label: 'Dessus', type: 'select', options: range(0, L.band, lay.T), value: lay.T },
         { name: 'bottom', label: 'Dessous', type: 'select', options: range(0, L.band, lay.B), value: lay.B },
-        { name: 'feet', label: 'Pieds', type: 'select', options: [{ value: '0', label: 'Sans' }, { value: '1', label: 'Petits' }, { value: '2', label: 'Grands' }], value: g.feet === 'grands' ? '2' : (g.feet ? '1' : '0'),
-          hint: '\u00ab Grands \u00bb : les pieds font la moiti\u00e9 de la hauteur du meuble et la bande \u00ab Dessous \u00bb se place entre eux.' }
+        { name: 'feet', label: 'Pieds', type: 'select', options: [{ value: '0', label: 'Sans' }, { value: '1', label: 'Petits' }, { value: '2', label: 'Grands' }, { value: '3', label: 'Très grands' }], value: g.feet === 'tres-grands' ? '3' : (g.feet === 'grands' ? '2' : (g.feet ? '1' : '0')),
+          hint: '\u00ab Grands \u00bb : pieds de m\u00eame hauteur que le meuble (moiti\u00e9 de la hauteur totale). \u00ab Tr\u00e8s grands \u00bb : 75 % de la hauteur totale. La bande \u00ab Dessous \u00bb se place entre les pieds.' }
       );
     }
     R.ui.components.dialog.form({
@@ -166,7 +166,7 @@
         if (!planLike) { patch.top = Number(v.top); patch.bottom = Number(v.bottom); }
         var changed = patch.cols !== lay.C || patch.rows !== lay.L || (!planLike && (patch.top !== lay.T || patch.bottom !== lay.B));
         var res = changed ? F.setGrid(shownId, patch) : { ok: true };
-        if (res.ok && !planLike) { res = F.set(shownId, { ratio: Number(v.ratio), feet: v.feet === '2' ? 'grands' : (v.feet === '1' ? 'petits' : false) }); }
+        if (res.ok && !planLike) { res = F.set(shownId, { ratio: Number(v.ratio), feet: v.feet === '3' ? 'tres-grands' : (v.feet === '2' ? 'grands' : (v.feet === '1' ? 'petits' : false)) }); }
         return res;
       }
     });
@@ -327,13 +327,14 @@
     }
   }
 
-  // Grands pieds : leur hauteur (au moins) est la moitié de celle du meuble ; elle grandit si la bande « Dessous » est plus haute.
+  // Grands pieds : « grands » = la hauteur totale (pieds compris) est partagée moitié-moitié, donc pieds = cadre ; « très grands » = pieds à 75 % de la hauteur totale, donc 3 × le cadre.
+  // La zone des pieds grandit si la bande « Dessous » est plus haute.
   function fitLegs(wrap) {
     if (!wrap.isConnected) { return; }
     var body = wrap.querySelector('.furn-body');
     var legs = wrap.querySelector('.furn-legs');
     if (!body || !legs) { return; }
-    legs.style.minHeight = Math.round(body.getBoundingClientRect().height / 2) + 'px';
+    legs.style.minHeight = Math.round(body.getBoundingClientRect().height * (legs.getAttribute('data-feet') === 'tres-grands' ? 3 : 1)) + 'px';
   }
 
   function schedule(wrap) {
@@ -435,8 +436,8 @@
       body.style.minHeight = (lay.L * ROW_MIN) + 'px';
     }
     frame.push(body);
-    if (g.feet === 'grands') {      // grands pieds : moitié de la hauteur du meuble, la bande « Dessous » entre les deux pieds
-      frame.push(el('div', { class: 'furn-legs', 'data-level': level }, [
+    if (g.feet === 'grands' || g.feet === 'tres-grands') {      // grands pieds : la bande « Dessous » entre les deux pieds ; hauteur = 1 × (grands) ou 3 × (très grands) celle du cadre
+      frame.push(el('div', { class: 'furn-legs', 'data-level': level, 'data-feet': g.feet }, [
         el('span', { class: 'furn-foot furn-foot--tall' }),
         el('div', { class: 'furn-legs-mid' }, lay.B ? [band('bottom', lay.B)] : []),
         el('span', { class: 'furn-foot furn-foot--tall' })
@@ -448,7 +449,7 @@
     var frameNode = el('div', { class: 'furn-frame' + (planLike ? ' furn-frame--plan' : '') }, frame);
     wrap.appendChild(frameNode);
     if (wrap._legsRo) { wrap._legsRo.disconnect(); wrap._legsRo = null; }
-    if (g.feet === 'grands' && window.ResizeObserver) {      // le cadre change de taille (écran, volet) : les pieds suivent
+    if ((g.feet === 'grands' || g.feet === 'tres-grands') && window.ResizeObserver) {      // le cadre change de taille (écran, volet) : les pieds suivent
       wrap._legsRo = new window.ResizeObserver(function () { fitLegs(wrap); });
       wrap._legsRo.observe(body);
     }

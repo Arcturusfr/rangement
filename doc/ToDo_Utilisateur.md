@@ -1,16 +1,17 @@
 <!--
   ToDo_Utilisateur.md — Application « Rangement »
-  Version : V023
-  Horodatage : 2026-11-27 00:35 (heure de Paris)
-  Résumé : V023 (pieds « petits / grands ») — fichiers à enregistrer et à tester.
+  Version : V023a
+  Horodatage : 2026-11-27 00:50 (heure de Paris)
+  Résumé : V023a (pieds « grands » corrigés, « très grands » ajoutés) — fichiers à enregistrer et à tester.
 -->
 
-# ToDo Utilisateur — Rangement `V023`
+# ToDo Utilisateur — Rangement `V023a`
 
-> Dernière mise à jour : 27/11/2026 00:35 (Paris) — **V023**
+> Dernière mise à jour : 27/11/2026 00:50 (Paris) — **V023a**
 
 ## Fait
 
+- [x] Tester la V023 : emplacements bien visibles entre les pieds (écrans plié et déplié) ; demander la correction de la taille des grands pieds et le choix « Très grands »
 - [x] Tester la V022a et valider la V022 / V022a ; lancer la V023 (pieds)
 - [x] Enregistrer les fichiers de la V022a
 
@@ -53,11 +54,12 @@
 
 ## À faire maintenant
 
-- [ ] **Enregistrer les fichiers de la V023** (archive `V023.zip`, liste dans `liste_fichiers_V023.txt`) : **nouveau** `tests/test_jalon14.py` ; **remplacés** `js/features/furniture.js`, `js/ui/views/furniture.js`, `css/furniture.css`, `js/config.js`, `sw.js` (**racine**), `tests/test_jalon9_2.py` et les trois `.md`. Tout le reste est inchangé. Vérifier que la version affichée est `V023` (sinon Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis mettre à jour la base `Contexte`.
+- [ ] **Enregistrer les fichiers de la V023a** (archive `V023a.zip`, liste dans `liste_fichiers_V023a.txt`) : **nouveau** `tests/test_jalon14.py` ; **remplacés** `js/features/furniture.js`, `js/ui/views/furniture.js`, `css/furniture.css`, `js/config.js`, `sw.js` (**racine**), `tests/test_jalon9_2.py` et les trois `.md`. Tout le reste est inchangé (**`tests/test_jalon14.py` est refait** : 62 tests). Vérifier que la version affichée est `V023a` (sinon Réglages › « Rechercher une mise à jour » puis « Mettre à jour »), puis mettre à jour la base `Contexte`.
 - [ ] **Exporter une sauvegarde** de vos vraies données avant d'essayer (précaution habituelle).
 - [ ] **Tester la V023** (écran déplié **et** replié), sur un meuble en Vue graphique : Actions › « Régler la grille… » › **Pieds** : Sans / Petits / Grands.
   1. **Petits** : comme avant ; un meuble qui avait « Avec » doit afficher « Petits ».
-  2. **Grands** : deux pieds de la moitié de la hauteur du meuble ; avec **Dessous = 1 ou plus**, la bande se place **entre les pieds** ; y placer un emplacement (« Placer et dimensionner » ou case libre) ; essayer en écran replié.
+  2. **Grands** : pieds de la **même hauteur que le meuble** (moitié de la hauteur totale) ; avec **Dessous = 1 ou plus**, la bande se place **entre les pieds** ; y placer un emplacement (« Placer et dimensionner » ou case libre) ; essayer en écran replié.
+  3. **Très grands** (par exemple une table sans tiroirs) : pieds à **75 % de la hauteur totale** ; vérifier qu'on peut toujours ajouter un emplacement (appui long sur une case libre, y compris entre les pieds) et un objet (menu « Actions »).
 - [ ] **Répondre** : les grands pieds (20 px de large, aux extrémités) vous conviennent-ils ? La bande « Dessous » plus étroite entre les pieds est-elle lisible (surtout avec plusieurs colonnes) ?
 - [ ] **Préparer la V024** (ouvertures dans les pièces) : réponses aux questions de cadrage (largeur entière ou non, portes seules ou aussi fenêtres, symbole d'ouverture, purement visuel ou utile à la navigation), à donner dans la conversation de la V024. Les catégories (à la place des mots-clés) attendent votre réflexion.
 
@@ -225,3 +227,4 @@
 | V022 | 25/11/2026 22:35 | Jalon 13 : ajustements d'interface ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
 | V022a | 26/11/2026 02:45 | Correctif du pictogramme du volet d'arborescence ; fichiers à enregistrer (voir liste) |
 | V023 | 27/11/2026 00:35 | Jalon 14 : pieds « petits / grands » ; fichiers à enregistrer, tests, base Contexte à mettre à jour |
+| V023a | 27/11/2026 00:50 | Correctif jalon 14 : grands pieds = moitié de la hauteur totale, « très grands » (75 %) ; mêmes fichiers que la V023 |

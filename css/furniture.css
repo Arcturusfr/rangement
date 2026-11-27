@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V023
-  Horodatage : 2026-11-27 00:20 (heure de Paris)
-  Résumé : V023 : grands pieds (.furn-legs, .furn-foot--tall).
+  Version : V023a
+  Horodatage : 2026-11-27 00:50 (heure de Paris)
+  Résumé : V023a : grands pieds = hauteur du cadre ; très grands pieds (3 × le cadre).
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -76,7 +76,7 @@
 
 .furn-feet { display: flex; justify-content: space-between; padding: 0 10%; }
 .furn-foot { width: 16px; height: 24px; border-radius: 0 0 4px 4px; background: var(--level-color, var(--ink)); }
-/* V023 : grands pieds = moitié de la hauteur du meuble (min-height posée par fitLegs) ; la bande « Dessous » se place entre eux */
+/* V023 / V023a : grands pieds (hauteur = cadre) et très grands pieds (3 × le cadre), min-height posée par fitLegs ; la bande « Dessous » se place entre eux */
 .furn-legs { display: flex; align-items: stretch; justify-content: space-between; gap: var(--space-2); padding: 0 6%; }
 .furn-legs-mid { flex: 1; min-width: 0; }
 .furn-foot--tall { flex: none; width: 20px; height: auto; }
