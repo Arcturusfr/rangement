@@ -1,8 +1,8 @@
 /*
   css/furniture.css — Application « Rangement »
-  Version : V023a
-  Horodatage : 2026-11-27 00:50 (heure de Paris)
-  Résumé : V023a : grands pieds = hauteur du cadre ; très grands pieds (3 × le cadre).
+  Version : V023b
+  Horodatage : 2026-11-27 01:20 (heure de Paris)
+  Résumé : V023b : corps de meuble aplati (.furn-flat) pour tenir à l'écran.
 */
 
 /* Nombre d'objets (total, sous-emplacements compris) à droite de chaque libellé de l'arborescence */
@@ -80,6 +80,12 @@
 .furn-legs { display: flex; align-items: stretch; justify-content: space-between; gap: var(--space-2); padding: 0 6%; }
 .furn-legs-mid { flex: 1; min-width: 0; }
 .furn-foot--tall { flex: none; width: 20px; height: auto; }
+
+/* V023b : corps de meuble aplati (lignes < 60 px) : nom et nombre d'objets sur une seule ligne */
+.furn-flat .furn-open { flex-direction: row; align-items: center; gap: var(--space-2); }
+.furn-flat .furn-name { flex: 1 1 auto; }
+.furn-flat .furn-count { flex: none; }
+.furn-flat .furn-kind { display: none; }
 
 /* Case étroite (< 85 px) : le bandeau de niveau disparaît, toute la case ouvre le menu (« Ouvrir » en tête) */
 @container (max-width: 84px) { .furn-more { display: none; } }

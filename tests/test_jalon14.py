@@ -1,7 +1,7 @@
 # tests/test_jalon14.py — Application « Rangement »
-# Version : V023a
-# Horodatage : 2026-11-27 00:50 (heure de Paris)
-# Résumé : jalon 14 (V023, V023a) : pieds « Sans / Petits / Grands / Très grands » ; grands = pieds de la hauteur du cadre (moitié de la hauteur totale), très grands = 3 × le cadre (75 %) ; bande « Dessous » entre les pieds ; ancienne valeur « avec » lue comme « petits ».
+# Version : V023b
+# Horodatage : 2026-11-27 01:20 (heure de Paris)
+# Résumé : jalon 14 (V023, V023a, V023b) : pieds « Sans / Petits / Grands / Très grands » (grands = pieds de la hauteur du cadre, très grands = 3 × le cadre) ; bande « Dessous » entre les pieds ; ancienne valeur « avec » lue comme « petits » ; meubles non « Haut » entièrement visibles à l'écran.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon14.py
 # Nécessite : pip install playwright  puis  playwright install chromium
@@ -338,6 +338,68 @@ def scenario_tres_grands(browser, base):
     ctx.close()
 
 
+def fits(page):
+    """Le cadre du meuble (bandes et pieds compris) tient dans le volet de détail, défilement en haut."""
+    page.evaluate("document.getElementById('pane-detail').scrollTop = 0")
+    page.wait_for_timeout(120)
+    fr, pane = page.locator(".furn-frame").bounding_box(), page.locator("#pane-detail").bounding_box()
+    return fr["y"] + fr["height"] <= pane["y"] + pane["height"] + 1, (fr, pane)
+
+
+def settle_fit(page):
+    page.wait_for_function("document.querySelector('.furn-body') && document.querySelector('.furn-body').getAttribute('data-furn-fit') === '1'")
+    page.wait_for_timeout(200)
+
+
+def scenario_fit_screen(browser, base):
+    errors = []
+    for (w, h) in ((884, 1000), (390, 844)):
+        ctx, page = start(browser, base, w, h, errors)
+        goto_meuble(page, base)
+        mid = loc_id(page, "Meuble living")
+        js(page, "%s.setGrid('%s', {bottom:1})" % (F, mid))
+        for feet in ("tres-grands", "grands", "petits", False):
+            js(page, "%s.set('%s', {feet:%s})" % (F, mid, "false" if feet is False else repr(feet)))
+            page.wait_for_selector(".furn-body:not([data-plan])")
+            settle_fit(page)
+            ok, d = fits(page)
+            check("écran | %dx%d, pieds %s : le meuble tient entièrement à l'écran" % (w, h, feet or "sans"), ok, d)
+            if feet in ("tres-grands", "grands"):
+                b, l = sizes(page)
+                fct = 3 if feet == "tres-grands" else 1
+                check("écran | %dx%d, pieds %s : proportions des pieds conservées (× %d)" % (w, h, feet, fct), abs(l - fct * b) <= 3, (b, l))
+        # proportions « Carré » et « Très large », avec bande du dessus
+        js(page, "%s.setGrid('%s', {top:1})" % (F, mid))
+        for ratio in (1, 2.2):
+            js(page, "%s.set('%s', {ratio:%s, feet:'petits'})" % (F, mid, ratio))
+            settle_fit(page)
+            ok, d = fits(page)
+            check("écran | %dx%d, proportions %s + bande du dessus : tient à l'écran" % (w, h, ratio), ok, d)
+        # « Haut » : inchangé (hauteur = largeur / 0,7), pas d'ajustement
+        js(page, "%s.set('%s', {ratio:0.7})" % (F, mid))
+        page.wait_for_selector(".furn-body:not([data-plan])")
+        page.wait_for_timeout(300)
+        bb = page.locator(".furn-body").bounding_box()
+        check("écran | %dx%d, proportions « Haut » : pas d'ajustement, hauteur = largeur / 0,7" % (w, h), js(page, "document.querySelector('.furn-body').hasAttribute('data-furn-fit')") is False and abs(bb["height"] - bb["width"] / 0.7) <= 3, bb)
+        # table sans emplacement, très grands pieds : plateau plat, tient à l'écran, création possible
+        js(page, "Rangement.features.locations.create({name:'Table', kind:'meuble', parentId:'%s'})" % loc_id(page, "Séjour"))
+        page.goto(base + "#/l/" + loc_id(page, "Table"))
+        page.wait_for_function("document.querySelector('#pane-detail .detail-title').textContent === 'Table'")
+        page.wait_for_selector(".furn-body:not([data-plan])")
+        js(page, "%s.set('%s', {feet:'tres-grands'})" % (F, loc_id(page, "Table")))
+        page.wait_for_selector(".furn-legs")
+        settle_fit(page)
+        ok, d = fits(page)
+        check("écran | %dx%d, table à très grands pieds : tient à l'écran" % (w, h), ok, d)
+        check("écran | %dx%d, table : cases libres dans le plateau" % (w, h), page.locator(".furn-body .furn-slot").count() >= 1)
+        page.locator("#manage-toggle").click()
+        check("écran | %dx%d, table : « Ajouter un emplacement / un objet ici » proposés" % (w, h), page.locator(".ctx-menu").get_by_role("button", name="Ajouter un emplacement ici", exact=True).count() == 1 and page.locator(".ctx-menu").get_by_role("button", name="Ajouter un objet ici", exact=True).count() == 1)
+        page.keyboard.press("Escape")
+        check("écran | %dx%d, pas de défilement horizontal" % (w, h), js(page, "document.documentElement.scrollWidth - window.innerWidth") <= 0)
+        ctx.close()
+    check("écran | aucune erreur console", not errors, errors)
+
+
 def main():
     server = QuietServer(("127.0.0.1", 0), functools.partial(QuietHandler, directory=ROOT))
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -349,6 +411,7 @@ def main():
         scenario_band(browser, base)
         scenario_resize(browser, base)
         scenario_tres_grands(browser, base)
+        scenario_fit_screen(browser, base)
         browser.close()
     failed = [r for r in results if not r[1]]
     print("\n%d tests, %d échec(s)" % (len(results), len(failed)))

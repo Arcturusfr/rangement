@@ -1,6 +1,6 @@
 # tests/test_jalon9_2.py — Application « Rangement »
-# Version : V023a
-# Horodatage : 2026-11-27 00:50 (heure de Paris)
+# Version : V023b
+# Horodatage : 2026-11-27 01:20 (heure de Paris)
 # Résumé : V023 : « Pieds : Avec » devient « Petits » (feet == 'petits') ; reste inchangé.
 #
 # Lancement (depuis la racine du projet) :  python3 tests/test_jalon9_2.py

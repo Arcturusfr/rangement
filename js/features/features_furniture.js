@@ -1,8 +1,8 @@
 /*
   js/features/furniture.js — Application « Rangement »
-  Version : V023
-  Horodatage : 2026-11-27 00:20 (heure de Paris)
-  Résumé : V023 : pieds « petits » ou « grands » (get().feet = false | 'petits' | 'grands') ; l'ancienne valeur « avec » est lue comme « petits ».
+  Version : V023a
+  Horodatage : 2026-11-27 00:50 (heure de Paris)
+  Résumé : V023a : pieds « très grands » ('tres-grands') ; get().feet = false | 'petits' | 'grands' | 'tres-grands'.
 */
 (function () {
   'use strict';
@@ -43,13 +43,13 @@
     return d === 1 || (d > 1 && R.store.childLocations(id).length > 0);
   }
 
-  // Pieds : false (sans), 'petits' ou 'grands'. L'ancienne valeur booléenne « avec » (true) est lue comme « petits ».
-  function feetOf(v) { return v === 'grands' ? 'grands' : ((v === 'petits' || v === true) ? 'petits' : false); }
+  // Pieds : false (sans), 'petits', 'grands' (pieds = moitié de la hauteur totale) ou 'tres-grands' (75 %). L'ancienne valeur booléenne « avec » (true) est lue comme « petits ».
+  function feetOf(v) { return (v === 'grands' || v === 'tres-grands') ? v : ((v === 'petits' || v === true) ? 'petits' : false); }
 
   function geomOf(l) { return (l && l.geometry && typeof l.geometry === 'object') ? l.geometry : {}; }
   function intIn(v, min, max) { return (typeof v === 'number' && v === Math.floor(v) && v >= min && v <= max) ? v : null; }
 
-  // Réglages d'un emplacement dessiné : { ratio, feet (false | 'petits' | 'grands'), cols, rows, top, bottom } (0 = automatique pour cols et rows).
+  // Réglages d'un emplacement dessiné : { ratio, feet (false | 'petits' | 'grands' | 'tres-grands'), cols, rows, top, bottom } (0 = automatique pour cols et rows).
   function get(id) {
     var a = absFor(id);
     var g = isRoot(id) ? (R.store.plan() || {}) : geomOf(R.store.getLocation(id));
@@ -243,7 +243,7 @@
     return commit(id, layout(id));
   }
 
-  // patch : { ratio?, feet? } (meubles seulement ; feet : false, 'petits' ou 'grands')
+  // patch : { ratio?, feet? } (meubles seulement ; feet : false, 'petits', 'grands' ou 'tres-grands')
   function set(id, patch) {
     if (isRoot(id) || !R.store.getLocation(id)) { return fail('Cet emplacement n\u2019existe plus.'); }
     var clean = {};

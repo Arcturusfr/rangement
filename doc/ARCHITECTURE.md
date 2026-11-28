@@ -1,13 +1,13 @@
 <!--
   ARCHITECTURE.md — Application « Rangement »
-  Version : V023a
-  Horodatage : 2026-11-27 00:50 (heure de Paris)
-  Résumé : V023a (jalon 14) : pieds des meubles Sans / Petits / Grands / Très grands (grands = pieds de la hauteur du cadre, très grands = 75 % de la hauteur totale, bande « Dessous » entre les pieds). V022 / V022a validées.
+  Version : V023b
+  Horodatage : 2026-11-27 01:20 (heure de Paris)
+  Résumé : V023b (jalon 14) : un meuble dont les proportions ne sont pas « Haut » tient entièrement à l'écran (corps aplati si besoin) ; pieds Sans / Petits / Grands / Très grands. V022 / V022a validées.
 -->
 
-# ARCHITECTURE — Rangement `V023a`
+# ARCHITECTURE — Rangement `V023b`
 
-> Dernière mise à jour : 27/11/2026 00:50 (Paris) — **V023a** (jalon 14 : pieds « petits / grands / très grands » ; **V022 et V022a validées**)
+> Dernière mise à jour : 27/11/2026 01:20 (Paris) — **V023b** (jalon 14 : pieds « petits / grands / très grands » ; **V022 et V022a validées**)
 > Statut : **jalon 14 livré (V023)** : liste « Pieds » = Sans / Petits / Grands / Très grands ; grands pieds = moitié de la hauteur totale (pieds compris, donc pieds = cadre), très grands = 75 % ; la bande « Dessous » se place entre les pieds. Jalon 13 (V022) : plus de carré de surbrillance au toucher sur les boutons ; boutons du détail (écran déplié) réunis dans **un seul conteneur** à fin filet transparent ; flèches de niveau **circulaires** ; bouton réduire / élargir le volet **bleu #043BB2** et aussi haut que « Logement » ; nouvelle icône « Actions » (éclair dans un carré) ; **pictogrammes devant les commandes des menus** ; marge de 16 px de plus sous le contenu (barre des tâches du téléphone). Jalons 1 à 12 livrés et validés.
 
 ## 1. Principes directeurs
@@ -398,6 +398,7 @@ Si `localStorage` est indisponible, `storage.js` bascule en mémoire et l'appli 
 - **Réglage** : la boîte « Grille de … » propose « Pieds : Sans / Petits / Grands / Très grands » (valeurs `0` / `1` / `2` / `3`) avec une indication sur les grands pieds.
 - **Petits pieds** : inchangés (deux petits pieds de 16 × 24 px sous le cadre ; la bande « Dessous » se place sous eux).
 - **Grands pieds** : zone `.furn-legs` sous le cadre = deux pieds `.furn-foot--tall` (20 px de large, aux deux extrémités) avec, **entre eux**, la bande « Dessous » (`.furn-legs-mid`). Leur hauteur est calculée **sur la hauteur totale, pieds compris** : « Grands » = moitié de la hauteur totale, donc **pieds = hauteur du cadre** (× 1) ; « Très grands » = **75 %** de la hauteur totale, donc **3 × la hauteur du cadre** (`min-height` posée par `fitLegs()`, facteur lu dans `data-feet` dans `views/furniture.js`, recalculée à l'affichage, au redimensionnement — `ResizeObserver` sur le cadre et `refitAll()` — et à chaque redessin) ; elle grandit si la bande « Dessous » est plus haute. Création d'emplacements et d'objets toujours possible : cases libres de la bande (appui long, y compris dans le vide entre les pieds : case libre la plus proche), cases libres du plateau, menu « Actions ». Les emplacements placés dans la bande (`zone: 'bottom'`) s'y dessinent, appui long et cases libres compris. `fit()` (plans) n'est pas concerné : seuls les meubles ont des pieds.
+- **Meubles entièrement visibles (V023b)** : un meuble dont les proportions ne sont **pas « Haut »** (Carré, Large, Très large) tient **entièrement dans l'écran**, bandes et pieds compris (`fitFurn()` dans `views/furniture.js`, appelée avec `fit()` / `fitLegs()` à l'affichage, au redimensionnement et quand l'en-tête figé change de hauteur). Le corps est **aplati** si besoin : jamais sous 64 px par ligne (`ROW_MIN`), sauf avec de **grands pieds** (tables) où il peut descendre à **40 px par ligne** (`FLAT_ROW`) ; sous 60 px par ligne la classe `.furn-flat` met le nom et le nombre d'objets sur une seule ligne. Les proportions des pieds sont conservées (× 1 ou × 3 du corps aplati). Si même le minimum ne tient pas (beaucoup de lignes, petit écran), la page défile comme avant. « Haut » est inchangé (hauteur = largeur / 0,7, défilement possible). Repère de test : `data-furn-fit` sur le cadre.
 
 ### 5.1 Diagnostic de démarrage
 
@@ -468,3 +469,4 @@ Le service worker est une source classique de bugs (ancienne version qui reste e
 | V022a | 26/11/2026 02:45 | Correctif : pictogramme du volet d'arborescence bleu #043BB2 et agrandi (le bouton n'est plus coloré) |
 | V023 | 27/11/2026 00:35 | Jalon 14 : V022 / V022a validées ; pieds des meubles « Sans / Petits / Grands » (grands = moitié de la hauteur, bande « Dessous » entre les pieds), ancienne valeur « avec » lue comme « petits » |
 | V023a | 27/11/2026 00:50 | Correctif jalon 14 : grands pieds = hauteur du cadre (moitié de la hauteur totale, pieds compris) ; nouveau choix « Très grands » (75 %) |
+| V023b | 27/11/2026 01:20 | Correctif jalon 14 : les meubles dont les proportions ne sont pas « Haut » tiennent entièrement à l'écran (corps aplati si besoin, jusqu'à 40 px par ligne avec de grands pieds) |

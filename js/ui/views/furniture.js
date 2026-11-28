@@ -1,8 +1,8 @@
 /*
   js/ui/views/furniture.js — Application « Rangement »
-  Version : V023a
-  Horodatage : 2026-11-27 00:50 (heure de Paris)
-  Résumé : V023a : pieds « grands » = hauteur du cadre (moitié de la hauteur totale pieds compris) ; nouveau choix « Très grands » (75 % de la hauteur totale).
+  Version : V023b
+  Horodatage : 2026-11-27 01:20 (heure de Paris)
+  Résumé : V023b : un meuble dont les proportions ne sont pas « Haut » tient entièrement dans l'écran (corps aplati si besoin, jusqu'à 40 px par ligne avec de grands pieds).
 */
 (function () {
   'use strict';
@@ -24,6 +24,7 @@
   var selected = null;    // emplacement sélectionné (mode ajustement)
   var message = null;     // refus à afficher une fois
   var uid = 0;
+  var FLAT_ROW = 40;      // hauteur minimale d'une ligne quand le corps d'un meuble à grands pieds est aplati pour tenir à l'écran (px)
   var BOTTOM_EXTRA = 16;  // marge sous le plan (px), identique à --bottom-extra de base.css : la barre des tâches du téléphone masque le bas
 
   // Plan « taille réelle » (défilement) ou « ajusté à l'écran » (choix mémorisé sur l'appareil).
@@ -337,14 +338,54 @@
     legs.style.minHeight = Math.round(body.getBoundingClientRect().height * (legs.getAttribute('data-feet') === 'tres-grands' ? 3 : 1)) + 'px';
   }
 
+  // Meuble dont les proportions ne sont pas « Haut » : il doit tenir entièrement dans l'écran (bandes et pieds compris). Le corps est aplati si besoin :
+  // jamais sous une ligne de ROW_MIN px, sauf avec de grands pieds (tables) où il peut descendre à FLAT_ROW px par ligne.
+  function fitFurn(wrap) {
+    if (!wrap.isConnected || !wrap._furn) { return; }
+    var cfg = wrap._furn;
+    var body = wrap.querySelector('.furn-body');
+    var pane = wrap.closest('.pane');
+    if (!body || !pane || body.hasAttribute('data-plan') || cfg.ratio <= 0.85) { return; }
+    var frame = body.parentNode;
+    var legs = frame.querySelector('.furn-legs');
+    var factor = legs ? (legs.getAttribute('data-feet') === 'tres-grands' ? 3 : 1) : 0;
+    var floor = cfg.tall ? cfg.rows * FLAT_ROW + 24 + (cfg.rows - 1) * 8 : cfg.rows * ROW_MIN;
+    body.style.height = '';                                   // taille naturelle (proportions, minimum de lignes)
+    body.style.minHeight = (cfg.rows * ROW_MIN) + 'px';
+    if (legs) { legs.style.minHeight = '0px'; }
+    var nat = body.getBoundingClientRect().height;
+    if (nat <= 0) { return; }
+    var legsNat = legs ? legs.getBoundingClientRect().height : 0;
+    var other = frame.getBoundingClientRect().height - nat - legsNat;      // bandes, petits pieds
+    var top = frame.getBoundingClientRect().top - pane.getBoundingClientRect().top + pane.scrollTop;
+    var avail = pane.clientHeight - top - cfg.reserve;
+    var hb = avail - other;
+    if (legs) {
+      hb = (avail - other) / (1 + factor);
+      if (factor * hb < legsNat) { hb = avail - other - legsNat; }   // la bande « Dessous » est plus haute que les pieds
+    }
+    hb = Math.max(floor, Math.min(Math.round(nat), Math.floor(hb)));
+    body.style.minHeight = floor + 'px';
+    body.style.height = hb + 'px';
+    var rowH = (hb - 24 - (cfg.rows - 1) * 8) / cfg.rows;
+    body.classList.toggle('furn-flat', rowH < 60);
+    body.setAttribute('data-furn-fit', '1');
+    if (!wrap._ro2 && window.ResizeObserver) {      // l'en-tête figé change de hauteur : on recalcule
+      wrap._ro2 = new window.ResizeObserver(function () { fitFurn(wrap); });
+      Array.prototype.forEach.call(pane.querySelectorAll('.detail-sticky'), function (n) { wrap._ro2.observe(n); });
+    }
+    fitLegs(wrap);
+  }
+
   function schedule(wrap) {
     fit(wrap);
+    fitFurn(wrap);
     fitLegs(wrap);
-    if (window.requestAnimationFrame) { window.requestAnimationFrame(function () { fit(wrap); fitLegs(wrap); window.requestAnimationFrame(function () { fit(wrap); fitLegs(wrap); }); }); }
+    if (window.requestAnimationFrame) { window.requestAnimationFrame(function () { fit(wrap); fitFurn(wrap); fitLegs(wrap); window.requestAnimationFrame(function () { fit(wrap); fitFurn(wrap); fitLegs(wrap); }); }); }
   }
 
   function refitAll() {
-    Array.prototype.forEach.call(document.querySelectorAll('.furn-view'), function (w) { fit(w); fitLegs(w); });
+    Array.prototype.forEach.call(document.querySelectorAll('.furn-view'), function (w) { fit(w); fitFurn(w); fitLegs(w); });
   }
   window.addEventListener('resize', refitAll);
   R.events.on('layout:changed', refitAll);
@@ -476,6 +517,7 @@
 
     var items = atRoot ? [] : R.store.itemsIn(shownId);
     wrap._plan = planLike ? { C: lay.C, L: lay.L, real: zoomReal(), reserve: (editing ? 230 : 40) + BOTTOM_EXTRA } : null;
+    wrap._furn = planLike ? null : { ratio: g.ratio, rows: lay.L, tall: g.feet === 'grands' || g.feet === 'tres-grands', reserve: (editing ? 230 : 40) + BOTTOM_EXTRA };
     if (items.length) {
       wrap.appendChild(el('section', { class: 'section' }, [
         el('h3', { class: 'section-title' }, ['Objets rangés dans \u00ab ' + loc.name + ' \u00bb (niveau ' + (depth + 1) + ') : ' + items.length]),
